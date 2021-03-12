@@ -1,3 +1,9 @@
-nimcache/
-nimblecache/
-htmldocs/
+# ignore executable (hack for linux)
+*
+!/**/
+!*.*
+
+*.exe
+
+# file prefixed by x_ are ignored
+x_*
