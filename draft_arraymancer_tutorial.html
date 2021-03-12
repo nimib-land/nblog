@@ -1,0 +1,322 @@
+<!DOCTYPE html>
+<html lang="en-us">
+<head>
+  <title>draft_arraymancer_tutorial.nim</title>
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2280%22>🐳</text></svg>">
+  <meta content="text/html; charset=utf-8" http-equiv="content-type">
+  <meta content="width=device-width, initial-scale=1" name="viewport">
+  <link rel='stylesheet' href='https://unpkg.com/normalize.css/'>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/kognise/water.css@latest/dist/light.min.css">
+  <link rel='stylesheet' href='https://cdn.jsdelivr.net/gh/pietroppeter/nimib/assets/atom-one-light.css'>
+  </head>
+<body>
+<main>
+<h1>Arraymancer Tutorial - First steps</h1>
+<blockquote>
+<p>A remake of the original tutorial using nimib: <a href="https://mratsim.github.io/Arraymancer/tuto.first_steps.html">https://mratsim.github.io/Arraymancer/tuto.first_steps.html</a></p>
+<p>I will note differences with the original in quoted sections.</p>
+</blockquote>
+<h2>Tensor properties</h2>
+<p>Tensors have the following properties:</p>
+<ul>
+<li><code>rank</code>: 0 for scalar (cannot be stored), 1 for vector, 2 for matrices, <em>N</em> for <em>N</em> dimensional arrays</li>
+<li><code>shape</code>: a sequence of the tensor dimensions along each axis</li>
+</ul>
+<p>Next properties are technical and there for completeness:</p>
+<ul>
+<li><code>stride</code>: a sequence of numbers of steps to get the next item along a dimension</li>
+<li><code>offset</code>: the first element of the tensor</li>
+</ul>
+<pre><code class="nim hljs"><span class="hljs-keyword">import</span>
+  arraymancer, sugar, sequtils
+
+<span class="hljs-keyword">let</span> d = [[<span class="hljs-number">1</span>, <span class="hljs-number">2</span>, <span class="hljs-number">3</span>], [<span class="hljs-number">4</span>, <span class="hljs-number">5</span>, <span class="hljs-number">6</span>]].toTensor()
+<span class="hljs-keyword">echo</span> d</code></pre>
+<pre><samp>Tensor[system.int] of shape [2, 3]" on backend "Cpu"
+|1	2	3|
+|4	5	6|</samp></pre>
+<blockquote>
+<p>message changed, it was: <code>Tensor of shape 2x3 of type &quot;int&quot; on backend &quot;Cpu&quot;</code></p>
+</blockquote>
+<pre><code class="nim hljs">dump d.rank
+dump d.shape
+dump d.strides               <span class="hljs-comment">## [x,y] =&gt; next row is x elements away in memory while next column is 1 element away.</span>
+dump d.offset</code></pre>
+<pre><samp>d.rank = 2
+d.shape = [2, 3]
+d.strides = [3, 1]
+d.offset = 0</samp></pre>
+<blockquote>
+<p>echo of shape and strides changed (dropped @)</p>
+</blockquote>
+<h2>Tensor creation</h2>
+<p>The canonical way to initialize a tensor is by converting a seq of seq of ... or an array of array of ...
+into a tensor using <code>toTensor</code>.
+<code>toTensor</code> supports deep nested sequences and arrays, even sequences of array of sequences.</p>
+<pre><code class="nim hljs"><span class="hljs-keyword">let</span> c = [[[<span class="hljs-number">1</span>, <span class="hljs-number">2</span>, <span class="hljs-number">3</span>], [<span class="hljs-number">4</span>, <span class="hljs-number">5</span>, <span class="hljs-number">6</span>]], [[<span class="hljs-number">11</span>, <span class="hljs-number">22</span>, <span class="hljs-number">33</span>], [<span class="hljs-number">44</span>, <span class="hljs-number">55</span>, <span class="hljs-number">66</span>]],
+         [[<span class="hljs-number">111</span>, <span class="hljs-number">222</span>, <span class="hljs-number">333</span>], [<span class="hljs-number">444</span>, <span class="hljs-number">555</span>, <span class="hljs-number">666</span>]],
+         [[<span class="hljs-number">1111</span>, <span class="hljs-number">2222</span>, <span class="hljs-number">3333</span>], [<span class="hljs-number">4444</span>, <span class="hljs-number">5555</span>, <span class="hljs-number">6666</span>]]].toTensor()
+<span class="hljs-keyword">echo</span> c</code></pre>
+<pre><samp>Tensor[system.int] of shape [4, 2, 3]" on backend "Cpu"
+| | 	1	2	3 | 	11	22	33 | 	111	222	333 | 	1111	2222	3333|
+| | 	4	5	6 | 	44	55	66 | 	444	555	666 | 	4444	5555	6666|</samp></pre>
+<blockquote>
+<p>I am not sure where the additional pipes come from, maybe a bug?</p>
+</blockquote>
+<p><code>newTensor</code> procedure can be used to initialize a tensor of a specific
+shape with a default value. (0 for numbers, false for bool...)</p>
+<p><code>zeros</code> and <code>ones</code> procedures create a new tensor filled with 0 and
+1 respectively.</p>
+<p><code>zeros_like</code> and <code>ones_like</code> take an input tensor and output a
+tensor of the same shape but filled with 0 and 1 respectively.</p>
+<pre><code class="nim hljs"><span class="hljs-keyword">let</span> e = newTensor[<span class="hljs-built_in">bool</span>]([<span class="hljs-number">2</span>, <span class="hljs-number">3</span>])
+dump e</code></pre>
+<pre><samp>e = Tensor[system.bool] of shape [2, 3]" on backend "Cpu"
+|false	false	false|
+|false	false	false|</samp></pre>
+<pre><code class="nim hljs"><span class="hljs-keyword">let</span> f = zeros[<span class="hljs-built_in">float</span>]([<span class="hljs-number">4</span>, <span class="hljs-number">3</span>])
+dump f</code></pre>
+<pre><samp>f = Tensor[system.float] of shape [4, 3]" on backend "Cpu"
+|0.0	0.0	0.0|
+|0.0	0.0	0.0|
+|0.0	0.0	0.0|
+|0.0	0.0	0.0|</samp></pre>
+<pre><code class="nim hljs"><span class="hljs-keyword">let</span> g = ones[<span class="hljs-built_in">float</span>]([<span class="hljs-number">4</span>, <span class="hljs-number">3</span>])
+dump g</code></pre>
+<pre><samp>g = Tensor[system.float] of shape [4, 3]" on backend "Cpu"
+|1.0	1.0	1.0|
+|1.0	1.0	1.0|
+|1.0	1.0	1.0|
+|1.0	1.0	1.0|</samp></pre>
+<pre><code class="nim hljs"><span class="hljs-keyword">let</span> tmp = [[<span class="hljs-number">1</span>, <span class="hljs-number">2</span>], [<span class="hljs-number">3</span>, <span class="hljs-number">4</span>]].toTensor()
+<span class="hljs-keyword">let</span> h = tmp.zeros_like
+dump h</code></pre>
+<pre><samp>h = Tensor[system.int] of shape [2, 2]" on backend "Cpu"
+|0	0|
+|0	0|</samp></pre>
+<pre><code class="nim hljs"><span class="hljs-keyword">let</span> i = tmp.ones_like
+dump i</code></pre>
+<pre><samp>i = Tensor[system.int] of shape [2, 2]" on backend "Cpu"
+|1	1|
+|1	1|</samp></pre>
+<h2>Accessing and modifying a value</h2>
+<p>Tensors value can be retrieved or set with array brackets.</p>
+<pre><code class="nim hljs"><span class="hljs-keyword">var</span> a = toSeq(<span class="hljs-number">1</span> .. <span class="hljs-number">24</span>).toTensor().reshape(<span class="hljs-number">2</span>, <span class="hljs-number">3</span>, <span class="hljs-number">4</span>)
+<span class="hljs-keyword">echo</span> a</code></pre>
+<pre><samp>Tensor[system.int] of shape [2, 3, 4]" on backend "Cpu"
+| | 	1	2	3	4 | 	13	14	15	16|
+| | 	5	6	7	8 | 	17	18	19	20|
+| | 	9	10	11	12 | 	21	22	23	24|</samp></pre>
+<pre><code class="nim hljs">dump a[<span class="hljs-number">1</span>, <span class="hljs-number">1</span>, <span class="hljs-number">1</span>]
+<span class="hljs-keyword">echo</span> a</code></pre>
+<pre><samp>a[1, 1, 1] = 18
+Tensor[system.int] of shape [2, 3, 4]" on backend "Cpu"
+| | 	1	2	3	4 | 	13	14	15	16|
+| | 	5	6	7	8 | 	17	18	19	20|
+| | 	9	10	11	12 | 	21	22	23	24|</samp></pre>
+<pre><code class="nim hljs">a[<span class="hljs-number">1</span>, <span class="hljs-number">1</span>, <span class="hljs-number">1</span>] = <span class="hljs-number">999</span>
+<span class="hljs-keyword">echo</span> a</code></pre>
+<pre><samp>Tensor[system.int] of shape [2, 3, 4]" on backend "Cpu"
+| | 	1	2	3	4 | 	13	14	15	16|
+| | 	5	6	7	8 | 	17	999	19	20|
+| | 	9	10	11	12 | 	21	22	23	24|</samp></pre>
+<h2>Copying</h2>
+<p>Warning ⚠: When you do the following, both tensors <code>a</code> and <code>b</code> will share data.
+Full copy must be explicitly requested via the <code>clone</code> function.</p>
+<pre><code class="nim hljs"><span class="hljs-keyword">let</span> a = toSeq(<span class="hljs-number">1</span> .. <span class="hljs-number">24</span>).toTensor().reshape(<span class="hljs-number">2</span>, <span class="hljs-number">3</span>, <span class="hljs-number">4</span>)
+<span class="hljs-keyword">var</span> b = a
+<span class="hljs-keyword">var</span> c = clone(a)</code></pre>
+
+<p>Here modifying <code>b</code> WILL modify <code>a</code>.</p>
+<blockquote>
+<p>adding an example of modification and an example of clone:</p>
+</blockquote>
+<pre><code class="nim hljs">dump a[<span class="hljs-number">1</span>, <span class="hljs-number">0</span>, <span class="hljs-number">0</span>]
+c[<span class="hljs-number">1</span>, <span class="hljs-number">0</span>, <span class="hljs-number">0</span>] = <span class="hljs-number">0</span>
+dump a[<span class="hljs-number">1</span>, <span class="hljs-number">0</span>, <span class="hljs-number">0</span>]
+b[<span class="hljs-number">1</span>, <span class="hljs-number">0</span>, <span class="hljs-number">0</span>] = <span class="hljs-number">0</span>
+dump a[<span class="hljs-number">1</span>, <span class="hljs-number">0</span>, <span class="hljs-number">0</span>]</code></pre>
+<pre><samp>a[1, 0, 0] = 13
+a[1, 0, 0] = 13
+a[1, 0, 0] = 0</samp></pre>
+<p>This behaviour is the same as Numpy and Julia,
+reasons can be found in the following
+<a href="https://mratsim.github.io/Arraymancer/uth.copy_semantics.html">under the hood article</a>.</p>
+
+</main>
+<footer>
+<hr>
+<span id="made">made with <a href="https://github.com/pietroppeter/nimib">nimib 🐳</a></span>
+<button id="show" onclick="toggleSourceDisplay()">Show Source</button>
+<section id="source">
+<pre><code class="nim hljs"><span class="hljs-keyword">import</span> nimib
+
+nbInit
+nbText: <span class="hljs-string">&quot;&quot;&quot;
+# Arraymancer Tutorial - First steps
+
+&gt; A remake of the original tutorial using nimib: &lt;https://mratsim.github.io/Arraymancer/tuto.first_steps.html&gt;
+&gt;
+&gt; I will note differences with the original in quoted sections.
+
+## Tensor properties
+
+Tensors have the following properties:
+- `rank`: 0 for scalar (cannot be stored), 1 for vector, 2 for matrices, *N* for *N* dimensional arrays
+- `shape`: a sequence of the tensor dimensions along each axis
+
+Next properties are technical and there for completeness:
+- `stride`: a sequence of numbers of steps to get the next item along a dimension
+- `offset`: the first element of the tensor
+&quot;&quot;&quot;</span>
+<span class="hljs-comment"># order of variable names (d, c, e, ..., a, b) I guess it reflects the original order of the sections.</span>
+nbCode:
+  <span class="hljs-keyword">import</span> arraymancer, sugar, sequtils
+
+  <span class="hljs-keyword">let</span> d = [[<span class="hljs-number">1</span>, <span class="hljs-number">2</span>, <span class="hljs-number">3</span>], [<span class="hljs-number">4</span>, <span class="hljs-number">5</span>, <span class="hljs-number">6</span>]].toTensor()
+
+  <span class="hljs-keyword">echo</span> d
+
+nbText: <span class="hljs-string">&quot;&quot;&quot;&gt; message changed, it was: `Tensor of shape 2x3 of type &quot;int&quot; on backend &quot;Cpu&quot;`&quot;&quot;&quot;</span>
+
+nbCode:
+  dump d.rank
+  dump d.shape
+  dump d.strides <span class="hljs-comment">## [x,y] =&gt; next row is x elements away in memory while next column is 1 element away.</span>
+  dump d.offset
+nbText: <span class="hljs-string">&quot;&gt; echo of shape and strides changed (dropped @)&quot;</span>
+
+nbText: <span class="hljs-string">&quot;&quot;&quot;
+## Tensor creation
+The canonical way to initialize a tensor is by converting a seq of seq of ... or an array of array of ...
+into a tensor using `toTensor`.
+`toTensor` supports deep nested sequences and arrays, even sequences of array of sequences.
+&quot;&quot;&quot;</span>
+
+nbCode:
+  <span class="hljs-keyword">let</span> c = [
+            [
+              [<span class="hljs-number">1</span>,<span class="hljs-number">2</span>,<span class="hljs-number">3</span>],
+              [<span class="hljs-number">4</span>,<span class="hljs-number">5</span>,<span class="hljs-number">6</span>]
+            ],
+            [
+              [<span class="hljs-number">11</span>,<span class="hljs-number">22</span>,<span class="hljs-number">33</span>],
+              [<span class="hljs-number">44</span>,<span class="hljs-number">55</span>,<span class="hljs-number">66</span>]
+            ],
+            [
+              [<span class="hljs-number">111</span>,<span class="hljs-number">222</span>,<span class="hljs-number">333</span>],
+              [<span class="hljs-number">444</span>,<span class="hljs-number">555</span>,<span class="hljs-number">666</span>]
+            ],
+            [
+              [<span class="hljs-number">1111</span>,<span class="hljs-number">2222</span>,<span class="hljs-number">3333</span>],
+              [<span class="hljs-number">4444</span>,<span class="hljs-number">5555</span>,<span class="hljs-number">6666</span>]
+            ]
+          ].toTensor()
+  <span class="hljs-keyword">echo</span> c
+nbText: <span class="hljs-string">&quot;&gt; I am not sure where the additional pipes come from, maybe a bug?&quot;</span>
+nbText: <span class="hljs-string">&quot;&quot;&quot;
+`newTensor` procedure can be used to initialize a tensor of a specific
+shape with a default value. (0 for numbers, false for bool...)
+
+`zeros` and `ones` procedures create a new tensor filled with 0 and
+1 respectively.
+
+`zeros_like` and `ones_like` take an input tensor and output a
+tensor of the same shape but filled with 0 and 1 respectively.
+&quot;&quot;&quot;</span>
+nbCode:
+  <span class="hljs-keyword">let</span> e = newTensor[<span class="hljs-built_in">bool</span>]([<span class="hljs-number">2</span>, <span class="hljs-number">3</span>])
+  dump e
+nbCode:
+  <span class="hljs-keyword">let</span> f = zeros[<span class="hljs-built_in">float</span>]([<span class="hljs-number">4</span>, <span class="hljs-number">3</span>])
+  dump f
+nbCode:
+  <span class="hljs-keyword">let</span> g = ones[<span class="hljs-built_in">float</span>]([<span class="hljs-number">4</span>, <span class="hljs-number">3</span>])
+  dump g
+nbCode:
+  <span class="hljs-keyword">let</span> tmp = [[<span class="hljs-number">1</span>,<span class="hljs-number">2</span>],[<span class="hljs-number">3</span>,<span class="hljs-number">4</span>]].toTensor()
+  <span class="hljs-keyword">let</span> h = tmp.zeros_like
+  dump h
+nbCode:
+  <span class="hljs-keyword">let</span> i = tmp.ones_like
+  dump i
+
+nbText: <span class="hljs-string">&quot;&quot;&quot;
+## Accessing and modifying a value
+
+Tensors value can be retrieved or set with array brackets.
+&quot;&quot;&quot;</span>
+<span class="hljs-comment"># need to import sequtils to have toSeq</span>
+nbCode:
+    <span class="hljs-keyword">var</span> a = toSeq(<span class="hljs-number">1.</span>.<span class="hljs-number">24</span>).toTensor().reshape(<span class="hljs-number">2</span>,<span class="hljs-number">3</span>,<span class="hljs-number">4</span>)
+    <span class="hljs-keyword">echo</span> a
+nbCode:
+    dump a[<span class="hljs-number">1</span>, <span class="hljs-number">1</span>, <span class="hljs-number">1</span>]
+    <span class="hljs-keyword">echo</span> a
+nbCode:
+    a[<span class="hljs-number">1</span>, <span class="hljs-number">1</span>, <span class="hljs-number">1</span>] = <span class="hljs-number">999</span>
+    <span class="hljs-keyword">echo</span> a
+nbText: <span class="hljs-string">&quot;&quot;&quot;
+## Copying
+
+Warning ⚠: When you do the following, both tensors `a` and `b` will share data.
+Full copy must be explicitly requested via the `clone` function.
+&quot;&quot;&quot;</span>
+<span class="hljs-keyword">block</span>: <span class="hljs-comment"># using a block I can reuse a</span>
+  nbCode:
+    <span class="hljs-keyword">let</span> a = toSeq(<span class="hljs-number">1.</span>.<span class="hljs-number">24</span>).toTensor().reshape(<span class="hljs-number">2</span>,<span class="hljs-number">3</span>,<span class="hljs-number">4</span>)
+    <span class="hljs-keyword">var</span> b = a
+    <span class="hljs-keyword">var</span> c = clone(a)
+  nbText: <span class="hljs-string">&quot;&quot;&quot;
+  Here modifying `b` WILL modify `a`.
+
+  &gt; adding an example of modification and an example of clone:
+  &quot;&quot;&quot;</span>
+  <span class="hljs-comment"># still in block scope in order to reuse b</span>
+  nbCode:
+    dump a[<span class="hljs-number">1</span>, <span class="hljs-number">0</span>, <span class="hljs-number">0</span>]
+    c[<span class="hljs-number">1</span>, <span class="hljs-number">0</span>, <span class="hljs-number">0</span>] = <span class="hljs-number">0</span>
+    dump a[<span class="hljs-number">1</span>, <span class="hljs-number">0</span>, <span class="hljs-number">0</span>]
+    b[<span class="hljs-number">1</span>, <span class="hljs-number">0</span>, <span class="hljs-number">0</span>] = <span class="hljs-number">0</span>
+    dump a[<span class="hljs-number">1</span>, <span class="hljs-number">0</span>, <span class="hljs-number">0</span>]
+nbText: <span class="hljs-string">&quot;&quot;&quot;
+This behaviour is the same as Numpy and Julia,
+reasons can be found in the following
+[under the hood article](https://mratsim.github.io/Arraymancer/uth.copy_semantics.html).
+&quot;&quot;&quot;</span>
+nbShow</code></pre>
+</section>
+<script>
+function toggleSourceDisplay() {
+  var btn = document.getElementById("show")
+  var source = document.getElementById("source");
+  if (btn.innerHTML=="Show Source") {
+    btn.innerHTML = "Hide Source";
+    source.style.display = "block";
+  } else {
+    btn.innerHTML = "Show Source";
+    source.style.display = "none";
+  }
+}
+</script>
+<style>
+span#made {
+  font-size: 0.8rem;
+}
+button#show {
+  font-size: 0.8rem;
+}
+
+button#show {
+  float: right;
+  padding: 2px;
+  padding-right: 5px;
+  padding-left: 5px;
+}
+section#source {
+  display:none
+}
+</style>
+</footer>
+</body>
+</html>
