@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="en-us">
+<head>
+  <title>index.nim</title>
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2280%22>🐳</text></svg>">
+  <meta content="text/html; charset=utf-8" http-equiv="content-type">
+  <meta content="width=device-width, initial-scale=1" name="viewport">
+  <link rel='stylesheet' href='https://unpkg.com/normalize.css/'>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/kognise/water.css@latest/dist/light.min.css">
+  <link rel='stylesheet' href='https://cdn.jsdelivr.net/gh/pietroppeter/nimib/assets/atom-one-light.css'>
+  </head>
+<body>
+<main>
+<h1>✍️🐳👑 nblog</h1>
+<p>A blog about nim ecosystem made with nimib.</p>
+
+</main>
+<footer>
+<hr>
+<span id="made">made with <a href="https://github.com/pietroppeter/nimib">nimib 🐳</a></span>
+<button id="show" onclick="toggleSourceDisplay()">Show Source</button>
+<section id="source">
+<pre><code class="nim hljs"><span class="hljs-keyword">import</span> nimib
+nbInit
+nbText: <span class="hljs-string">&quot;&quot;&quot;# ✍️🐳👑 nblog
+
+A blog about nim ecosystem made with nimib.
+&quot;&quot;&quot;</span>
+nbSave</code></pre>
+</section>
+<script>
+function toggleSourceDisplay() {
+  var btn = document.getElementById("show")
+  var source = document.getElementById("source");
+  if (btn.innerHTML=="Show Source") {
+    btn.innerHTML = "Hide Source";
+    source.style.display = "block";
+  } else {
+    btn.innerHTML = "Show Source";
+    source.style.display = "none";
+  }
+}
+</script>
+<style>
+span#made {
+  font-size: 0.8rem;
+}
+button#show {
+  font-size: 0.8rem;
+}
+
+button#show {
+  float: right;
+  padding: 2px;
+  padding-right: 5px;
+  padding-left: 5px;
+}
+section#source {
+  display:none
+}
+</style>
+</footer>
+</body>
+</html>
