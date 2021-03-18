@@ -5,7 +5,7 @@ nbInit
 nbText: """
 # Display Multidimensional Arrays
 
-I was testing nimib while trying to reproduce [arraymancer]() tutorial,
+I was testing nimib while trying to reproduce [arraymancer](https://pietroppeter.github.io/nblog/drafts/arraymancer_tutorial.html) tutorial,
 and I ran into some [issues](https://github.com/mratsim/Arraymancer/issues/500)
 that arraymancer currently has when displaying tensors.
 This got me to ask myself:
