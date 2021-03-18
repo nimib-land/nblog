@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html lang="en-us">
+<head>
+  <title>bigints_examples.nim</title>
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2280%22>🐳</text></svg>">
+  <meta content="text/html; charset=utf-8" http-equiv="content-type">
+  <meta content="width=device-width, initial-scale=1" name="viewport">
+  <link rel='stylesheet' href='https://unpkg.com/normalize.css/'>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/kognise/water.css@latest/dist/light.min.css">
+  <link rel='stylesheet' href='https://cdn.jsdelivr.net/gh/pietroppeter/nimib/assets/atom-one-light.css'>
+  </head>
+<body>
+<main>
+<h1>Bigints Examples</h1>
+<p>see <a href="https://github.com/def-/nim-bigints/tree/master/examples">https://github.com/def-/nim-bigints/tree/master/examples</a></p>
+<pre><code class="nim hljs"><span class="hljs-keyword">import</span>
+  bigints, sugar</code></pre>
+<h2>Rosetta code</h2>
+<h3><a href="http://rosettacode.org/wiki/Arbitrary-precision_integers_(included)">Arbitrary-precision integers</a></h3>
+<pre><code class="nim hljs"><span class="hljs-keyword">var</span> x = <span class="hljs-number">5.</span>pow <span class="hljs-number">4.</span>pow <span class="hljs-number">3.</span>pow <span class="hljs-number">2</span>
+<span class="hljs-keyword">var</span> s = $x
+<span class="hljs-keyword">echo</span> s[<span class="hljs-number">0</span> .. <span class="hljs-number">19</span>] &amp; <span class="hljs-string">&quot;...&quot;</span> &amp; s[^<span class="hljs-number">20</span> .. ^<span class="hljs-number">1</span>]
+<span class="hljs-keyword">echo</span> s.len, <span class="hljs-string">&quot; digits&quot;</span></code></pre>
+<pre><samp>62060698786608744707...92256259918212890625
+183231 digits</samp></pre>
+<h3>Combinations and permutations</h3>
+<p>Solution for <a href="http://rosettacode.org/wiki/Combinations_and_permutations">Combinations_and_permutations</a></p>
+<pre><code class="nim hljs"><span class="hljs-keyword">proc</span> perm(n, k: <span class="hljs-built_in">int32</span>): <span class="hljs-type">BigInt</span> =
+  <span class="hljs-literal">result</span> = initBigInt <span class="hljs-number">1</span>      <span class="hljs-comment">## I could also use `one` (a const)</span>
+  <span class="hljs-keyword">var</span>
+    k = n - k
+    n = n
+  <span class="hljs-keyword">while</span> n &gt; k:
+    <span class="hljs-literal">result</span> *= n
+    dec n
+
+<span class="hljs-keyword">proc</span> comb(n, k: <span class="hljs-built_in">int32</span>): <span class="hljs-type">BigInt</span> =
+  <span class="hljs-literal">result</span> = perm(n, k)
+  <span class="hljs-keyword">var</span> k = k
+  <span class="hljs-keyword">while</span> k &gt; <span class="hljs-number">0</span>:
+    <span class="hljs-literal">result</span> = <span class="hljs-literal">result</span> <span class="hljs-keyword">div</span> k
+    dec k
+
+dump
+  <span class="hljs-keyword">let</span> combinations = comb(<span class="hljs-number">1000</span>, <span class="hljs-number">969</span>)
+  combinations
+dump
+  <span class="hljs-keyword">let</span> permutations = perm(<span class="hljs-number">1000</span>, <span class="hljs-number">969</span>)
+  permutations</code></pre>
+<pre><samp>let combinations = comb(1000, 969)
+combinations = 76023224077694604844267036884498328958811481548795886956000
+
+let permutations = perm(1000, 969)
+permutations = 48935322338186189966677615285264341307180008233417452886421014800950224875798629273926474557369035547211608939952425271857427907004912931382799980022535452823312144836508204188170562716219897527182757583012458103224469238431017264361357084179542551077339421218458525552210108412655253787858136317956338985503569604861639899701375118833411302155834718351270828287035400491383900493509499569168658161030348473708836044022937712580718634122326391120676298445158652944658449416153349920876602658760327928712841524541385291103617324363995364258875104593688468122090426867620668347962556488927982208536582639896200845855316536558023419168588932089763266007161186460812895165172222679328450735400027239293877695823413549738647246493410762890027858462874704445249505066856869158499901313801901794502504723615154109215428770227142898548411560306800701245360319610995782542728449804204425224900432803335713216610535443069526664397910819420296727391485660367677390609552098469805487995593855202735055224825799441869393117501033477508656170735343719235877766454673978280218812457637409594643934896448323038418194453204867489293698469149128577156374321013443310588967727652631387253936678004973103562714936132170761327107457911224297737840734888430796837809293767771189645281284263896331364944569254604339636706219595567045351283162761038686472674861442149619773743631737332109187120268922583036351767801107619263151558668321857486766620956921907456537417653856615083500356414390187097277419506999359315073694959823940713086453121285609743159030742719230270447287701392999208349056164483814630837742061990086746976557389586277861847668106772171150342474311451036661958197415704018677687188960376326732499270448198456552100604403852921697064424469405220701806194938420802201228657655411564226071892658400557397747212683882156188289009011021109998569430007126733885336598000799364737831050436837847478136562462851361574908821992088989991543967878103201480422357083732815018107934471809944740913159057087257139704509658342961719342049479649453934358082983195657763260664269985623046548957257032904564935980463560696215026021182421434772003716535651452340247847865573980699543205268737090407337836401364575647481349938920034362250943586347426438597011699691456364487594862697358331692914687612436827219584614400000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000</samp></pre>
+<p><code>combinations</code> has 59 digits<br />
+<code>permutations</code> has 2534 digits</p>
+
+</main>
+<footer>
+<hr>
+<span id="made">made with <a href="https://github.com/pietroppeter/nimib">nimib 🐳</a></span>
+<button id="show" onclick="toggleSourceDisplay()">Show Source</button>
+<section id="source">
+<pre><code class="nim hljs"><span class="hljs-keyword">import</span> nimib, strformat
+
+nbInit
+
+nbText <span class="hljs-string">&quot;&quot;&quot;
+# Bigints Examples
+see &lt;https://github.com/def-/nim-bigints/tree/master/examples&gt;&quot;&quot;&quot;</span>
+
+nbCode:
+  <span class="hljs-keyword">import</span> bigints, sugar
+
+<span class="hljs-comment"># todo: add toc</span>
+nbText <span class="hljs-string">&quot;## Rosetta code&quot;</span>
+nbText <span class="hljs-string">&quot;### [Arbitrary-precision integers](http://rosettacode.org/wiki/Arbitrary-precision_integers_(included))&quot;</span>
+nbCode:
+<span class="hljs-comment"># a way to keep this as a separate scope? go the nim way: wrap it in scope!</span>
+  <span class="hljs-keyword">var</span> x = <span class="hljs-number">5.</span>pow <span class="hljs-number">4.</span>pow <span class="hljs-number">3.</span>pow <span class="hljs-number">2</span>
+  <span class="hljs-keyword">var</span> s = $x
+
+  <span class="hljs-keyword">echo</span> s[<span class="hljs-number">0</span> .. <span class="hljs-number">19</span>] &amp; <span class="hljs-string">&quot;...&quot;</span> &amp; s[^<span class="hljs-number">20</span> .. ^<span class="hljs-number">1</span>]
+  <span class="hljs-keyword">echo</span> s.len, <span class="hljs-string">&quot; digits&quot;</span>
+
+nbText <span class="hljs-string">&quot;&quot;&quot;
+### Combinations and permutations
+Solution for [Combinations_and_permutations](http://rosettacode.org/wiki/Combinations_and_permutations)&quot;&quot;&quot;</span>
+
+nbCode:
+  <span class="hljs-keyword">proc</span> perm(n, k: <span class="hljs-built_in">int32</span>): <span class="hljs-type">BigInt</span> = <span class="hljs-comment"># note the spacing on next documentation comment</span>
+    <span class="hljs-literal">result</span> = initBigInt <span class="hljs-number">1</span>  <span class="hljs-comment">## I could also use `one` (a const)</span>
+    <span class="hljs-keyword">var</span>
+      k = n - k
+      n = n
+    <span class="hljs-keyword">while</span> n &gt; k:
+      <span class="hljs-literal">result</span> *= n
+      dec n
+  
+  <span class="hljs-keyword">proc</span> comb(n, k: <span class="hljs-built_in">int32</span>): <span class="hljs-type">BigInt</span> =
+    <span class="hljs-literal">result</span> = perm(n, k)
+    <span class="hljs-keyword">var</span> k = k
+    <span class="hljs-keyword">while</span> k &gt; <span class="hljs-number">0</span>:
+      <span class="hljs-literal">result</span> = <span class="hljs-literal">result</span> <span class="hljs-keyword">div</span> k
+      dec k
+
+  <span class="hljs-comment"># implemented walrus-like, it will be rendered over 3 lines</span>
+  dump (<span class="hljs-keyword">let</span> combinations = comb(<span class="hljs-number">1000</span>, <span class="hljs-number">969</span>); combinations)
+  dump (<span class="hljs-keyword">let</span> permutations = perm(<span class="hljs-number">1000</span>, <span class="hljs-number">969</span>); permutations)
+
+nbText <span class="hljs-string">fmt&quot;&quot;&quot;
+`combinations` has {($combinations).len} digits  
+`permutations` has {($permutations).len} digits&quot;&quot;&quot;</span>  <span class="hljs-comment"># I used trailing spaces here</span>
+
+nbSave
+</code></pre>
+</section>
+<script>
+function toggleSourceDisplay() {
+  var btn = document.getElementById("show")
+  var source = document.getElementById("source");
+  if (btn.innerHTML=="Show Source") {
+    btn.innerHTML = "Hide Source";
+    source.style.display = "block";
+  } else {
+    btn.innerHTML = "Show Source";
+    source.style.display = "none";
+  }
+}
+</script>
+<style>
+span#made {
+  font-size: 0.8rem;
+}
+button#show {
+  font-size: 0.8rem;
+}
+
+button#show {
+  float: right;
+  padding: 2px;
+  padding-right: 5px;
+  padding-left: 5px;
+}
+section#source {
+  display:none
+}
+</style>
+</footer>
+</body>
+</html>
