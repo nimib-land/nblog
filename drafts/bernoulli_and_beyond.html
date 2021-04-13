@@ -1,0 +1,363 @@
+<!DOCTYPE html>
+<html lang="en-us">
+<head>
+  <title>bernoulli_and_beyond.nim</title>
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2280%22>🐳</text></svg>">
+  <meta content="text/html; charset=utf-8" http-equiv="content-type">
+  <meta content="width=device-width, initial-scale=1" name="viewport">
+  <link rel='stylesheet' href='https://unpkg.com/normalize.css/'>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/kognise/water.css@latest/dist/light.min.css">
+  <link rel='stylesheet' href='https://cdn.jsdelivr.net/gh/pietroppeter/nimib/assets/atom-one-light.css'>
+  <style>
+.nb-box {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+.nb-small {
+  font-size: 0.8rem;
+}
+button.nb-small {
+  float: right;
+  padding: 2px;
+  padding-right: 5px;
+  padding-left: 5px;
+}
+section#source {
+  display:none
+}
+</style>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.12.0/dist/katex.min.css" integrity="sha384-AfEj0r4/OFrOo5t7NnNe46zW/tFgW6x/bCJG8FqQCEo3+Aro6EYUG4+cU+KJWu/X" crossorigin="anonymous">
+<script defer src="https://cdn.jsdelivr.net/npm/katex@0.12.0/dist/katex.min.js" integrity="sha384-g7c+Jr9ZivxKLnZTDUhnkOnsh30B4H0rpLUpJ4jAIKs4fnJI+sEnkvrMWph2EDg4" crossorigin="anonymous"></script>
+<script defer src="https://cdn.jsdelivr.net/npm/katex@0.12.0/dist/contrib/auto-render.min.js" integrity="sha384-mll67QQFJfxn0IYznZYonOWZ644AWYC+Pt2cHqMaRhXVrursRwvLnLaebdGIlYNa" crossorigin="anonymous" onload="renderMathInElement(document.body,{delimiters:[{left: '$$', right: '$$', display: true},{left: '$', right: '$', display: false}]});"></script>
+  <script async defer data-domain="pietroppeter.github.io/nblog" src="https://plausible.io/js/plausible.js"></script>
+</head>
+<body>
+<header>
+<div class="nb-box">
+  <span><a href=".">🏡</a></span>
+  <span><code>bernoulli_and_beyond.nim</code></span>
+  <span><a href="https://github.com/pietroppeter/nblog"><svg aria-hidden="true" width="1.2em" height="1.2em" style="vertical-align: middle;" preserveAspectRatio="xMidYMid meet" viewBox="0 0 16 16"><path fill-rule="evenodd" d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59c.4.07.55-.17.55-.38c0-.19-.01-.82-.01-1.49c-2.01.37-2.53-.49-2.69-.94c-.09-.23-.48-.94-.82-1.13c-.28-.15-.68-.52-.01-.53c.63-.01 1.08.58 1.23.82c.72 1.21 1.87.87 2.33.66c.07-.52.28-.87.51-1.07c-1.78-.2-3.64-.89-3.64-3.95c0-.87.31-1.59.82-2.15c-.08-.2-.36-1.02.08-2.12c0 0 .67-.21 2.2.82c.64-.18 1.32-.27 2-.27c.68 0 1.36.09 2 .27c1.53-1.04 2.2-.82 2.2-.82c.44 1.1.16 1.92.08 2.12c.51.56.82 1.27.82 2.15c0 3.07-1.87 3.75-3.65 3.95c.29.25.54.73.54 1.48c0 1.07-.01 1.93-.01 2.2c0 .21.15.46.55.38A8.013 8.013 0 0 0 16 8c0-4.42-3.58-8-8-8z" fill="#000"></path></svg></a></span>
+</div>
+<hr>
+</header><main>
+<h1>Bernoulli and beyond with <a href="https://github.com/andreaferretti/alea">alea</a></h1>
+<p>Someone in the nim-science chat today asked about if there is a library with a <a href="https://en.wikipedia.org/wiki/Categorical_distribution">categorical distribution</a>.</p>
+<p>I got curious on how to implement this with <a href="https://github.com/andreaferretti/alea">alea</a>, so that I can learn a bit how alea works.</p>
+<h2>Alea</h2>
+<p>In alea first we need to initialize a random number generator to sample from the distributions:</p>
+<pre><code class="nim hljs"><span class="hljs-keyword">import</span>
+  random / xorshift
+
+<span class="hljs-keyword">import</span>
+  alea
+
+<span class="hljs-keyword">import</span>
+  math, sugar, strutils
+
+<span class="hljs-keyword">var</span> rng = wrap(initXorshift128Plus(<span class="hljs-number">1337</span>))</code></pre>
+<p>We will carry around this random number generator and use it for every operation with random variables.
+It represents the probability space $\Omega$ in the <a href="https://en.wikipedia.org/wiki/Random_variable">definition</a>
+of the random variable $X$:</p>
+<p>$$X: \Omega \to E$$</p>
+<p>Where $E$ (a measurable space), will be represented by a generic type $T$.</p>
+<p>Note that I was not able to use the rng suggested by alea, I got some gcc error due to the usage of urandom.</p>
+<p>This is the code that did not work for me:</p>
+<pre><code class="language-nim">import random/urandom, random/mersenne
+import alea
+
+var rng = wrap(initMersenneTwister(urandom(16)))
+</code></pre>
+<p>I decide to pick another rng (and actually remove the call from urandom that was causing the error) from the documentation
+of <a href="https://github.com/oprypin/nim-random">nim-random</a>. I probably should file an issue.</p>
+<h3>Bernoulli distribution</h3>
+<p>Bernoulli distribution is already available.</p>
+<p>Every distribution comes with a <code>sample</code> proc which has as first argument the random number generator.
+<code>alea</code> also provides a <code>take</code> template to create a sequence with <code>n</code> samples.</p>
+<pre><code class="nim hljs"><span class="hljs-keyword">let</span>
+  p = <span class="hljs-number">0.9</span>
+  b = bernoulli(p)
+<span class="hljs-keyword">echo</span> rng.sample b
+<span class="hljs-keyword">block</span>:
+  <span class="hljs-keyword">let</span> s = take(rng, b, <span class="hljs-number">10</span>)
+  <span class="hljs-keyword">echo</span> s</code></pre>
+<pre><samp>1.0
+@[1.0, 1.0, 1.0, 0.0, 1.0, 1.0, 1.0, 0.0, 0.0, 1.0]</samp></pre>
+<p>We can also compute the mean ($p$), variance ($p(1-p)$) and standard deviation ($\sqrt(p (1 - p))$)</p>
+<pre><code class="nim hljs"><span class="hljs-keyword">echo</span> rng.mean b
+<span class="hljs-keyword">echo</span> rng.variance b
+<span class="hljs-keyword">echo</span> p * (<span class="hljs-number">1</span> - p)
+<span class="hljs-keyword">echo</span> rng.stddev b
+<span class="hljs-keyword">echo</span> sqrt(p * (<span class="hljs-number">1</span> - p))</code></pre>
+<pre><samp>0.9
+0.08999999999999998
+0.08999999999999998
+0.3
+0.3</samp></pre>
+<h3>Choice distribution</h3>
+<p>A categorical distribution that is already implemented in alea is the one where the categories have equal probability:</p>
+<pre><code class="nim hljs"><span class="hljs-keyword">let</span> dice = choice(@[<span class="hljs-number">1</span>, <span class="hljs-number">2</span>, <span class="hljs-number">3</span>, <span class="hljs-number">4</span>, <span class="hljs-number">5</span>, <span class="hljs-number">6</span>])
+<span class="hljs-keyword">block</span>:
+  <span class="hljs-keyword">let</span> s = take(rng, dice, <span class="hljs-number">10</span>)
+  <span class="hljs-keyword">echo</span> s</code></pre>
+<pre><samp>@[4, 4, 6, 1, 6, 5, 5, 5, 1, 3]</samp></pre>
+<p>Note that the <code>mean</code> will not work for <code>dice</code> since it is implemented only for <code>RandomVar[float]</code>.</p>
+<p>In order to have a mean I could do like this:</p>
+<pre><code class="nim hljs"><span class="hljs-keyword">let</span> fdice = choice(@[<span class="hljs-number">1.0</span>, <span class="hljs-number">2</span>, <span class="hljs-number">3</span>, <span class="hljs-number">4</span>, <span class="hljs-number">5</span>, <span class="hljs-number">6</span>])
+<span class="hljs-keyword">echo</span> rng.mean fdice</code></pre>
+<pre><samp>3.5</samp></pre>
+<h3>Categorical distribution</h3>
+<p>Finally, to <a href="https://github.com/andreaferretti/alea#defining-custom-distributions">define a custom distribution</a>
+I just need to define:</p>
+<ol>
+<li>an object that contains the parameters of the distribution</li>
+<li>a constructor to add initial validation</li>
+<li>a <code>sample</code> proc</li>
+</ol>
+<p>Here is the generic object for a categorical distribution (on float numbers):</p>
+<pre><code class="nim hljs"><span class="hljs-keyword">type</span>
+  <span class="hljs-type">Categorical</span>* = <span class="hljs-keyword">object</span>
+    p*: <span class="hljs-built_in">seq</span>[<span class="hljs-built_in">float</span>]
+    e*: <span class="hljs-built_in">seq</span>[<span class="hljs-built_in">float</span>]           <span class="hljs-comment">## categorical values</span></code></pre>
+<p>This implementation is a bit fragile, since <code>p</code> and <code>e</code> should always have same length,
+and I will be able to ensure that only through the constructor:</p>
+<pre><code class="nim hljs"><span class="hljs-keyword">proc</span> categorical*(s: <span class="hljs-built_in">seq</span>[<span class="hljs-keyword">tuple</span>[e, p: <span class="hljs-built_in">float</span>]]): <span class="hljs-type">Categorical</span> =
+  <span class="hljs-keyword">var</span> tot = <span class="hljs-number">0.0</span>
+  <span class="hljs-keyword">for</span> (e, p) <span class="hljs-keyword">in</span> s:
+    <span class="hljs-keyword">assert</span> p &gt;= <span class="hljs-number">0</span> <span class="hljs-keyword">and</span> p &lt;= <span class="hljs-number">1</span>
+    <span class="hljs-literal">result</span>.e.add e
+    <span class="hljs-literal">result</span>.p.add p
+    tot += p
+  <span class="hljs-keyword">assert</span> tot &gt; <span class="hljs-number">0</span>
+  <span class="hljs-keyword">if</span> tot != <span class="hljs-number">1.0</span>:
+    <span class="hljs-keyword">echo</span> <span class="hljs-string">&quot;probabilities do not add to 1.0, they will be normalized to sum to 1&quot;</span>
+    <span class="hljs-keyword">let</span> w = <span class="hljs-number">1.0</span> / tot
+    <span class="hljs-keyword">for</span> i <span class="hljs-keyword">in</span> <span class="hljs-number">0</span> .. <span class="hljs-literal">result</span>.p.<span class="hljs-keyword">high</span>:
+      <span class="hljs-literal">result</span>.p[i] = <span class="hljs-literal">result</span>.p[i] * w</code></pre>
+<p>and we can already use this to create a biased dice, for example one that has double chance to output an odd number than an even number:</p>
+<pre><code class="nim hljs"><span class="hljs-keyword">let</span> oddDice = categorical(@[(<span class="hljs-number">1.0</span>, <span class="hljs-number">0.2</span>), (<span class="hljs-number">2.0</span>, <span class="hljs-number">0.1</span>), (<span class="hljs-number">3.0</span>, <span class="hljs-number">0.2</span>), (<span class="hljs-number">4.0</span>, <span class="hljs-number">0.1</span>),
+                            (<span class="hljs-number">5.0</span>, <span class="hljs-number">0.2</span>), (<span class="hljs-number">6.0</span>, <span class="hljs-number">0.1</span>)])</code></pre>
+<pre><samp>probabilities do not add to 1.0, they will be normalized to sum to 1</samp></pre>
+<p>Now to close the loop I need to implement the <code>sample</code> proc:</p>
+<pre><code class="nim hljs"><span class="hljs-keyword">proc</span> sample*(rng: <span class="hljs-keyword">var</span> <span class="hljs-type">Random</span>; c: <span class="hljs-type">Categorical</span>): <span class="hljs-built_in">float</span> =
+  <span class="hljs-keyword">var</span> tot = <span class="hljs-number">0.0</span>
+  <span class="hljs-keyword">let</span> r = rng.random()       <span class="hljs-comment">## a number between 0 and 1</span>
+  <span class="hljs-keyword">for</span> i <span class="hljs-keyword">in</span> <span class="hljs-number">0</span> .. c.e.<span class="hljs-keyword">high</span> - <span class="hljs-number">1</span>:
+    tot += c.p[i]
+    <span class="hljs-keyword">if</span> r &lt;= tot:
+      <span class="hljs-keyword">return</span> c.e[i]
+  <span class="hljs-keyword">return</span> c.e[^<span class="hljs-number">1</span>]</code></pre>
+<p>Let's test this:</p>
+<pre><code class="nim hljs"><span class="hljs-keyword">block</span>:
+  <span class="hljs-keyword">let</span> s = take(rng, oddDice, <span class="hljs-number">20</span>)
+  <span class="hljs-keyword">echo</span> s
+<span class="hljs-keyword">echo</span> rng.mean(oddDice)</code></pre>
+<pre><samp>@[1.0, 1.0, 1.0, 3.0, 5.0, 1.0, 1.0, 6.0, 5.0, 3.0, 5.0, 4.0, 3.0, 3.0, 3.0, 5.0, 4.0, 5.0, 1.0, 1.0]
+3.34143</samp></pre>
+<p>And the output seems reasonable (I could probably overload the mean and try to use it to compute an exact mean.</p>
+<h2>Conclusions</h2>
+<p>It was rather straightforward to implement a categorical distribution in alea.
+We do get limited functionality by doing this, basically the ability to sample and compute some moments.
+I did not use them, but in alea there is the possibilty of <a href="https://github.com/andreaferretti/alea#operations-on-random-variables">composing operations</a>
+on top of random variables
+and <a href="https://github.com/andreaferretti/alea#conditioning-random-variables">conditioning</a> between them.</p>
+<p>Something which is probably missing in alea and it could be nice to add is the possibility of
+computing probability density function and cumulative distribution functions.</p>
+<p>For reference here are the apis of other scientific languages:</p>
+<ul>
+<li>Python: <a href="https://docs.scipy.org/doc/scipy/reference/tutorial/stats.html">https://docs.scipy.org/doc/scipy/reference/tutorial/stats.html</a></li>
+<li>R: <a href="https://cran.r-project.org/web/views/Distributions.html">https://cran.r-project.org/web/views/Distributions.html</a></li>
+<li>Julia: <a href="https://github.com/JuliaStats/Distributions.jl">https://github.com/JuliaStats/Distributions.jl</a></li>
+</ul>
+
+</main>
+<footer>
+<hr>
+<div class="nb-box">
+  <span><span class="nb-small">made with <a href="https://pietroppeter.github.io/nimib/">nimib 🐳</a></span></span>
+  <span></span>
+  <span><button class="nb-small" id="show" onclick="toggleSourceDisplay()">Show Source</button></span>
+</div>
+</footer>
+<section id="source">
+<pre><code class="nim hljs"><span class="hljs-keyword">import</span> nimib
+
+nbInit
+nbDoc.useLatex
+nbText: <span class="hljs-string">&quot;&quot;&quot;# Bernoulli and beyond with [alea](https://github.com/andreaferretti/alea)
+
+Someone in the nim-science chat today asked about if there is a library with a [categorical distribution](https://en.wikipedia.org/wiki/Categorical_distribution).
+
+I got curious on how to implement this with [alea](https://github.com/andreaferretti/alea), so that I can learn a bit how alea works.
+
+## Alea
+
+In alea first we need to initialize a random number generator to sample from the distributions:
+&quot;&quot;&quot;</span> <span class="hljs-comment"># where today is 2021-04-12</span>
+nbCode:
+  <span class="hljs-keyword">import</span> random/xorshift
+  <span class="hljs-keyword">import</span> alea
+  <span class="hljs-keyword">import</span> math, sugar, strutils
+
+  <span class="hljs-keyword">var</span> rng = wrap(initXorshift128Plus(<span class="hljs-number">1337</span>))
+nbText: <span class="hljs-string">&quot;&quot;&quot;
+We will carry around this random number generator and use it for every operation with random variables.
+It represents the probability space $\Omega$ in the [definition](https://en.wikipedia.org/wiki/Random_variable)
+of the random variable $X$:
+
+$$X: \Omega \to E$$
+
+Where $E$ (a measurable space), will be represented by a generic type $T$.
+
+Note that I was not able to use the rng suggested by alea, I got some gcc error due to the usage of urandom.
+
+This is the code that did not work for me:
+
+```nim
+import random/urandom, random/mersenne
+import alea
+
+var rng = wrap(initMersenneTwister(urandom(16)))
+```
+
+I decide to pick another rng (and actually remove the call from urandom that was causing the error) from the documentation
+of [nim-random](https://github.com/oprypin/nim-random). I probably should file an issue.
+&quot;&quot;&quot;</span> <span class="hljs-comment"># I need a nbSkip to have code highlighting in non-executing code</span>
+<span class="hljs-comment"># Also, why alea does not use the random generators in stdlib? they were not ready when alea was coded?</span>
+
+nbText: <span class="hljs-string">&quot;&quot;&quot;### Bernoulli distribution
+
+Bernoulli distribution is already available.
+
+Every distribution comes with a `sample` proc which has as first argument the random number generator.
+`alea` also provides a `take` template to create a sequence with `n` samples.
+&quot;&quot;&quot;</span>
+nbCode:
+  <span class="hljs-keyword">let</span>
+    p = <span class="hljs-number">0.9</span>
+    b = bernoulli(p)
+  <span class="hljs-keyword">echo</span> rng.sample b
+  <span class="hljs-keyword">block</span>:
+    <span class="hljs-keyword">let</span> s = take(rng, b, <span class="hljs-number">10</span>)
+    <span class="hljs-keyword">echo</span> s
+
+<span class="hljs-comment"># hey, using stdout directly I do not catch the echo anymore! I did not expect this!</span>
+<span class="hljs-comment">#    stdout.write $(rng.sample b) &amp; &quot; &quot;</span>
+<span class="hljs-comment">#  stdout.writeLine &quot;&quot;</span>
+nbText: <span class="hljs-string">r&quot;We can also compute the mean ($p$), variance ($p(1-p)$) and standard deviation ($\sqrt(p (1 - p))$)&quot;</span>
+nbCode:
+  <span class="hljs-keyword">echo</span> rng.mean b
+  <span class="hljs-keyword">echo</span> rng.variance b
+  <span class="hljs-keyword">echo</span> p*(<span class="hljs-number">1</span> - p)
+  <span class="hljs-keyword">echo</span> rng.stddev b
+  <span class="hljs-keyword">echo</span> sqrt(p*(<span class="hljs-number">1</span> - p))
+
+nbText: <span class="hljs-string">&quot;&quot;&quot;### Choice distribution
+
+A categorical distribution that is already implemented in alea is the one where the categories have equal probability:
+&quot;&quot;&quot;</span>
+nbCode:
+  <span class="hljs-keyword">let</span> dice = choice(@[<span class="hljs-number">1</span>, <span class="hljs-number">2</span>, <span class="hljs-number">3</span>, <span class="hljs-number">4</span>, <span class="hljs-number">5</span>, <span class="hljs-number">6</span>])
+  <span class="hljs-keyword">block</span>:
+    <span class="hljs-keyword">let</span> s = take(rng, dice, <span class="hljs-number">10</span>)
+    <span class="hljs-keyword">echo</span> s
+
+nbText: <span class="hljs-string">&quot;&quot;&quot;Note that the `mean` will not work for `dice` since it is implemented only for `RandomVar[float]`.
+
+In order to have a mean I could do like this:
+&quot;&quot;&quot;</span> <span class="hljs-comment"># I wish I had the runtime error capture!</span>
+nbCode:
+  <span class="hljs-keyword">let</span> fdice = choice(@[<span class="hljs-number">1.0</span>, <span class="hljs-number">2</span>, <span class="hljs-number">3</span>, <span class="hljs-number">4</span>, <span class="hljs-number">5</span>, <span class="hljs-number">6</span>])
+  <span class="hljs-keyword">echo</span> rng.mean fdice
+
+nbText: <span class="hljs-string">&quot;&quot;&quot;### Categorical distribution
+
+Finally, to [define a custom distribution](https://github.com/andreaferretti/alea#defining-custom-distributions)
+I just need to define:
+
+  1. an object that contains the parameters of the distribution
+  2. a constructor to add initial validation
+  3. a `sample` proc
+
+Here is the generic object for a categorical distribution (on float numbers):
+&quot;&quot;&quot;</span>
+nbCode:
+  <span class="hljs-keyword">type</span>
+    <span class="hljs-type">Categorical</span>* = <span class="hljs-keyword">object</span>
+      p*: <span class="hljs-built_in">seq</span>[<span class="hljs-built_in">float</span>]
+      e*: <span class="hljs-built_in">seq</span>[<span class="hljs-built_in">float</span>]  <span class="hljs-comment">## categorical values</span>
+nbText: <span class="hljs-string">&quot;&quot;&quot;This implementation is a bit fragile, since `p` and `e` should always have same length,
+and I will be able to ensure that only through the constructor:
+&quot;&quot;&quot;</span>
+nbCode:
+  <span class="hljs-keyword">proc</span> categorical*(s: <span class="hljs-built_in">seq</span>[<span class="hljs-keyword">tuple</span>[e, p: <span class="hljs-built_in">float</span>]]): <span class="hljs-type">Categorical</span> =
+    <span class="hljs-keyword">var</span> tot = <span class="hljs-number">0.0</span>
+    <span class="hljs-keyword">for</span> (e, p) <span class="hljs-keyword">in</span> s:
+      <span class="hljs-keyword">assert</span> p &gt;= <span class="hljs-number">0</span> <span class="hljs-keyword">and</span> p &lt;= <span class="hljs-number">1</span>
+      <span class="hljs-literal">result</span>.e.add e
+      <span class="hljs-literal">result</span>.p.add p
+      tot += p
+    <span class="hljs-keyword">assert</span> tot &gt; <span class="hljs-number">0</span>  
+    <span class="hljs-keyword">if</span> tot != <span class="hljs-number">1.0</span>:
+      <span class="hljs-keyword">echo</span> <span class="hljs-string">&quot;probabilities do not add to 1.0, they will be normalized to sum to 1&quot;</span>
+      <span class="hljs-keyword">let</span> w = <span class="hljs-number">1.0</span> / tot
+      <span class="hljs-keyword">for</span> i <span class="hljs-keyword">in</span> <span class="hljs-number">0</span> .. <span class="hljs-literal">result</span>.p.<span class="hljs-keyword">high</span>:
+        <span class="hljs-literal">result</span>.p[i] = <span class="hljs-literal">result</span>.p[i] * w
+nbText: <span class="hljs-string">&quot;&quot;&quot;and we can already use this to create a biased dice, for example one that has double chance to output an odd number than an even number:&quot;&quot;&quot;</span>
+nbCode:
+  <span class="hljs-keyword">let</span> oddDice = categorical(@[(<span class="hljs-number">1.0</span>, <span class="hljs-number">0.2</span>), (<span class="hljs-number">2.0</span>, <span class="hljs-number">0.1</span>), (<span class="hljs-number">3.0</span>, <span class="hljs-number">0.2</span>), (<span class="hljs-number">4.0</span>, <span class="hljs-number">0.1</span>), (<span class="hljs-number">5.0</span>, <span class="hljs-number">0.2</span>), (<span class="hljs-number">6.0</span>, <span class="hljs-number">0.1</span>)])
+nbText: <span class="hljs-string">&quot;Now to close the loop I need to implement the `sample` proc:&quot;</span>
+nbCode:
+  <span class="hljs-keyword">proc</span> sample*(rng: <span class="hljs-keyword">var</span> <span class="hljs-type">Random</span>, c: <span class="hljs-type">Categorical</span>): <span class="hljs-built_in">float</span> =
+    <span class="hljs-keyword">var</span> tot = <span class="hljs-number">0.0</span>
+    <span class="hljs-keyword">let</span> r = rng.random() <span class="hljs-comment">## a number between 0 and 1</span>
+    <span class="hljs-keyword">for</span> i <span class="hljs-keyword">in</span> <span class="hljs-number">0</span> .. c.e.<span class="hljs-keyword">high</span> - <span class="hljs-number">1</span>:
+      tot += c.p[i]
+      <span class="hljs-keyword">if</span> r &lt;= tot:
+        <span class="hljs-keyword">return</span> c.e[i]
+    <span class="hljs-keyword">return</span> c.e[^<span class="hljs-number">1</span>]
+nbText: <span class="hljs-string">&quot;Let's test this:&quot;</span>
+nbCode:
+  <span class="hljs-keyword">block</span>:
+    <span class="hljs-keyword">let</span> s = take(rng, oddDice, <span class="hljs-number">20</span>)
+    <span class="hljs-keyword">echo</span> s
+  <span class="hljs-keyword">echo</span> rng.mean(oddDice)
+nbText: <span class="hljs-string">&quot;And the output seems reasonable (I could probably overload the mean and try to use it to compute an exact mean.&quot;</span>
+
+nbText: <span class="hljs-string">&quot;&quot;&quot;
+## Conclusions
+
+It was rather straightforward to implement a categorical distribution in alea.
+We do get limited functionality by doing this, basically the ability to sample and compute some moments.
+I did not use them, but in alea there is the possibilty of [composing operations](https://github.com/andreaferretti/alea#operations-on-random-variables)
+on top of random variables
+and [conditioning](https://github.com/andreaferretti/alea#conditioning-random-variables) between them.
+
+Something which is probably missing in alea and it could be nice to add is the possibility of
+computing probability density function and cumulative distribution functions.
+
+For reference here are the apis of other scientific languages:
+
+  - Python: &lt;https://docs.scipy.org/doc/scipy/reference/tutorial/stats.html&gt;
+  - R: &lt;https://cran.r-project.org/web/views/Distributions.html&gt;
+  - Julia: &lt;https://github.com/JuliaStats/Distributions.jl&gt;
+&quot;&quot;&quot;</span>
+
+nbSave
+<span class="hljs-comment"># I should add to nimib the possibility to find project dir without looking for nimble but looking for git root directory</span>
+<span class="hljs-comment"># a blog like this does not need to have a nimble file to have a well defined project directory.</span>
+</code></pre>
+</section><script>
+function toggleSourceDisplay() {
+  var btn = document.getElementById("show")
+  var source = document.getElementById("source");
+  if (btn.innerHTML=="Show Source") {
+    btn.innerHTML = "Hide Source";
+    source.style.display = "block";
+  } else {
+    btn.innerHTML = "Show Source";
+    source.style.display = "none";
+  }
+}
+</script></body>
+</html>
