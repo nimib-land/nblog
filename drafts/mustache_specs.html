@@ -1,0 +1,2848 @@
+<!DOCTYPE html>
+<html lang="en-us">
+<head>
+  <title>mustache_specs.nim</title>
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2280%22>🐳</text></svg>">
+  <meta content="text/html; charset=utf-8" http-equiv="content-type">
+  <meta content="width=device-width, initial-scale=1" name="viewport">
+  <link rel='stylesheet' href='https://unpkg.com/normalize.css/'>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/kognise/water.css@latest/dist/dark.min.css">
+  <link rel='stylesheet' href='https://cdn.jsdelivr.net/gh/pietroppeter/nimib/assets/androidstudio.css'>
+  <style>
+.nb-box {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+.nb-small {
+  font-size: 0.8rem;
+}
+button.nb-small {
+  float: right;
+  padding: 2px;
+  padding-right: 5px;
+  padding-left: 5px;
+}
+section#source {
+  display:none
+}
+</style>
+  
+  <script async defer data-domain="pietroppeter.github.io/nblog" src="https://plausible.io/js/plausible.js"></script>
+</head>
+<body>
+<header>
+<div class="nb-box">
+  <span><a href=".">🏡</a></span>
+  <span><code>mustache_specs.nim</code></span>
+  <span><a href="https://github.com/pietroppeter/nblog"><svg aria-hidden="true" width="1.2em" height="1.2em" style="vertical-align: middle; fill: #fff" preserveAspectRatio="xMidYMid meet" viewBox="0 0 16 16"><path fill-rule="evenodd" d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.013 8.013 0 0016 8c0-4.42-3.58-8-8-8z"></path></svg></a></span>
+</div>
+<hr>
+</header><main>
+<h1>Mustache Specs</h1>
+<p>Autogenerate a document containing the results of <a href="https://github.com/soasme/nim-mustache">nim-mustache</a>
+running <a href="https://github.com/mustache/spec/releases/tag/v1.2.1">mustache specs v1.2.1</a>.</p>
+<pre><code class="nim hljs"><span class="hljs-keyword">import</span>
+  mustache
+
+<span class="hljs-keyword">import</span>
+  json
+
+<span class="hljs-keyword">import</span>
+  strformat
+
+<span class="hljs-keyword">import</span>
+  tables
+
+<span class="hljs-keyword">const</span>
+  specfiles = [<span class="hljs-string">&quot;interpolation.json&quot;</span>, <span class="hljs-string">&quot;sections.json&quot;</span>, <span class="hljs-string">&quot;inverted.json&quot;</span>,
+    <span class="hljs-string">&quot;comments.json&quot;</span>, <span class="hljs-string">&quot;delimiters.json&quot;</span>, <span class="hljs-string">&quot;partials.json&quot;</span>]
+<span class="hljs-keyword">var</span>
+  specs = newJObject()
+  tmpl: <span class="hljs-built_in">string</span>
+  tests: <span class="hljs-type">JsonNode</span>
+  data: <span class="hljs-type">JsonNode</span>
+  context: <span class="hljs-type">Context</span>
+  partials: <span class="hljs-type">Table</span>[<span class="hljs-built_in">string</span>, <span class="hljs-built_in">string</span>]
+<span class="hljs-keyword">for</span> specfile <span class="hljs-keyword">in</span> specfiles:
+  <span class="hljs-keyword">echo</span> <span class="hljs-string">&quot;📃 &quot;</span> &amp; specfile
+  specs[specfile] = parseFile(specfile)
+  tests = specs[specfile][<span class="hljs-string">&quot;tests&quot;</span>]
+  <span class="hljs-keyword">assert</span> tests.kind == <span class="hljs-type">JArray</span>
+  <span class="hljs-keyword">for</span> test <span class="hljs-keyword">in</span> tests.mitems:
+    <span class="hljs-keyword">assert</span> test.kind == <span class="hljs-type">JObject</span>
+    tmpl = test[<span class="hljs-string">&quot;template&quot;</span>].getStr
+    data = test[<span class="hljs-string">&quot;data&quot;</span>]
+    <span class="hljs-keyword">if</span> data.kind != <span class="hljs-type">JObject</span>:
+      <span class="hljs-keyword">echo</span> <span class="hljs-string">&quot;  ❌ &quot;</span>, test[<span class="hljs-string">&quot;name&quot;</span>].getStr
+      <span class="hljs-keyword">echo</span> <span class="hljs-string">&quot;    data is not an object: &quot;</span> &amp; $data
+      test[<span class="hljs-string">&quot;ok&quot;</span>] = %<span class="hljs-string">&quot;❌&quot;</span>
+      test[<span class="hljs-string">&quot;output&quot;</span>] = %<span class="hljs-string">&quot;❌&quot;</span>
+      <span class="hljs-keyword">continue</span>
+    partials = initTable[<span class="hljs-built_in">string</span>, <span class="hljs-built_in">string</span>]()
+    <span class="hljs-keyword">if</span> <span class="hljs-string">&quot;partials&quot;</span> <span class="hljs-keyword">in</span> test:
+      <span class="hljs-keyword">for</span> key, val <span class="hljs-keyword">in</span> test[<span class="hljs-string">&quot;partials&quot;</span>]:
+        partials[key] = val.getStr
+    context = newContext(searchDirs = @[], partials = partials)
+    <span class="hljs-keyword">for</span> key, val <span class="hljs-keyword">in</span> data.pairs:
+      context[key] = val
+    test[<span class="hljs-string">&quot;output&quot;</span>] = %tmpl.render(context)
+    <span class="hljs-keyword">if</span> test[<span class="hljs-string">&quot;output&quot;</span>].getStr == test[<span class="hljs-string">&quot;expected&quot;</span>].getStr:
+      test[<span class="hljs-string">&quot;ok&quot;</span>] = %<span class="hljs-string">&quot;✅&quot;</span>
+      <span class="hljs-keyword">echo</span> <span class="hljs-string">&quot;  ✅ &quot;</span>, test[<span class="hljs-string">&quot;name&quot;</span>].getStr
+    <span class="hljs-keyword">else</span>:
+      test[<span class="hljs-string">&quot;ok&quot;</span>] = %<span class="hljs-string">&quot;❌&quot;</span>
+      <span class="hljs-keyword">echo</span> <span class="hljs-string">&quot;  ❌ &quot;</span>, test[<span class="hljs-string">&quot;name&quot;</span>].getStr
+<span class="hljs-keyword">proc</span> specsToMarkdown(specs: <span class="hljs-type">JsonNode</span>): <span class="hljs-built_in">string</span> =
+  <span class="hljs-keyword">var</span> partials: <span class="hljs-built_in">string</span>
+  <span class="hljs-keyword">for</span> specfile, spec <span class="hljs-keyword">in</span> specs.pairs:
+    <span class="hljs-literal">result</span>.add <span class="hljs-string">&quot;## &quot;</span> &amp; specfile &amp; <span class="hljs-string">&quot;</span><span class="hljs-meta">\n</span><span class="hljs-meta">\n</span><span class="hljs-string">&quot;</span>
+    <span class="hljs-literal">result</span>.add spec[<span class="hljs-string">&quot;overview&quot;</span>].getStr &amp; <span class="hljs-string">&quot;</span><span class="hljs-meta">\n</span><span class="hljs-string">&quot;</span>
+    <span class="hljs-keyword">for</span> test <span class="hljs-keyword">in</span> spec[<span class="hljs-string">&quot;tests&quot;</span>]:
+      partials = <span class="hljs-string">&quot;&quot;</span>
+      <span class="hljs-keyword">if</span> <span class="hljs-string">&quot;partials&quot;</span> <span class="hljs-keyword">in</span> test:
+        partials = <span class="hljs-string">&quot;Partials:</span><span class="hljs-meta">\n</span><span class="hljs-meta">\n</span><span class="hljs-string">```&quot;</span>
+        <span class="hljs-keyword">for</span> key, val <span class="hljs-keyword">in</span> test[<span class="hljs-string">&quot;partials&quot;</span>]:
+          partials.add &amp;<span class="hljs-string">&quot;{key}: {$val}</span><span class="hljs-meta">\n</span><span class="hljs-string">&quot;</span>
+        partials.add <span class="hljs-string">&quot;```</span><span class="hljs-meta">\n</span><span class="hljs-string">&quot;</span>
+      <span class="hljs-literal">result</span>.add <span class="hljs-string">fmt&quot;&quot;&quot;### {test[&quot;ok&quot;].getStr} {test[&quot;name&quot;].getStr}
+
+{test[&quot;desc&quot;].getStr}
+
+Template:
+
+```
+{test[&quot;template&quot;].getStr}
+```
+
+Data:
+
+```
+{$(test[&quot;data&quot;])}
+```
+
+{partials}Expected:
+
+```
+{test[&quot;expected&quot;].getStr}
+```
+
+Output:
+
+```
+{test[&quot;output&quot;].getStr}
+```
+
+&quot;&quot;&quot;</span></code></pre>
+<pre><samp>📃 interpolation.json
+  ✅ No Interpolation
+  ✅ Basic Interpolation
+  ✅ HTML Escaping
+  ✅ Triple Mustache
+  ✅ Ampersand
+  ✅ Basic Integer Interpolation
+  ✅ Triple Mustache Integer Interpolation
+  ✅ Ampersand Integer Interpolation
+  ✅ Basic Decimal Interpolation
+  ✅ Triple Mustache Decimal Interpolation
+  ✅ Ampersand Decimal Interpolation
+  ✅ Basic Null Interpolation
+  ✅ Triple Mustache Null Interpolation
+  ✅ Ampersand Null Interpolation
+  ✅ Basic Context Miss Interpolation
+  ✅ Triple Mustache Context Miss Interpolation
+  ✅ Ampersand Context Miss Interpolation
+  ✅ Dotted Names - Basic Interpolation
+  ✅ Dotted Names - Triple Mustache Interpolation
+  ✅ Dotted Names - Ampersand Interpolation
+  ✅ Dotted Names - Arbitrary Depth
+  ✅ Dotted Names - Broken Chains
+  ✅ Dotted Names - Broken Chain Resolution
+  ✅ Dotted Names - Initial Resolution
+  ❌ Dotted Names - Context Precedence
+  ❌ Implicit Iterators - Basic Interpolation
+    data is not an object: "world"
+  ❌ Implicit Iterators - HTML Escaping
+    data is not an object: "& \" < >"
+  ❌ Implicit Iterators - Triple Mustache
+    data is not an object: "& \" < >"
+  ❌ Implicit Iterators - Ampersand
+    data is not an object: "& \" < >"
+  ❌ Implicit Iterators - Basic Integer Interpolation
+    data is not an object: 85
+  ✅ Interpolation - Surrounding Whitespace
+  ✅ Triple Mustache - Surrounding Whitespace
+  ✅ Ampersand - Surrounding Whitespace
+  ✅ Interpolation - Standalone
+  ✅ Triple Mustache - Standalone
+  ✅ Ampersand - Standalone
+  ✅ Interpolation With Padding
+  ✅ Triple Mustache With Padding
+  ✅ Ampersand With Padding
+📃 sections.json
+  ✅ Truthy
+  ✅ Falsey
+  ✅ Null is falsey
+  ✅ Context
+  ✅ Parent contexts
+  ❌ Variable test
+  ✅ List Contexts
+  ❌ Deeply Nested Contexts
+  ✅ List
+  ✅ Empty List
+  ✅ Doubled
+  ✅ Nested (Truthy)
+  ✅ Nested (Falsey)
+  ✅ Context Misses
+  ✅ Implicit Iterator - String
+  ✅ Implicit Iterator - Integer
+  ✅ Implicit Iterator - Decimal
+  ✅ Implicit Iterator - Array
+  ✅ Dotted Names - Truthy
+  ✅ Dotted Names - Falsey
+  ✅ Dotted Names - Broken Chains
+  ✅ Surrounding Whitespace
+  ✅ Internal Whitespace
+  ✅ Indented Inline Sections
+  ✅ Standalone Lines
+  ✅ Indented Standalone Lines
+  ✅ Standalone Line Endings
+  ✅ Standalone Without Previous Line
+  ✅ Standalone Without Newline
+  ✅ Padding
+📃 inverted.json
+  ✅ Falsey
+  ✅ Truthy
+  ✅ Null is falsey
+  ✅ Context
+  ✅ List
+  ✅ Empty List
+  ✅ Doubled
+  ✅ Nested (Falsey)
+  ✅ Nested (Truthy)
+  ✅ Context Misses
+  ✅ Dotted Names - Truthy
+  ✅ Dotted Names - Falsey
+  ✅ Dotted Names - Broken Chains
+  ✅ Surrounding Whitespace
+  ✅ Internal Whitespace
+  ✅ Indented Inline Sections
+  ✅ Standalone Lines
+  ✅ Standalone Indented Lines
+  ✅ Standalone Line Endings
+  ✅ Standalone Without Previous Line
+  ✅ Standalone Without Newline
+  ✅ Padding
+📃 comments.json
+  ✅ Inline
+  ✅ Multiline
+  ✅ Standalone
+  ✅ Indented Standalone
+  ✅ Standalone Line Endings
+  ✅ Standalone Without Previous Line
+  ✅ Standalone Without Newline
+  ✅ Multiline Standalone
+  ✅ Indented Multiline Standalone
+  ✅ Indented Inline
+  ✅ Surrounding Whitespace
+📃 delimiters.json
+  ✅ Pair Behavior
+  ✅ Special Characters
+  ✅ Sections
+  ✅ Inverted Sections
+  ✅ Partial Inheritence
+  ✅ Post-Partial Behavior
+  ✅ Surrounding Whitespace
+  ✅ Outlying Whitespace (Inline)
+  ✅ Standalone Tag
+  ✅ Indented Standalone Tag
+  ✅ Standalone Line Endings
+  ✅ Standalone Without Previous Line
+  ✅ Standalone Without Newline
+  ✅ Pair with Padding
+📃 partials.json
+  ✅ Basic Behavior
+  ✅ Failed Lookup
+  ✅ Context
+  ✅ Recursion
+  ✅ Surrounding Whitespace
+  ✅ Inline Indentation
+  ✅ Standalone Line Endings
+  ✅ Standalone Without Previous Line
+  ✅ Standalone Without Newline
+  ✅ Standalone Indentation
+  ✅ Padding Whitespace</samp></pre>
+<h2>interpolation.json</h2>
+<p>Interpolation tags are used to integrate dynamic content into the template.</p>
+<p>The tag's content MUST be a non-whitespace character sequence NOT containing
+the current closing delimiter.</p>
+<p>This tag's content names the data to replace the tag.  A single period (<code>.</code>)
+indicates that the item currently sitting atop the context stack should be
+used; otherwise, name resolution is as follows:</p>
+<ol>
+<li>Split the name on periods; the first part is the name to resolve, any
+remaining parts should be retained.</li>
+<li>Walk the context stack from top to bottom, finding the first context
+that is a) a hash containing the name as a key OR b) an object responding
+to a method with the given name.</li>
+<li>If the context is a hash, the data is the value associated with the
+name.</li>
+<li>If the context is an object, the data is the value returned by the
+method with the given name.</li>
+<li>If any name parts were retained in step 1, each should be resolved
+against a context stack containing only the result from the former
+resolution.  If any part fails resolution, the result should be considered
+falsey, and should interpolate as the empty string.
+Data should be coerced into a string (and escaped, if appropriate) before
+interpolation.</li>
+</ol>
+<p>The Interpolation tags MUST NOT be treated as standalone.</p>
+<h3>✅ No Interpolation</h3>
+<p>Mustache-free templates should render as-is.</p>
+<p>Template:</p>
+<pre><code>Hello from {Mustache}!
+
+</code></pre>
+<p>Data:</p>
+<pre><code>{}
+</code></pre>
+<p>Expected:</p>
+<pre><code>Hello from {Mustache}!
+
+</code></pre>
+<p>Output:</p>
+<pre><code>Hello from {Mustache}!
+
+</code></pre>
+<h3>✅ Basic Interpolation</h3>
+<p>Unadorned tags should interpolate content into the template.</p>
+<p>Template:</p>
+<pre><code>Hello, {{subject}}!
+
+</code></pre>
+<p>Data:</p>
+<pre><code>{&quot;subject&quot;:&quot;world&quot;}
+</code></pre>
+<p>Expected:</p>
+<pre><code>Hello, world!
+
+</code></pre>
+<p>Output:</p>
+<pre><code>Hello, world!
+
+</code></pre>
+<h3>✅ HTML Escaping</h3>
+<p>Basic interpolation should be HTML escaped.</p>
+<p>Template:</p>
+<pre><code>These characters should be HTML escaped: {{forbidden}}
+
+</code></pre>
+<p>Data:</p>
+<pre><code>{&quot;forbidden&quot;:&quot;&amp; \&quot; &lt; &gt;&quot;}
+</code></pre>
+<p>Expected:</p>
+<pre><code>These characters should be HTML escaped: &amp;amp; &amp;quot; &amp;lt; &amp;gt;
+
+</code></pre>
+<p>Output:</p>
+<pre><code>These characters should be HTML escaped: &amp;amp; &amp;quot; &amp;lt; &amp;gt;
+
+</code></pre>
+<h3>✅ Triple Mustache</h3>
+<p>Triple mustaches should interpolate without HTML escaping.</p>
+<p>Template:</p>
+<pre><code>These characters should not be HTML escaped: {{{forbidden}}}
+
+</code></pre>
+<p>Data:</p>
+<pre><code>{&quot;forbidden&quot;:&quot;&amp; \&quot; &lt; &gt;&quot;}
+</code></pre>
+<p>Expected:</p>
+<pre><code>These characters should not be HTML escaped: &amp; &quot; &lt; &gt;
+
+</code></pre>
+<p>Output:</p>
+<pre><code>These characters should not be HTML escaped: &amp; &quot; &lt; &gt;
+
+</code></pre>
+<h3>✅ Ampersand</h3>
+<p>Ampersand should interpolate without HTML escaping.</p>
+<p>Template:</p>
+<pre><code>These characters should not be HTML escaped: {{&amp;forbidden}}
+
+</code></pre>
+<p>Data:</p>
+<pre><code>{&quot;forbidden&quot;:&quot;&amp; \&quot; &lt; &gt;&quot;}
+</code></pre>
+<p>Expected:</p>
+<pre><code>These characters should not be HTML escaped: &amp; &quot; &lt; &gt;
+
+</code></pre>
+<p>Output:</p>
+<pre><code>These characters should not be HTML escaped: &amp; &quot; &lt; &gt;
+
+</code></pre>
+<h3>✅ Basic Integer Interpolation</h3>
+<p>Integers should interpolate seamlessly.</p>
+<p>Template:</p>
+<pre><code>&quot;{{mph}} miles an hour!&quot;
+</code></pre>
+<p>Data:</p>
+<pre><code>{&quot;mph&quot;:85}
+</code></pre>
+<p>Expected:</p>
+<pre><code>&quot;85 miles an hour!&quot;
+</code></pre>
+<p>Output:</p>
+<pre><code>&quot;85 miles an hour!&quot;
+</code></pre>
+<h3>✅ Triple Mustache Integer Interpolation</h3>
+<p>Integers should interpolate seamlessly.</p>
+<p>Template:</p>
+<pre><code>&quot;{{{mph}}} miles an hour!&quot;
+</code></pre>
+<p>Data:</p>
+<pre><code>{&quot;mph&quot;:85}
+</code></pre>
+<p>Expected:</p>
+<pre><code>&quot;85 miles an hour!&quot;
+</code></pre>
+<p>Output:</p>
+<pre><code>&quot;85 miles an hour!&quot;
+</code></pre>
+<h3>✅ Ampersand Integer Interpolation</h3>
+<p>Integers should interpolate seamlessly.</p>
+<p>Template:</p>
+<pre><code>&quot;{{&amp;mph}} miles an hour!&quot;
+</code></pre>
+<p>Data:</p>
+<pre><code>{&quot;mph&quot;:85}
+</code></pre>
+<p>Expected:</p>
+<pre><code>&quot;85 miles an hour!&quot;
+</code></pre>
+<p>Output:</p>
+<pre><code>&quot;85 miles an hour!&quot;
+</code></pre>
+<h3>✅ Basic Decimal Interpolation</h3>
+<p>Decimals should interpolate seamlessly with proper significance.</p>
+<p>Template:</p>
+<pre><code>&quot;{{power}} jiggawatts!&quot;
+</code></pre>
+<p>Data:</p>
+<pre><code>{&quot;power&quot;:1.21}
+</code></pre>
+<p>Expected:</p>
+<pre><code>&quot;1.21 jiggawatts!&quot;
+</code></pre>
+<p>Output:</p>
+<pre><code>&quot;1.21 jiggawatts!&quot;
+</code></pre>
+<h3>✅ Triple Mustache Decimal Interpolation</h3>
+<p>Decimals should interpolate seamlessly with proper significance.</p>
+<p>Template:</p>
+<pre><code>&quot;{{{power}}} jiggawatts!&quot;
+</code></pre>
+<p>Data:</p>
+<pre><code>{&quot;power&quot;:1.21}
+</code></pre>
+<p>Expected:</p>
+<pre><code>&quot;1.21 jiggawatts!&quot;
+</code></pre>
+<p>Output:</p>
+<pre><code>&quot;1.21 jiggawatts!&quot;
+</code></pre>
+<h3>✅ Ampersand Decimal Interpolation</h3>
+<p>Decimals should interpolate seamlessly with proper significance.</p>
+<p>Template:</p>
+<pre><code>&quot;{{&amp;power}} jiggawatts!&quot;
+</code></pre>
+<p>Data:</p>
+<pre><code>{&quot;power&quot;:1.21}
+</code></pre>
+<p>Expected:</p>
+<pre><code>&quot;1.21 jiggawatts!&quot;
+</code></pre>
+<p>Output:</p>
+<pre><code>&quot;1.21 jiggawatts!&quot;
+</code></pre>
+<h3>✅ Basic Null Interpolation</h3>
+<p>Nulls should interpolate as the empty string.</p>
+<p>Template:</p>
+<pre><code>I ({{cannot}}) be seen!
+</code></pre>
+<p>Data:</p>
+<pre><code>{&quot;cannot&quot;:null}
+</code></pre>
+<p>Expected:</p>
+<pre><code>I () be seen!
+</code></pre>
+<p>Output:</p>
+<pre><code>I () be seen!
+</code></pre>
+<h3>✅ Triple Mustache Null Interpolation</h3>
+<p>Nulls should interpolate as the empty string.</p>
+<p>Template:</p>
+<pre><code>I ({{{cannot}}}) be seen!
+</code></pre>
+<p>Data:</p>
+<pre><code>{&quot;cannot&quot;:null}
+</code></pre>
+<p>Expected:</p>
+<pre><code>I () be seen!
+</code></pre>
+<p>Output:</p>
+<pre><code>I () be seen!
+</code></pre>
+<h3>✅ Ampersand Null Interpolation</h3>
+<p>Nulls should interpolate as the empty string.</p>
+<p>Template:</p>
+<pre><code>I ({{&amp;cannot}}) be seen!
+</code></pre>
+<p>Data:</p>
+<pre><code>{&quot;cannot&quot;:null}
+</code></pre>
+<p>Expected:</p>
+<pre><code>I () be seen!
+</code></pre>
+<p>Output:</p>
+<pre><code>I () be seen!
+</code></pre>
+<h3>✅ Basic Context Miss Interpolation</h3>
+<p>Failed context lookups should default to empty strings.</p>
+<p>Template:</p>
+<pre><code>I ({{cannot}}) be seen!
+</code></pre>
+<p>Data:</p>
+<pre><code>{}
+</code></pre>
+<p>Expected:</p>
+<pre><code>I () be seen!
+</code></pre>
+<p>Output:</p>
+<pre><code>I () be seen!
+</code></pre>
+<h3>✅ Triple Mustache Context Miss Interpolation</h3>
+<p>Failed context lookups should default to empty strings.</p>
+<p>Template:</p>
+<pre><code>I ({{{cannot}}}) be seen!
+</code></pre>
+<p>Data:</p>
+<pre><code>{}
+</code></pre>
+<p>Expected:</p>
+<pre><code>I () be seen!
+</code></pre>
+<p>Output:</p>
+<pre><code>I () be seen!
+</code></pre>
+<h3>✅ Ampersand Context Miss Interpolation</h3>
+<p>Failed context lookups should default to empty strings.</p>
+<p>Template:</p>
+<pre><code>I ({{&amp;cannot}}) be seen!
+</code></pre>
+<p>Data:</p>
+<pre><code>{}
+</code></pre>
+<p>Expected:</p>
+<pre><code>I () be seen!
+</code></pre>
+<p>Output:</p>
+<pre><code>I () be seen!
+</code></pre>
+<h3>✅ Dotted Names - Basic Interpolation</h3>
+<p>Dotted names should be considered a form of shorthand for sections.</p>
+<p>Template:</p>
+<pre><code>&quot;{{person.name}}&quot; == &quot;{{#person}}{{name}}{{/person}}&quot;
+</code></pre>
+<p>Data:</p>
+<pre><code>{&quot;person&quot;:{&quot;name&quot;:&quot;Joe&quot;}}
+</code></pre>
+<p>Expected:</p>
+<pre><code>&quot;Joe&quot; == &quot;Joe&quot;
+</code></pre>
+<p>Output:</p>
+<pre><code>&quot;Joe&quot; == &quot;Joe&quot;
+</code></pre>
+<h3>✅ Dotted Names - Triple Mustache Interpolation</h3>
+<p>Dotted names should be considered a form of shorthand for sections.</p>
+<p>Template:</p>
+<pre><code>&quot;{{{person.name}}}&quot; == &quot;{{#person}}{{{name}}}{{/person}}&quot;
+</code></pre>
+<p>Data:</p>
+<pre><code>{&quot;person&quot;:{&quot;name&quot;:&quot;Joe&quot;}}
+</code></pre>
+<p>Expected:</p>
+<pre><code>&quot;Joe&quot; == &quot;Joe&quot;
+</code></pre>
+<p>Output:</p>
+<pre><code>&quot;Joe&quot; == &quot;Joe&quot;
+</code></pre>
+<h3>✅ Dotted Names - Ampersand Interpolation</h3>
+<p>Dotted names should be considered a form of shorthand for sections.</p>
+<p>Template:</p>
+<pre><code>&quot;{{&amp;person.name}}&quot; == &quot;{{#person}}{{&amp;name}}{{/person}}&quot;
+</code></pre>
+<p>Data:</p>
+<pre><code>{&quot;person&quot;:{&quot;name&quot;:&quot;Joe&quot;}}
+</code></pre>
+<p>Expected:</p>
+<pre><code>&quot;Joe&quot; == &quot;Joe&quot;
+</code></pre>
+<p>Output:</p>
+<pre><code>&quot;Joe&quot; == &quot;Joe&quot;
+</code></pre>
+<h3>✅ Dotted Names - Arbitrary Depth</h3>
+<p>Dotted names should be functional to any level of nesting.</p>
+<p>Template:</p>
+<pre><code>&quot;{{a.b.c.d.e.name}}&quot; == &quot;Phil&quot;
+</code></pre>
+<p>Data:</p>
+<pre><code>{&quot;a&quot;:{&quot;b&quot;:{&quot;c&quot;:{&quot;d&quot;:{&quot;e&quot;:{&quot;name&quot;:&quot;Phil&quot;}}}}}}
+</code></pre>
+<p>Expected:</p>
+<pre><code>&quot;Phil&quot; == &quot;Phil&quot;
+</code></pre>
+<p>Output:</p>
+<pre><code>&quot;Phil&quot; == &quot;Phil&quot;
+</code></pre>
+<h3>✅ Dotted Names - Broken Chains</h3>
+<p>Any falsey value prior to the last part of the name should yield ''.</p>
+<p>Template:</p>
+<pre><code>&quot;{{a.b.c}}&quot; == &quot;&quot;
+</code></pre>
+<p>Data:</p>
+<pre><code>{&quot;a&quot;:{}}
+</code></pre>
+<p>Expected:</p>
+<pre><code>&quot;&quot; == &quot;&quot;
+</code></pre>
+<p>Output:</p>
+<pre><code>&quot;&quot; == &quot;&quot;
+</code></pre>
+<h3>✅ Dotted Names - Broken Chain Resolution</h3>
+<p>Each part of a dotted name should resolve only against its parent.</p>
+<p>Template:</p>
+<pre><code>&quot;{{a.b.c.name}}&quot; == &quot;&quot;
+</code></pre>
+<p>Data:</p>
+<pre><code>{&quot;a&quot;:{&quot;b&quot;:{}},&quot;c&quot;:{&quot;name&quot;:&quot;Jim&quot;}}
+</code></pre>
+<p>Expected:</p>
+<pre><code>&quot;&quot; == &quot;&quot;
+</code></pre>
+<p>Output:</p>
+<pre><code>&quot;&quot; == &quot;&quot;
+</code></pre>
+<h3>✅ Dotted Names - Initial Resolution</h3>
+<p>The first part of a dotted name should resolve as any other name.</p>
+<p>Template:</p>
+<pre><code>&quot;{{#a}}{{b.c.d.e.name}}{{/a}}&quot; == &quot;Phil&quot;
+</code></pre>
+<p>Data:</p>
+<pre><code>{&quot;a&quot;:{&quot;b&quot;:{&quot;c&quot;:{&quot;d&quot;:{&quot;e&quot;:{&quot;name&quot;:&quot;Phil&quot;}}}}},&quot;b&quot;:{&quot;c&quot;:{&quot;d&quot;:{&quot;e&quot;:{&quot;name&quot;:&quot;Wrong&quot;}}}}}
+</code></pre>
+<p>Expected:</p>
+<pre><code>&quot;Phil&quot; == &quot;Phil&quot;
+</code></pre>
+<p>Output:</p>
+<pre><code>&quot;Phil&quot; == &quot;Phil&quot;
+</code></pre>
+<h3>❌ Dotted Names - Context Precedence</h3>
+<p>Dotted names should be resolved against former resolutions.</p>
+<p>Template:</p>
+<pre><code>{{#a}}{{b.c}}{{/a}}
+</code></pre>
+<p>Data:</p>
+<pre><code>{&quot;a&quot;:{&quot;b&quot;:{}},&quot;b&quot;:{&quot;c&quot;:&quot;ERROR&quot;}}
+</code></pre>
+<p>Expected:</p>
+<pre><code>
+</code></pre>
+<p>Output:</p>
+<pre><code>ERROR
+</code></pre>
+<h3>❌ Implicit Iterators - Basic Interpolation</h3>
+<p>Unadorned tags should interpolate content into the template.</p>
+<p>Template:</p>
+<pre><code>Hello, {{.}}!
+
+</code></pre>
+<p>Data:</p>
+<pre><code>&quot;world&quot;
+</code></pre>
+<p>Expected:</p>
+<pre><code>Hello, world!
+
+</code></pre>
+<p>Output:</p>
+<pre><code>❌
+</code></pre>
+<h3>❌ Implicit Iterators - HTML Escaping</h3>
+<p>Basic interpolation should be HTML escaped.</p>
+<p>Template:</p>
+<pre><code>These characters should be HTML escaped: {{.}}
+
+</code></pre>
+<p>Data:</p>
+<pre><code>&quot;&amp; \&quot; &lt; &gt;&quot;
+</code></pre>
+<p>Expected:</p>
+<pre><code>These characters should be HTML escaped: &amp;amp; &amp;quot; &amp;lt; &amp;gt;
+
+</code></pre>
+<p>Output:</p>
+<pre><code>❌
+</code></pre>
+<h3>❌ Implicit Iterators - Triple Mustache</h3>
+<p>Triple mustaches should interpolate without HTML escaping.</p>
+<p>Template:</p>
+<pre><code>These characters should not be HTML escaped: {{{.}}}
+
+</code></pre>
+<p>Data:</p>
+<pre><code>&quot;&amp; \&quot; &lt; &gt;&quot;
+</code></pre>
+<p>Expected:</p>
+<pre><code>These characters should not be HTML escaped: &amp; &quot; &lt; &gt;
+
+</code></pre>
+<p>Output:</p>
+<pre><code>❌
+</code></pre>
+<h3>❌ Implicit Iterators - Ampersand</h3>
+<p>Ampersand should interpolate without HTML escaping.</p>
+<p>Template:</p>
+<pre><code>These characters should not be HTML escaped: {{&amp;.}}
+
+</code></pre>
+<p>Data:</p>
+<pre><code>&quot;&amp; \&quot; &lt; &gt;&quot;
+</code></pre>
+<p>Expected:</p>
+<pre><code>These characters should not be HTML escaped: &amp; &quot; &lt; &gt;
+
+</code></pre>
+<p>Output:</p>
+<pre><code>❌
+</code></pre>
+<h3>❌ Implicit Iterators - Basic Integer Interpolation</h3>
+<p>Integers should interpolate seamlessly.</p>
+<p>Template:</p>
+<pre><code>&quot;{{.}} miles an hour!&quot;
+</code></pre>
+<p>Data:</p>
+<pre><code>85
+</code></pre>
+<p>Expected:</p>
+<pre><code>&quot;85 miles an hour!&quot;
+</code></pre>
+<p>Output:</p>
+<pre><code>❌
+</code></pre>
+<h3>✅ Interpolation - Surrounding Whitespace</h3>
+<p>Interpolation should not alter surrounding whitespace.</p>
+<p>Template:</p>
+<pre><code>| {{string}} |
+</code></pre>
+<p>Data:</p>
+<pre><code>{&quot;string&quot;:&quot;---&quot;}
+</code></pre>
+<p>Expected:</p>
+<pre><code>| --- |
+</code></pre>
+<p>Output:</p>
+<pre><code>| --- |
+</code></pre>
+<h3>✅ Triple Mustache - Surrounding Whitespace</h3>
+<p>Interpolation should not alter surrounding whitespace.</p>
+<p>Template:</p>
+<pre><code>| {{{string}}} |
+</code></pre>
+<p>Data:</p>
+<pre><code>{&quot;string&quot;:&quot;---&quot;}
+</code></pre>
+<p>Expected:</p>
+<pre><code>| --- |
+</code></pre>
+<p>Output:</p>
+<pre><code>| --- |
+</code></pre>
+<h3>✅ Ampersand - Surrounding Whitespace</h3>
+<p>Interpolation should not alter surrounding whitespace.</p>
+<p>Template:</p>
+<pre><code>| {{&amp;string}} |
+</code></pre>
+<p>Data:</p>
+<pre><code>{&quot;string&quot;:&quot;---&quot;}
+</code></pre>
+<p>Expected:</p>
+<pre><code>| --- |
+</code></pre>
+<p>Output:</p>
+<pre><code>| --- |
+</code></pre>
+<h3>✅ Interpolation - Standalone</h3>
+<p>Standalone interpolation should not alter surrounding whitespace.</p>
+<p>Template:</p>
+<pre><code>  {{string}}
+
+</code></pre>
+<p>Data:</p>
+<pre><code>{&quot;string&quot;:&quot;---&quot;}
+</code></pre>
+<p>Expected:</p>
+<pre><code>  ---
+
+</code></pre>
+<p>Output:</p>
+<pre><code>  ---
+
+</code></pre>
+<h3>✅ Triple Mustache - Standalone</h3>
+<p>Standalone interpolation should not alter surrounding whitespace.</p>
+<p>Template:</p>
+<pre><code>  {{{string}}}
+
+</code></pre>
+<p>Data:</p>
+<pre><code>{&quot;string&quot;:&quot;---&quot;}
+</code></pre>
+<p>Expected:</p>
+<pre><code>  ---
+
+</code></pre>
+<p>Output:</p>
+<pre><code>  ---
+
+</code></pre>
+<h3>✅ Ampersand - Standalone</h3>
+<p>Standalone interpolation should not alter surrounding whitespace.</p>
+<p>Template:</p>
+<pre><code>  {{&amp;string}}
+
+</code></pre>
+<p>Data:</p>
+<pre><code>{&quot;string&quot;:&quot;---&quot;}
+</code></pre>
+<p>Expected:</p>
+<pre><code>  ---
+
+</code></pre>
+<p>Output:</p>
+<pre><code>  ---
+
+</code></pre>
+<h3>✅ Interpolation With Padding</h3>
+<p>Superfluous in-tag whitespace should be ignored.</p>
+<p>Template:</p>
+<pre><code>|{{ string }}|
+</code></pre>
+<p>Data:</p>
+<pre><code>{&quot;string&quot;:&quot;---&quot;}
+</code></pre>
+<p>Expected:</p>
+<pre><code>|---|
+</code></pre>
+<p>Output:</p>
+<pre><code>|---|
+</code></pre>
+<h3>✅ Triple Mustache With Padding</h3>
+<p>Superfluous in-tag whitespace should be ignored.</p>
+<p>Template:</p>
+<pre><code>|{{{ string }}}|
+</code></pre>
+<p>Data:</p>
+<pre><code>{&quot;string&quot;:&quot;---&quot;}
+</code></pre>
+<p>Expected:</p>
+<pre><code>|---|
+</code></pre>
+<p>Output:</p>
+<pre><code>|---|
+</code></pre>
+<h3>✅ Ampersand With Padding</h3>
+<p>Superfluous in-tag whitespace should be ignored.</p>
+<p>Template:</p>
+<pre><code>|{{&amp; string }}|
+</code></pre>
+<p>Data:</p>
+<pre><code>{&quot;string&quot;:&quot;---&quot;}
+</code></pre>
+<p>Expected:</p>
+<pre><code>|---|
+</code></pre>
+<p>Output:</p>
+<pre><code>|---|
+</code></pre>
+<h2>sections.json</h2>
+<p>Section tags and End Section tags are used in combination to wrap a section
+of the template for iteration</p>
+<p>These tags' content MUST be a non-whitespace character sequence NOT
+containing the current closing delimiter; each Section tag MUST be followed
+by an End Section tag with the same content within the same section.</p>
+<p>This tag's content names the data to replace the tag.  Name resolution is as
+follows:</p>
+<ol>
+<li>Split the name on periods; the first part is the name to resolve, any
+remaining parts should be retained.</li>
+<li>Walk the context stack from top to bottom, finding the first context
+that is a) a hash containing the name as a key OR b) an object responding
+to a method with the given name.</li>
+<li>If the context is a hash, the data is the value associated with the
+name.</li>
+<li>If the context is an object and the method with the given name has an
+arity of 1, the method SHOULD be called with a String containing the
+unprocessed contents of the sections; the data is the value returned.</li>
+<li>Otherwise, the data is the value returned by calling the method with
+the given name.</li>
+<li>If any name parts were retained in step 1, each should be resolved
+against a context stack containing only the result from the former
+resolution.  If any part fails resolution, the result should be considered
+falsey, and should interpolate as the empty string.
+If the data is not of a list type, it is coerced into a list as follows: if
+the data is truthy (e.g. <code>!!data == true</code>), use a single-element list
+containing the data, otherwise use an empty list.</li>
+</ol>
+<p>For each element in the data list, the element MUST be pushed onto the
+context stack, the section MUST be rendered, and the element MUST be popped
+off the context stack.</p>
+<p>Section and End Section tags SHOULD be treated as standalone when
+appropriate.</p>
+<h3>✅ Truthy</h3>
+<p>Truthy sections should have their contents rendered.</p>
+<p>Template:</p>
+<pre><code>&quot;{{#boolean}}This should be rendered.{{/boolean}}&quot;
+</code></pre>
+<p>Data:</p>
+<pre><code>{&quot;boolean&quot;:true}
+</code></pre>
+<p>Expected:</p>
+<pre><code>&quot;This should be rendered.&quot;
+</code></pre>
+<p>Output:</p>
+<pre><code>&quot;This should be rendered.&quot;
+</code></pre>
+<h3>✅ Falsey</h3>
+<p>Falsey sections should have their contents omitted.</p>
+<p>Template:</p>
+<pre><code>&quot;{{#boolean}}This should not be rendered.{{/boolean}}&quot;
+</code></pre>
+<p>Data:</p>
+<pre><code>{&quot;boolean&quot;:false}
+</code></pre>
+<p>Expected:</p>
+<pre><code>&quot;&quot;
+</code></pre>
+<p>Output:</p>
+<pre><code>&quot;&quot;
+</code></pre>
+<h3>✅ Null is falsey</h3>
+<p>Null is falsey.</p>
+<p>Template:</p>
+<pre><code>&quot;{{#null}}This should not be rendered.{{/null}}&quot;
+</code></pre>
+<p>Data:</p>
+<pre><code>{&quot;null&quot;:null}
+</code></pre>
+<p>Expected:</p>
+<pre><code>&quot;&quot;
+</code></pre>
+<p>Output:</p>
+<pre><code>&quot;&quot;
+</code></pre>
+<h3>✅ Context</h3>
+<p>Objects and hashes should be pushed onto the context stack.</p>
+<p>Template:</p>
+<pre><code>&quot;{{#context}}Hi {{name}}.{{/context}}&quot;
+</code></pre>
+<p>Data:</p>
+<pre><code>{&quot;context&quot;:{&quot;name&quot;:&quot;Joe&quot;}}
+</code></pre>
+<p>Expected:</p>
+<pre><code>&quot;Hi Joe.&quot;
+</code></pre>
+<p>Output:</p>
+<pre><code>&quot;Hi Joe.&quot;
+</code></pre>
+<h3>✅ Parent contexts</h3>
+<p>Names missing in the current context are looked up in the stack.</p>
+<p>Template:</p>
+<pre><code>&quot;{{#sec}}{{a}}, {{b}}, {{c.d}}{{/sec}}&quot;
+</code></pre>
+<p>Data:</p>
+<pre><code>{&quot;a&quot;:&quot;foo&quot;,&quot;b&quot;:&quot;wrong&quot;,&quot;sec&quot;:{&quot;b&quot;:&quot;bar&quot;},&quot;c&quot;:{&quot;d&quot;:&quot;baz&quot;}}
+</code></pre>
+<p>Expected:</p>
+<pre><code>&quot;foo, bar, baz&quot;
+</code></pre>
+<p>Output:</p>
+<pre><code>&quot;foo, bar, baz&quot;
+</code></pre>
+<h3>❌ Variable test</h3>
+<p>Non-false sections have their value at the top of context,
+accessible as {{.}} or through the parent context. This gives
+a simple way to display content conditionally if a variable exists.</p>
+<p>Template:</p>
+<pre><code>&quot;{{#foo}}{{.}} is {{foo}}{{/foo}}&quot;
+</code></pre>
+<p>Data:</p>
+<pre><code>{&quot;foo&quot;:&quot;bar&quot;}
+</code></pre>
+<p>Expected:</p>
+<pre><code>&quot;bar is bar&quot;
+</code></pre>
+<p>Output:</p>
+<pre><code>&quot; is bar&quot;
+</code></pre>
+<h3>✅ List Contexts</h3>
+<p>All elements on the context stack should be accessible within lists.</p>
+<p>Template:</p>
+<pre><code>{{#tops}}{{#middles}}{{tname.lower}}{{mname}}.{{#bottoms}}{{tname.upper}}{{mname}}{{bname}}.{{/bottoms}}{{/middles}}{{/tops}}
+</code></pre>
+<p>Data:</p>
+<pre><code>{&quot;tops&quot;:[{&quot;tname&quot;:{&quot;upper&quot;:&quot;A&quot;,&quot;lower&quot;:&quot;a&quot;},&quot;middles&quot;:[{&quot;mname&quot;:&quot;1&quot;,&quot;bottoms&quot;:[{&quot;bname&quot;:&quot;x&quot;},{&quot;bname&quot;:&quot;y&quot;}]}]}]}
+</code></pre>
+<p>Expected:</p>
+<pre><code>a1.A1x.A1y.
+</code></pre>
+<p>Output:</p>
+<pre><code>a1.A1x.A1y.
+</code></pre>
+<h3>❌ Deeply Nested Contexts</h3>
+<p>All elements on the context stack should be accessible.</p>
+<p>Template:</p>
+<pre><code>{{#a}}
+{{one}}
+{{#b}}
+{{one}}{{two}}{{one}}
+{{#c}}
+{{one}}{{two}}{{three}}{{two}}{{one}}
+{{#d}}
+{{one}}{{two}}{{three}}{{four}}{{three}}{{two}}{{one}}
+{{#five}}
+{{one}}{{two}}{{three}}{{four}}{{five}}{{four}}{{three}}{{two}}{{one}}
+{{one}}{{two}}{{three}}{{four}}{{.}}6{{.}}{{four}}{{three}}{{two}}{{one}}
+{{one}}{{two}}{{three}}{{four}}{{five}}{{four}}{{three}}{{two}}{{one}}
+{{/five}}
+{{one}}{{two}}{{three}}{{four}}{{three}}{{two}}{{one}}
+{{/d}}
+{{one}}{{two}}{{three}}{{two}}{{one}}
+{{/c}}
+{{one}}{{two}}{{one}}
+{{/b}}
+{{one}}
+{{/a}}
+
+</code></pre>
+<p>Data:</p>
+<pre><code>{&quot;a&quot;:{&quot;one&quot;:1},&quot;b&quot;:{&quot;two&quot;:2},&quot;c&quot;:{&quot;three&quot;:3,&quot;d&quot;:{&quot;four&quot;:4,&quot;five&quot;:5}}}
+</code></pre>
+<p>Expected:</p>
+<pre><code>1
+121
+12321
+1234321
+123454321
+12345654321
+123454321
+1234321
+12321
+121
+1
+
+</code></pre>
+<p>Output:</p>
+<pre><code>1
+121
+12321
+1234321
+123454321
+123464321
+123454321
+1234321
+12321
+121
+1
+
+</code></pre>
+<h3>✅ List</h3>
+<p>Lists should be iterated; list items should visit the context stack.</p>
+<p>Template:</p>
+<pre><code>&quot;{{#list}}{{item}}{{/list}}&quot;
+</code></pre>
+<p>Data:</p>
+<pre><code>{&quot;list&quot;:[{&quot;item&quot;:1},{&quot;item&quot;:2},{&quot;item&quot;:3}]}
+</code></pre>
+<p>Expected:</p>
+<pre><code>&quot;123&quot;
+</code></pre>
+<p>Output:</p>
+<pre><code>&quot;123&quot;
+</code></pre>
+<h3>✅ Empty List</h3>
+<p>Empty lists should behave like falsey values.</p>
+<p>Template:</p>
+<pre><code>&quot;{{#list}}Yay lists!{{/list}}&quot;
+</code></pre>
+<p>Data:</p>
+<pre><code>{&quot;list&quot;:[]}
+</code></pre>
+<p>Expected:</p>
+<pre><code>&quot;&quot;
+</code></pre>
+<p>Output:</p>
+<pre><code>&quot;&quot;
+</code></pre>
+<h3>✅ Doubled</h3>
+<p>Multiple sections per template should be permitted.</p>
+<p>Template:</p>
+<pre><code>{{#bool}}
+* first
+{{/bool}}
+* {{two}}
+{{#bool}}
+* third
+{{/bool}}
+
+</code></pre>
+<p>Data:</p>
+<pre><code>{&quot;bool&quot;:true,&quot;two&quot;:&quot;second&quot;}
+</code></pre>
+<p>Expected:</p>
+<pre><code>* first
+* second
+* third
+
+</code></pre>
+<p>Output:</p>
+<pre><code>* first
+* second
+* third
+
+</code></pre>
+<h3>✅ Nested (Truthy)</h3>
+<p>Nested truthy sections should have their contents rendered.</p>
+<p>Template:</p>
+<pre><code>| A {{#bool}}B {{#bool}}C{{/bool}} D{{/bool}} E |
+</code></pre>
+<p>Data:</p>
+<pre><code>{&quot;bool&quot;:true}
+</code></pre>
+<p>Expected:</p>
+<pre><code>| A B C D E |
+</code></pre>
+<p>Output:</p>
+<pre><code>| A B C D E |
+</code></pre>
+<h3>✅ Nested (Falsey)</h3>
+<p>Nested falsey sections should be omitted.</p>
+<p>Template:</p>
+<pre><code>| A {{#bool}}B {{#bool}}C{{/bool}} D{{/bool}} E |
+</code></pre>
+<p>Data:</p>
+<pre><code>{&quot;bool&quot;:false}
+</code></pre>
+<p>Expected:</p>
+<pre><code>| A  E |
+</code></pre>
+<p>Output:</p>
+<pre><code>| A  E |
+</code></pre>
+<h3>✅ Context Misses</h3>
+<p>Failed context lookups should be considered falsey.</p>
+<p>Template:</p>
+<pre><code>[{{#missing}}Found key 'missing'!{{/missing}}]
+</code></pre>
+<p>Data:</p>
+<pre><code>{}
+</code></pre>
+<p>Expected:</p>
+<pre><code>[]
+</code></pre>
+<p>Output:</p>
+<pre><code>[]
+</code></pre>
+<h3>✅ Implicit Iterator - String</h3>
+<p>Implicit iterators should directly interpolate strings.</p>
+<p>Template:</p>
+<pre><code>&quot;{{#list}}({{.}}){{/list}}&quot;
+</code></pre>
+<p>Data:</p>
+<pre><code>{&quot;list&quot;:[&quot;a&quot;,&quot;b&quot;,&quot;c&quot;,&quot;d&quot;,&quot;e&quot;]}
+</code></pre>
+<p>Expected:</p>
+<pre><code>&quot;(a)(b)(c)(d)(e)&quot;
+</code></pre>
+<p>Output:</p>
+<pre><code>&quot;(a)(b)(c)(d)(e)&quot;
+</code></pre>
+<h3>✅ Implicit Iterator - Integer</h3>
+<p>Implicit iterators should cast integers to strings and interpolate.</p>
+<p>Template:</p>
+<pre><code>&quot;{{#list}}({{.}}){{/list}}&quot;
+</code></pre>
+<p>Data:</p>
+<pre><code>{&quot;list&quot;:[1,2,3,4,5]}
+</code></pre>
+<p>Expected:</p>
+<pre><code>&quot;(1)(2)(3)(4)(5)&quot;
+</code></pre>
+<p>Output:</p>
+<pre><code>&quot;(1)(2)(3)(4)(5)&quot;
+</code></pre>
+<h3>✅ Implicit Iterator - Decimal</h3>
+<p>Implicit iterators should cast decimals to strings and interpolate.</p>
+<p>Template:</p>
+<pre><code>&quot;{{#list}}({{.}}){{/list}}&quot;
+</code></pre>
+<p>Data:</p>
+<pre><code>{&quot;list&quot;:[1.1,2.2,3.3,4.4,5.5]}
+</code></pre>
+<p>Expected:</p>
+<pre><code>&quot;(1.1)(2.2)(3.3)(4.4)(5.5)&quot;
+</code></pre>
+<p>Output:</p>
+<pre><code>&quot;(1.1)(2.2)(3.3)(4.4)(5.5)&quot;
+</code></pre>
+<h3>✅ Implicit Iterator - Array</h3>
+<p>Implicit iterators should allow iterating over nested arrays.</p>
+<p>Template:</p>
+<pre><code>&quot;{{#list}}({{#.}}{{.}}{{/.}}){{/list}}&quot;
+</code></pre>
+<p>Data:</p>
+<pre><code>{&quot;list&quot;:[[1,2,3],[&quot;a&quot;,&quot;b&quot;,&quot;c&quot;]]}
+</code></pre>
+<p>Expected:</p>
+<pre><code>&quot;(123)(abc)&quot;
+</code></pre>
+<p>Output:</p>
+<pre><code>&quot;(123)(abc)&quot;
+</code></pre>
+<h3>✅ Dotted Names - Truthy</h3>
+<p>Dotted names should be valid for Section tags.</p>
+<p>Template:</p>
+<pre><code>&quot;{{#a.b.c}}Here{{/a.b.c}}&quot; == &quot;Here&quot;
+</code></pre>
+<p>Data:</p>
+<pre><code>{&quot;a&quot;:{&quot;b&quot;:{&quot;c&quot;:true}}}
+</code></pre>
+<p>Expected:</p>
+<pre><code>&quot;Here&quot; == &quot;Here&quot;
+</code></pre>
+<p>Output:</p>
+<pre><code>&quot;Here&quot; == &quot;Here&quot;
+</code></pre>
+<h3>✅ Dotted Names - Falsey</h3>
+<p>Dotted names should be valid for Section tags.</p>
+<p>Template:</p>
+<pre><code>&quot;{{#a.b.c}}Here{{/a.b.c}}&quot; == &quot;&quot;
+</code></pre>
+<p>Data:</p>
+<pre><code>{&quot;a&quot;:{&quot;b&quot;:{&quot;c&quot;:false}}}
+</code></pre>
+<p>Expected:</p>
+<pre><code>&quot;&quot; == &quot;&quot;
+</code></pre>
+<p>Output:</p>
+<pre><code>&quot;&quot; == &quot;&quot;
+</code></pre>
+<h3>✅ Dotted Names - Broken Chains</h3>
+<p>Dotted names that cannot be resolved should be considered falsey.</p>
+<p>Template:</p>
+<pre><code>&quot;{{#a.b.c}}Here{{/a.b.c}}&quot; == &quot;&quot;
+</code></pre>
+<p>Data:</p>
+<pre><code>{&quot;a&quot;:{}}
+</code></pre>
+<p>Expected:</p>
+<pre><code>&quot;&quot; == &quot;&quot;
+</code></pre>
+<p>Output:</p>
+<pre><code>&quot;&quot; == &quot;&quot;
+</code></pre>
+<h3>✅ Surrounding Whitespace</h3>
+<p>Sections should not alter surrounding whitespace.</p>
+<p>Template:</p>
+<pre><code> | {{#boolean}}	|	{{/boolean}} | 
+
+</code></pre>
+<p>Data:</p>
+<pre><code>{&quot;boolean&quot;:true}
+</code></pre>
+<p>Expected:</p>
+<pre><code> | 	|	 | 
+
+</code></pre>
+<p>Output:</p>
+<pre><code> | 	|	 | 
+
+</code></pre>
+<h3>✅ Internal Whitespace</h3>
+<p>Sections should not alter internal whitespace.</p>
+<p>Template:</p>
+<pre><code> | {{#boolean}} {{! Important Whitespace }}
+ {{/boolean}} | 
+
+</code></pre>
+<p>Data:</p>
+<pre><code>{&quot;boolean&quot;:true}
+</code></pre>
+<p>Expected:</p>
+<pre><code> |  
+  | 
+
+</code></pre>
+<p>Output:</p>
+<pre><code> |  
+  | 
+
+</code></pre>
+<h3>✅ Indented Inline Sections</h3>
+<p>Single-line sections should not alter surrounding whitespace.</p>
+<p>Template:</p>
+<pre><code> {{#boolean}}YES{{/boolean}}
+ {{#boolean}}GOOD{{/boolean}}
+
+</code></pre>
+<p>Data:</p>
+<pre><code>{&quot;boolean&quot;:true}
+</code></pre>
+<p>Expected:</p>
+<pre><code> YES
+ GOOD
+
+</code></pre>
+<p>Output:</p>
+<pre><code> YES
+ GOOD
+
+</code></pre>
+<h3>✅ Standalone Lines</h3>
+<p>Standalone lines should be removed from the template.</p>
+<p>Template:</p>
+<pre><code>| This Is
+{{#boolean}}
+|
+{{/boolean}}
+| A Line
+
+</code></pre>
+<p>Data:</p>
+<pre><code>{&quot;boolean&quot;:true}
+</code></pre>
+<p>Expected:</p>
+<pre><code>| This Is
+|
+| A Line
+
+</code></pre>
+<p>Output:</p>
+<pre><code>| This Is
+|
+| A Line
+
+</code></pre>
+<h3>✅ Indented Standalone Lines</h3>
+<p>Indented standalone lines should be removed from the template.</p>
+<p>Template:</p>
+<pre><code>| This Is
+  {{#boolean}}
+|
+  {{/boolean}}
+| A Line
+
+</code></pre>
+<p>Data:</p>
+<pre><code>{&quot;boolean&quot;:true}
+</code></pre>
+<p>Expected:</p>
+<pre><code>| This Is
+|
+| A Line
+
+</code></pre>
+<p>Output:</p>
+<pre><code>| This Is
+|
+| A Line
+
+</code></pre>
+<h3>✅ Standalone Line Endings</h3>
+<p>&quot;\r\n&quot; should be considered a newline for standalone tags.</p>
+<p>Template:</p>
+<pre><code>|
+{{#boolean}}
+{{/boolean}}
+|
+</code></pre>
+<p>Data:</p>
+<pre><code>{&quot;boolean&quot;:true}
+</code></pre>
+<p>Expected:</p>
+<pre><code>|
+|
+</code></pre>
+<p>Output:</p>
+<pre><code>|
+|
+</code></pre>
+<h3>✅ Standalone Without Previous Line</h3>
+<p>Standalone tags should not require a newline to precede them.</p>
+<p>Template:</p>
+<pre><code>  {{#boolean}}
+#{{/boolean}}
+/
+</code></pre>
+<p>Data:</p>
+<pre><code>{&quot;boolean&quot;:true}
+</code></pre>
+<p>Expected:</p>
+<pre><code>#
+/
+</code></pre>
+<p>Output:</p>
+<pre><code>#
+/
+</code></pre>
+<h3>✅ Standalone Without Newline</h3>
+<p>Standalone tags should not require a newline to follow them.</p>
+<p>Template:</p>
+<pre><code>#{{#boolean}}
+/
+  {{/boolean}}
+</code></pre>
+<p>Data:</p>
+<pre><code>{&quot;boolean&quot;:true}
+</code></pre>
+<p>Expected:</p>
+<pre><code>#
+/
+
+</code></pre>
+<p>Output:</p>
+<pre><code>#
+/
+
+</code></pre>
+<h3>✅ Padding</h3>
+<p>Superfluous in-tag whitespace should be ignored.</p>
+<p>Template:</p>
+<pre><code>|{{# boolean }}={{/ boolean }}|
+</code></pre>
+<p>Data:</p>
+<pre><code>{&quot;boolean&quot;:true}
+</code></pre>
+<p>Expected:</p>
+<pre><code>|=|
+</code></pre>
+<p>Output:</p>
+<pre><code>|=|
+</code></pre>
+<h2>inverted.json</h2>
+<p>Inverted Section tags and End Section tags are used in combination to wrap a
+section of the template.</p>
+<p>These tags' content MUST be a non-whitespace character sequence NOT
+containing the current closing delimiter; each Inverted Section tag MUST be
+followed by an End Section tag with the same content within the same
+section.</p>
+<p>This tag's content names the data to replace the tag.  Name resolution is as
+follows:</p>
+<ol>
+<li>Split the name on periods; the first part is the name to resolve, any
+remaining parts should be retained.</li>
+<li>Walk the context stack from top to bottom, finding the first context
+that is a) a hash containing the name as a key OR b) an object responding
+to a method with the given name.</li>
+<li>If the context is a hash, the data is the value associated with the
+name.</li>
+<li>If the context is an object and the method with the given name has an
+arity of 1, the method SHOULD be called with a String containing the
+unprocessed contents of the sections; the data is the value returned.</li>
+<li>Otherwise, the data is the value returned by calling the method with
+the given name.</li>
+<li>If any name parts were retained in step 1, each should be resolved
+against a context stack containing only the result from the former
+resolution.  If any part fails resolution, the result should be considered
+falsey, and should interpolate as the empty string.
+If the data is not of a list type, it is coerced into a list as follows: if
+the data is truthy (e.g. <code>!!data == true</code>), use a single-element list
+containing the data, otherwise use an empty list.</li>
+</ol>
+<p>This section MUST NOT be rendered unless the data list is empty.</p>
+<p>Inverted Section and End Section tags SHOULD be treated as standalone when
+appropriate.</p>
+<h3>✅ Falsey</h3>
+<p>Falsey sections should have their contents rendered.</p>
+<p>Template:</p>
+<pre><code>&quot;{{^boolean}}This should be rendered.{{/boolean}}&quot;
+</code></pre>
+<p>Data:</p>
+<pre><code>{&quot;boolean&quot;:false}
+</code></pre>
+<p>Expected:</p>
+<pre><code>&quot;This should be rendered.&quot;
+</code></pre>
+<p>Output:</p>
+<pre><code>&quot;This should be rendered.&quot;
+</code></pre>
+<h3>✅ Truthy</h3>
+<p>Truthy sections should have their contents omitted.</p>
+<p>Template:</p>
+<pre><code>&quot;{{^boolean}}This should not be rendered.{{/boolean}}&quot;
+</code></pre>
+<p>Data:</p>
+<pre><code>{&quot;boolean&quot;:true}
+</code></pre>
+<p>Expected:</p>
+<pre><code>&quot;&quot;
+</code></pre>
+<p>Output:</p>
+<pre><code>&quot;&quot;
+</code></pre>
+<h3>✅ Null is falsey</h3>
+<p>Null is falsey.</p>
+<p>Template:</p>
+<pre><code>&quot;{{^null}}This should be rendered.{{/null}}&quot;
+</code></pre>
+<p>Data:</p>
+<pre><code>{&quot;null&quot;:null}
+</code></pre>
+<p>Expected:</p>
+<pre><code>&quot;This should be rendered.&quot;
+</code></pre>
+<p>Output:</p>
+<pre><code>&quot;This should be rendered.&quot;
+</code></pre>
+<h3>✅ Context</h3>
+<p>Objects and hashes should behave like truthy values.</p>
+<p>Template:</p>
+<pre><code>&quot;{{^context}}Hi {{name}}.{{/context}}&quot;
+</code></pre>
+<p>Data:</p>
+<pre><code>{&quot;context&quot;:{&quot;name&quot;:&quot;Joe&quot;}}
+</code></pre>
+<p>Expected:</p>
+<pre><code>&quot;&quot;
+</code></pre>
+<p>Output:</p>
+<pre><code>&quot;&quot;
+</code></pre>
+<h3>✅ List</h3>
+<p>Lists should behave like truthy values.</p>
+<p>Template:</p>
+<pre><code>&quot;{{^list}}{{n}}{{/list}}&quot;
+</code></pre>
+<p>Data:</p>
+<pre><code>{&quot;list&quot;:[{&quot;n&quot;:1},{&quot;n&quot;:2},{&quot;n&quot;:3}]}
+</code></pre>
+<p>Expected:</p>
+<pre><code>&quot;&quot;
+</code></pre>
+<p>Output:</p>
+<pre><code>&quot;&quot;
+</code></pre>
+<h3>✅ Empty List</h3>
+<p>Empty lists should behave like falsey values.</p>
+<p>Template:</p>
+<pre><code>&quot;{{^list}}Yay lists!{{/list}}&quot;
+</code></pre>
+<p>Data:</p>
+<pre><code>{&quot;list&quot;:[]}
+</code></pre>
+<p>Expected:</p>
+<pre><code>&quot;Yay lists!&quot;
+</code></pre>
+<p>Output:</p>
+<pre><code>&quot;Yay lists!&quot;
+</code></pre>
+<h3>✅ Doubled</h3>
+<p>Multiple inverted sections per template should be permitted.</p>
+<p>Template:</p>
+<pre><code>{{^bool}}
+* first
+{{/bool}}
+* {{two}}
+{{^bool}}
+* third
+{{/bool}}
+
+</code></pre>
+<p>Data:</p>
+<pre><code>{&quot;bool&quot;:false,&quot;two&quot;:&quot;second&quot;}
+</code></pre>
+<p>Expected:</p>
+<pre><code>* first
+* second
+* third
+
+</code></pre>
+<p>Output:</p>
+<pre><code>* first
+* second
+* third
+
+</code></pre>
+<h3>✅ Nested (Falsey)</h3>
+<p>Nested falsey sections should have their contents rendered.</p>
+<p>Template:</p>
+<pre><code>| A {{^bool}}B {{^bool}}C{{/bool}} D{{/bool}} E |
+</code></pre>
+<p>Data:</p>
+<pre><code>{&quot;bool&quot;:false}
+</code></pre>
+<p>Expected:</p>
+<pre><code>| A B C D E |
+</code></pre>
+<p>Output:</p>
+<pre><code>| A B C D E |
+</code></pre>
+<h3>✅ Nested (Truthy)</h3>
+<p>Nested truthy sections should be omitted.</p>
+<p>Template:</p>
+<pre><code>| A {{^bool}}B {{^bool}}C{{/bool}} D{{/bool}} E |
+</code></pre>
+<p>Data:</p>
+<pre><code>{&quot;bool&quot;:true}
+</code></pre>
+<p>Expected:</p>
+<pre><code>| A  E |
+</code></pre>
+<p>Output:</p>
+<pre><code>| A  E |
+</code></pre>
+<h3>✅ Context Misses</h3>
+<p>Failed context lookups should be considered falsey.</p>
+<p>Template:</p>
+<pre><code>[{{^missing}}Cannot find key 'missing'!{{/missing}}]
+</code></pre>
+<p>Data:</p>
+<pre><code>{}
+</code></pre>
+<p>Expected:</p>
+<pre><code>[Cannot find key 'missing'!]
+</code></pre>
+<p>Output:</p>
+<pre><code>[Cannot find key 'missing'!]
+</code></pre>
+<h3>✅ Dotted Names - Truthy</h3>
+<p>Dotted names should be valid for Inverted Section tags.</p>
+<p>Template:</p>
+<pre><code>&quot;{{^a.b.c}}Not Here{{/a.b.c}}&quot; == &quot;&quot;
+</code></pre>
+<p>Data:</p>
+<pre><code>{&quot;a&quot;:{&quot;b&quot;:{&quot;c&quot;:true}}}
+</code></pre>
+<p>Expected:</p>
+<pre><code>&quot;&quot; == &quot;&quot;
+</code></pre>
+<p>Output:</p>
+<pre><code>&quot;&quot; == &quot;&quot;
+</code></pre>
+<h3>✅ Dotted Names - Falsey</h3>
+<p>Dotted names should be valid for Inverted Section tags.</p>
+<p>Template:</p>
+<pre><code>&quot;{{^a.b.c}}Not Here{{/a.b.c}}&quot; == &quot;Not Here&quot;
+</code></pre>
+<p>Data:</p>
+<pre><code>{&quot;a&quot;:{&quot;b&quot;:{&quot;c&quot;:false}}}
+</code></pre>
+<p>Expected:</p>
+<pre><code>&quot;Not Here&quot; == &quot;Not Here&quot;
+</code></pre>
+<p>Output:</p>
+<pre><code>&quot;Not Here&quot; == &quot;Not Here&quot;
+</code></pre>
+<h3>✅ Dotted Names - Broken Chains</h3>
+<p>Dotted names that cannot be resolved should be considered falsey.</p>
+<p>Template:</p>
+<pre><code>&quot;{{^a.b.c}}Not Here{{/a.b.c}}&quot; == &quot;Not Here&quot;
+</code></pre>
+<p>Data:</p>
+<pre><code>{&quot;a&quot;:{}}
+</code></pre>
+<p>Expected:</p>
+<pre><code>&quot;Not Here&quot; == &quot;Not Here&quot;
+</code></pre>
+<p>Output:</p>
+<pre><code>&quot;Not Here&quot; == &quot;Not Here&quot;
+</code></pre>
+<h3>✅ Surrounding Whitespace</h3>
+<p>Inverted sections should not alter surrounding whitespace.</p>
+<p>Template:</p>
+<pre><code> | {{^boolean}}	|	{{/boolean}} | 
+
+</code></pre>
+<p>Data:</p>
+<pre><code>{&quot;boolean&quot;:false}
+</code></pre>
+<p>Expected:</p>
+<pre><code> | 	|	 | 
+
+</code></pre>
+<p>Output:</p>
+<pre><code> | 	|	 | 
+
+</code></pre>
+<h3>✅ Internal Whitespace</h3>
+<p>Inverted should not alter internal whitespace.</p>
+<p>Template:</p>
+<pre><code> | {{^boolean}} {{! Important Whitespace }}
+ {{/boolean}} | 
+
+</code></pre>
+<p>Data:</p>
+<pre><code>{&quot;boolean&quot;:false}
+</code></pre>
+<p>Expected:</p>
+<pre><code> |  
+  | 
+
+</code></pre>
+<p>Output:</p>
+<pre><code> |  
+  | 
+
+</code></pre>
+<h3>✅ Indented Inline Sections</h3>
+<p>Single-line sections should not alter surrounding whitespace.</p>
+<p>Template:</p>
+<pre><code> {{^boolean}}NO{{/boolean}}
+ {{^boolean}}WAY{{/boolean}}
+
+</code></pre>
+<p>Data:</p>
+<pre><code>{&quot;boolean&quot;:false}
+</code></pre>
+<p>Expected:</p>
+<pre><code> NO
+ WAY
+
+</code></pre>
+<p>Output:</p>
+<pre><code> NO
+ WAY
+
+</code></pre>
+<h3>✅ Standalone Lines</h3>
+<p>Standalone lines should be removed from the template.</p>
+<p>Template:</p>
+<pre><code>| This Is
+{{^boolean}}
+|
+{{/boolean}}
+| A Line
+
+</code></pre>
+<p>Data:</p>
+<pre><code>{&quot;boolean&quot;:false}
+</code></pre>
+<p>Expected:</p>
+<pre><code>| This Is
+|
+| A Line
+
+</code></pre>
+<p>Output:</p>
+<pre><code>| This Is
+|
+| A Line
+
+</code></pre>
+<h3>✅ Standalone Indented Lines</h3>
+<p>Standalone indented lines should be removed from the template.</p>
+<p>Template:</p>
+<pre><code>| This Is
+  {{^boolean}}
+|
+  {{/boolean}}
+| A Line
+
+</code></pre>
+<p>Data:</p>
+<pre><code>{&quot;boolean&quot;:false}
+</code></pre>
+<p>Expected:</p>
+<pre><code>| This Is
+|
+| A Line
+
+</code></pre>
+<p>Output:</p>
+<pre><code>| This Is
+|
+| A Line
+
+</code></pre>
+<h3>✅ Standalone Line Endings</h3>
+<p>&quot;\r\n&quot; should be considered a newline for standalone tags.</p>
+<p>Template:</p>
+<pre><code>|
+{{^boolean}}
+{{/boolean}}
+|
+</code></pre>
+<p>Data:</p>
+<pre><code>{&quot;boolean&quot;:false}
+</code></pre>
+<p>Expected:</p>
+<pre><code>|
+|
+</code></pre>
+<p>Output:</p>
+<pre><code>|
+|
+</code></pre>
+<h3>✅ Standalone Without Previous Line</h3>
+<p>Standalone tags should not require a newline to precede them.</p>
+<p>Template:</p>
+<pre><code>  {{^boolean}}
+^{{/boolean}}
+/
+</code></pre>
+<p>Data:</p>
+<pre><code>{&quot;boolean&quot;:false}
+</code></pre>
+<p>Expected:</p>
+<pre><code>^
+/
+</code></pre>
+<p>Output:</p>
+<pre><code>^
+/
+</code></pre>
+<h3>✅ Standalone Without Newline</h3>
+<p>Standalone tags should not require a newline to follow them.</p>
+<p>Template:</p>
+<pre><code>^{{^boolean}}
+/
+  {{/boolean}}
+</code></pre>
+<p>Data:</p>
+<pre><code>{&quot;boolean&quot;:false}
+</code></pre>
+<p>Expected:</p>
+<pre><code>^
+/
+
+</code></pre>
+<p>Output:</p>
+<pre><code>^
+/
+
+</code></pre>
+<h3>✅ Padding</h3>
+<p>Superfluous in-tag whitespace should be ignored.</p>
+<p>Template:</p>
+<pre><code>|{{^ boolean }}={{/ boolean }}|
+</code></pre>
+<p>Data:</p>
+<pre><code>{&quot;boolean&quot;:false}
+</code></pre>
+<p>Expected:</p>
+<pre><code>|=|
+</code></pre>
+<p>Output:</p>
+<pre><code>|=|
+</code></pre>
+<h2>comments.json</h2>
+<p>Comment tags represent content that should never appear in the resulting
+output.</p>
+<p>The tag's content may contain any substring (including newlines) EXCEPT the
+closing delimiter.</p>
+<p>Comment tags SHOULD be treated as standalone when appropriate.</p>
+<h3>✅ Inline</h3>
+<p>Comment blocks should be removed from the template.</p>
+<p>Template:</p>
+<pre><code>12345{{! Comment Block! }}67890
+</code></pre>
+<p>Data:</p>
+<pre><code>{}
+</code></pre>
+<p>Expected:</p>
+<pre><code>1234567890
+</code></pre>
+<p>Output:</p>
+<pre><code>1234567890
+</code></pre>
+<h3>✅ Multiline</h3>
+<p>Multiline comments should be permitted.</p>
+<p>Template:</p>
+<pre><code>12345{{!
+  This is a
+  multi-line comment...
+}}67890
+
+</code></pre>
+<p>Data:</p>
+<pre><code>{}
+</code></pre>
+<p>Expected:</p>
+<pre><code>1234567890
+
+</code></pre>
+<p>Output:</p>
+<pre><code>1234567890
+
+</code></pre>
+<h3>✅ Standalone</h3>
+<p>All standalone comment lines should be removed.</p>
+<p>Template:</p>
+<pre><code>Begin.
+{{! Comment Block! }}
+End.
+
+</code></pre>
+<p>Data:</p>
+<pre><code>{}
+</code></pre>
+<p>Expected:</p>
+<pre><code>Begin.
+End.
+
+</code></pre>
+<p>Output:</p>
+<pre><code>Begin.
+End.
+
+</code></pre>
+<h3>✅ Indented Standalone</h3>
+<p>All standalone comment lines should be removed.</p>
+<p>Template:</p>
+<pre><code>Begin.
+  {{! Indented Comment Block! }}
+End.
+
+</code></pre>
+<p>Data:</p>
+<pre><code>{}
+</code></pre>
+<p>Expected:</p>
+<pre><code>Begin.
+End.
+
+</code></pre>
+<p>Output:</p>
+<pre><code>Begin.
+End.
+
+</code></pre>
+<h3>✅ Standalone Line Endings</h3>
+<p>&quot;\r\n&quot; should be considered a newline for standalone tags.</p>
+<p>Template:</p>
+<pre><code>|
+{{! Standalone Comment }}
+|
+</code></pre>
+<p>Data:</p>
+<pre><code>{}
+</code></pre>
+<p>Expected:</p>
+<pre><code>|
+|
+</code></pre>
+<p>Output:</p>
+<pre><code>|
+|
+</code></pre>
+<h3>✅ Standalone Without Previous Line</h3>
+<p>Standalone tags should not require a newline to precede them.</p>
+<p>Template:</p>
+<pre><code>  {{! I'm Still Standalone }}
+!
+</code></pre>
+<p>Data:</p>
+<pre><code>{}
+</code></pre>
+<p>Expected:</p>
+<pre><code>!
+</code></pre>
+<p>Output:</p>
+<pre><code>!
+</code></pre>
+<h3>✅ Standalone Without Newline</h3>
+<p>Standalone tags should not require a newline to follow them.</p>
+<p>Template:</p>
+<pre><code>!
+  {{! I'm Still Standalone }}
+</code></pre>
+<p>Data:</p>
+<pre><code>{}
+</code></pre>
+<p>Expected:</p>
+<pre><code>!
+
+</code></pre>
+<p>Output:</p>
+<pre><code>!
+
+</code></pre>
+<h3>✅ Multiline Standalone</h3>
+<p>All standalone comment lines should be removed.</p>
+<p>Template:</p>
+<pre><code>Begin.
+{{!
+Something's going on here...
+}}
+End.
+
+</code></pre>
+<p>Data:</p>
+<pre><code>{}
+</code></pre>
+<p>Expected:</p>
+<pre><code>Begin.
+End.
+
+</code></pre>
+<p>Output:</p>
+<pre><code>Begin.
+End.
+
+</code></pre>
+<h3>✅ Indented Multiline Standalone</h3>
+<p>All standalone comment lines should be removed.</p>
+<p>Template:</p>
+<pre><code>Begin.
+  {{!
+    Something's going on here...
+  }}
+End.
+
+</code></pre>
+<p>Data:</p>
+<pre><code>{}
+</code></pre>
+<p>Expected:</p>
+<pre><code>Begin.
+End.
+
+</code></pre>
+<p>Output:</p>
+<pre><code>Begin.
+End.
+
+</code></pre>
+<h3>✅ Indented Inline</h3>
+<p>Inline comments should not strip whitespace</p>
+<p>Template:</p>
+<pre><code>  12 {{! 34 }}
+
+</code></pre>
+<p>Data:</p>
+<pre><code>{}
+</code></pre>
+<p>Expected:</p>
+<pre><code>  12 
+
+</code></pre>
+<p>Output:</p>
+<pre><code>  12 
+
+</code></pre>
+<h3>✅ Surrounding Whitespace</h3>
+<p>Comment removal should preserve surrounding whitespace.</p>
+<p>Template:</p>
+<pre><code>12345 {{! Comment Block! }} 67890
+</code></pre>
+<p>Data:</p>
+<pre><code>{}
+</code></pre>
+<p>Expected:</p>
+<pre><code>12345  67890
+</code></pre>
+<p>Output:</p>
+<pre><code>12345  67890
+</code></pre>
+<h2>delimiters.json</h2>
+<p>Set Delimiter tags are used to change the tag delimiters for all content
+following the tag in the current compilation unit.</p>
+<p>The tag's content MUST be any two non-whitespace sequences (separated by
+whitespace) EXCEPT an equals sign ('=') followed by the current closing
+delimiter.</p>
+<p>Set Delimiter tags SHOULD be treated as standalone when appropriate.</p>
+<h3>✅ Pair Behavior</h3>
+<p>The equals sign (used on both sides) should permit delimiter changes.</p>
+<p>Template:</p>
+<pre><code>{{=&lt;% %&gt;=}}(&lt;%text%&gt;)
+</code></pre>
+<p>Data:</p>
+<pre><code>{&quot;text&quot;:&quot;Hey!&quot;}
+</code></pre>
+<p>Expected:</p>
+<pre><code>(Hey!)
+</code></pre>
+<p>Output:</p>
+<pre><code>(Hey!)
+</code></pre>
+<h3>✅ Special Characters</h3>
+<p>Characters with special meaning regexen should be valid delimiters.</p>
+<p>Template:</p>
+<pre><code>({{=[ ]=}}[text])
+</code></pre>
+<p>Data:</p>
+<pre><code>{&quot;text&quot;:&quot;It worked!&quot;}
+</code></pre>
+<p>Expected:</p>
+<pre><code>(It worked!)
+</code></pre>
+<p>Output:</p>
+<pre><code>(It worked!)
+</code></pre>
+<h3>✅ Sections</h3>
+<p>Delimiters set outside sections should persist.</p>
+<p>Template:</p>
+<pre><code>[
+{{#section}}
+  {{data}}
+  |data|
+{{/section}}
+
+{{= | | =}}
+|#section|
+  {{data}}
+  |data|
+|/section|
+]
+
+</code></pre>
+<p>Data:</p>
+<pre><code>{&quot;section&quot;:true,&quot;data&quot;:&quot;I got interpolated.&quot;}
+</code></pre>
+<p>Expected:</p>
+<pre><code>[
+  I got interpolated.
+  |data|
+
+  {{data}}
+  I got interpolated.
+]
+
+</code></pre>
+<p>Output:</p>
+<pre><code>[
+  I got interpolated.
+  |data|
+
+  {{data}}
+  I got interpolated.
+]
+
+</code></pre>
+<h3>✅ Inverted Sections</h3>
+<p>Delimiters set outside inverted sections should persist.</p>
+<p>Template:</p>
+<pre><code>[
+{{^section}}
+  {{data}}
+  |data|
+{{/section}}
+
+{{= | | =}}
+|^section|
+  {{data}}
+  |data|
+|/section|
+]
+
+</code></pre>
+<p>Data:</p>
+<pre><code>{&quot;section&quot;:false,&quot;data&quot;:&quot;I got interpolated.&quot;}
+</code></pre>
+<p>Expected:</p>
+<pre><code>[
+  I got interpolated.
+  |data|
+
+  {{data}}
+  I got interpolated.
+]
+
+</code></pre>
+<p>Output:</p>
+<pre><code>[
+  I got interpolated.
+  |data|
+
+  {{data}}
+  I got interpolated.
+]
+
+</code></pre>
+<h3>✅ Partial Inheritence</h3>
+<p>Delimiters set in a parent template should not affect a partial.</p>
+<p>Template:</p>
+<pre><code>[ {{&gt;include}} ]
+{{= | | =}}
+[ |&gt;include| ]
+
+</code></pre>
+<p>Data:</p>
+<pre><code>{&quot;value&quot;:&quot;yes&quot;}
+</code></pre>
+<p>Partials:</p>
+<pre><code class="language-include:"></code></pre>
+<p>Expected:</p>
+<pre><code>[ .yes. ]
+[ .yes. ]
+
+</code></pre>
+<p>Output:</p>
+<pre><code>[ .yes. ]
+[ .yes. ]
+
+</code></pre>
+<h3>✅ Post-Partial Behavior</h3>
+<p>Delimiters set in a partial should not affect the parent template.</p>
+<p>Template:</p>
+<pre><code>[ {{&gt;include}} ]
+[ .{{value}}.  .|value|. ]
+
+</code></pre>
+<p>Data:</p>
+<pre><code>{&quot;value&quot;:&quot;yes&quot;}
+</code></pre>
+<p>Partials:</p>
+<pre><code class="language-include:"></code></pre>
+<p>Expected:</p>
+<pre><code>[ .yes.  .yes. ]
+[ .yes.  .|value|. ]
+
+</code></pre>
+<p>Output:</p>
+<pre><code>[ .yes.  .yes. ]
+[ .yes.  .|value|. ]
+
+</code></pre>
+<h3>✅ Surrounding Whitespace</h3>
+<p>Surrounding whitespace should be left untouched.</p>
+<p>Template:</p>
+<pre><code>| {{=@ @=}} |
+</code></pre>
+<p>Data:</p>
+<pre><code>{}
+</code></pre>
+<p>Expected:</p>
+<pre><code>|  |
+</code></pre>
+<p>Output:</p>
+<pre><code>|  |
+</code></pre>
+<h3>✅ Outlying Whitespace (Inline)</h3>
+<p>Whitespace should be left untouched.</p>
+<p>Template:</p>
+<pre><code> | {{=@ @=}}
+
+</code></pre>
+<p>Data:</p>
+<pre><code>{}
+</code></pre>
+<p>Expected:</p>
+<pre><code> | 
+
+</code></pre>
+<p>Output:</p>
+<pre><code> | 
+
+</code></pre>
+<h3>✅ Standalone Tag</h3>
+<p>Standalone lines should be removed from the template.</p>
+<p>Template:</p>
+<pre><code>Begin.
+{{=@ @=}}
+End.
+
+</code></pre>
+<p>Data:</p>
+<pre><code>{}
+</code></pre>
+<p>Expected:</p>
+<pre><code>Begin.
+End.
+
+</code></pre>
+<p>Output:</p>
+<pre><code>Begin.
+End.
+
+</code></pre>
+<h3>✅ Indented Standalone Tag</h3>
+<p>Indented standalone lines should be removed from the template.</p>
+<p>Template:</p>
+<pre><code>Begin.
+  {{=@ @=}}
+End.
+
+</code></pre>
+<p>Data:</p>
+<pre><code>{}
+</code></pre>
+<p>Expected:</p>
+<pre><code>Begin.
+End.
+
+</code></pre>
+<p>Output:</p>
+<pre><code>Begin.
+End.
+
+</code></pre>
+<h3>✅ Standalone Line Endings</h3>
+<p>&quot;\r\n&quot; should be considered a newline for standalone tags.</p>
+<p>Template:</p>
+<pre><code>|
+{{= @ @ =}}
+|
+</code></pre>
+<p>Data:</p>
+<pre><code>{}
+</code></pre>
+<p>Expected:</p>
+<pre><code>|
+|
+</code></pre>
+<p>Output:</p>
+<pre><code>|
+|
+</code></pre>
+<h3>✅ Standalone Without Previous Line</h3>
+<p>Standalone tags should not require a newline to precede them.</p>
+<p>Template:</p>
+<pre><code>  {{=@ @=}}
+=
+</code></pre>
+<p>Data:</p>
+<pre><code>{}
+</code></pre>
+<p>Expected:</p>
+<pre><code>=
+</code></pre>
+<p>Output:</p>
+<pre><code>=
+</code></pre>
+<h3>✅ Standalone Without Newline</h3>
+<p>Standalone tags should not require a newline to follow them.</p>
+<p>Template:</p>
+<pre><code>=
+  {{=@ @=}}
+</code></pre>
+<p>Data:</p>
+<pre><code>{}
+</code></pre>
+<p>Expected:</p>
+<pre><code>=
+
+</code></pre>
+<p>Output:</p>
+<pre><code>=
+
+</code></pre>
+<h3>✅ Pair with Padding</h3>
+<p>Superfluous in-tag whitespace should be ignored.</p>
+<p>Template:</p>
+<pre><code>|{{= @   @ =}}|
+</code></pre>
+<p>Data:</p>
+<pre><code>{}
+</code></pre>
+<p>Expected:</p>
+<pre><code>||
+</code></pre>
+<p>Output:</p>
+<pre><code>||
+</code></pre>
+<h2>partials.json</h2>
+<p>Partial tags are used to expand an external template into the current
+template.</p>
+<p>The tag's content MUST be a non-whitespace character sequence NOT containing
+the current closing delimiter.</p>
+<p>This tag's content names the partial to inject.  Set Delimiter tags MUST NOT
+affect the parsing of a partial.  The partial MUST be rendered against the
+context stack local to the tag.  If the named partial cannot be found, the
+empty string SHOULD be used instead, as in interpolations.</p>
+<p>Partial tags SHOULD be treated as standalone when appropriate.  If this tag
+is used standalone, any whitespace preceding the tag should treated as
+indentation, and prepended to each line of the partial before rendering.</p>
+<h3>✅ Basic Behavior</h3>
+<p>The greater-than operator should expand to the named partial.</p>
+<p>Template:</p>
+<pre><code>&quot;{{&gt;text}}&quot;
+</code></pre>
+<p>Data:</p>
+<pre><code>{}
+</code></pre>
+<p>Partials:</p>
+<pre><code class="language-text:"></code></pre>
+<p>Expected:</p>
+<pre><code>&quot;from partial&quot;
+</code></pre>
+<p>Output:</p>
+<pre><code>&quot;from partial&quot;
+</code></pre>
+<h3>✅ Failed Lookup</h3>
+<p>The empty string should be used when the named partial is not found.</p>
+<p>Template:</p>
+<pre><code>&quot;{{&gt;text}}&quot;
+</code></pre>
+<p>Data:</p>
+<pre><code>{}
+</code></pre>
+<p>Partials:</p>
+<pre><code>Expected:
+
+```
+&quot;&quot;
+```
+
+Output:
+
+```
+&quot;&quot;
+```
+
+### ✅ Context
+
+The greater-than operator should operate within the current context.
+
+Template:
+
+```
+&quot;{{&gt;partial}}&quot;
+```
+
+Data:
+
+```
+{&quot;text&quot;:&quot;content&quot;}
+```
+
+Partials:
+
+```partial: &quot;*{{text}}*&quot;
+```
+Expected:
+
+```
+&quot;*content*&quot;
+```
+
+Output:
+
+```
+&quot;*content*&quot;
+```
+
+### ✅ Recursion
+
+The greater-than operator should properly recurse.
+
+Template:
+
+```
+{{&gt;node}}
+```
+
+Data:
+
+```
+{&quot;content&quot;:&quot;X&quot;,&quot;nodes&quot;:[{&quot;content&quot;:&quot;Y&quot;,&quot;nodes&quot;:[]}]}
+```
+
+Partials:
+
+```node: &quot;{{content}}&lt;{{#nodes}}{{&gt;node}}{{/nodes}}&gt;&quot;
+```
+Expected:
+
+```
+X&lt;Y&lt;&gt;&gt;
+```
+
+Output:
+
+```
+X&lt;Y&lt;&gt;&gt;
+```
+
+### ✅ Surrounding Whitespace
+
+The greater-than operator should not alter surrounding whitespace.
+
+Template:
+
+```
+| {{&gt;partial}} |
+```
+
+Data:
+
+```
+{}
+```
+
+Partials:
+
+```partial: &quot;\t|\t&quot;
+```
+Expected:
+
+```
+| 	|	 |
+```
+
+Output:
+
+```
+| 	|	 |
+```
+
+### ✅ Inline Indentation
+
+Whitespace should be left untouched.
+
+Template:
+
+```
+  {{data}}  {{&gt; partial}}
+
+```
+
+Data:
+
+```
+{&quot;data&quot;:&quot;|&quot;}
+```
+
+Partials:
+
+```partial: &quot;&gt;\n&gt;&quot;
+```
+Expected:
+
+```
+  |  &gt;
+&gt;
+
+```
+
+Output:
+
+```
+  |  &gt;
+&gt;
+
+```
+
+### ✅ Standalone Line Endings
+
+&quot;\r\n&quot; should be considered a newline for standalone tags.
+
+Template:
+
+```
+|
+{{&gt;partial}}
+|
+```
+
+Data:
+
+```
+{}
+```
+
+Partials:
+
+```partial: &quot;&gt;&quot;
+```
+Expected:
+
+```
+|
+&gt;|
+```
+
+Output:
+
+```
+|
+&gt;|
+```
+
+### ✅ Standalone Without Previous Line
+
+Standalone tags should not require a newline to precede them.
+
+Template:
+
+```
+  {{&gt;partial}}
+&gt;
+```
+
+Data:
+
+```
+{}
+```
+
+Partials:
+
+```partial: &quot;&gt;\n&gt;&quot;
+```
+Expected:
+
+```
+  &gt;
+  &gt;&gt;
+```
+
+Output:
+
+```
+  &gt;
+  &gt;&gt;
+```
+
+### ✅ Standalone Without Newline
+
+Standalone tags should not require a newline to follow them.
+
+Template:
+
+```
+&gt;
+  {{&gt;partial}}
+```
+
+Data:
+
+```
+{}
+```
+
+Partials:
+
+```partial: &quot;&gt;\n&gt;&quot;
+```
+Expected:
+
+```
+&gt;
+  &gt;
+  &gt;
+```
+
+Output:
+
+```
+&gt;
+  &gt;
+  &gt;
+```
+
+### ✅ Standalone Indentation
+
+Each line of the partial should be indented before rendering.
+
+Template:
+
+```
+\
+ {{&gt;partial}}
+/
+
+```
+
+Data:
+
+```
+{&quot;content&quot;:&quot;&lt;\n-&gt;&quot;}
+```
+
+Partials:
+
+```partial: &quot;|\n{{{content}}}\n|\n&quot;
+```
+Expected:
+
+```
+\
+ |
+ &lt;
+-&gt;
+ |
+/
+
+```
+
+Output:
+
+```
+\
+ |
+ &lt;
+-&gt;
+ |
+/
+
+```
+
+### ✅ Padding Whitespace
+
+Superfluous in-tag whitespace should be ignored.
+
+Template:
+
+```
+|{{&gt; partial }}|
+```
+
+Data:
+
+```
+{&quot;boolean&quot;:true}
+```
+
+Partials:
+
+```partial: &quot;[]&quot;
+```
+Expected:
+
+```
+|[]|
+```
+
+Output:
+
+```
+|[]|
+```
+</code></pre>
+
+</main>
+<footer>
+<hr>
+<div class="nb-box">
+  <span><span class="nb-small">made with <a href="https://pietroppeter.github.io/nimib/">nimib 🐳</a></span></span>
+  <span></span>
+  <span><button class="nb-small" id="show" onclick="toggleSourceDisplay()">Show Source</button></span>
+</div>
+</footer>
+<section id="source">
+<pre><code class="nim hljs"><span class="hljs-keyword">import</span> nimib
+
+nbInit
+nbDoc.darkMode
+nbText: <span class="hljs-string">&quot;&quot;&quot; # Mustache Specs
+
+Autogenerate a document containing the results of [nim-mustache](https://github.com/soasme/nim-mustache)
+running [mustache specs v1.2.1](https://github.com/mustache/spec/releases/tag/v1.2.1).
+
+&quot;&quot;&quot;</span><span class="hljs-comment"># I should use [jsony](https://github.com/treeform/jsony)</span>
+nbCode:
+  <span class="hljs-keyword">import</span> mustache
+  <span class="hljs-keyword">import</span> json
+  <span class="hljs-keyword">import</span> strformat
+  <span class="hljs-keyword">import</span> tables
+  <span class="hljs-keyword">const</span> specfiles = [<span class="hljs-string">&quot;interpolation.json&quot;</span>, <span class="hljs-string">&quot;sections.json&quot;</span>, <span class="hljs-string">&quot;inverted.json&quot;</span>, <span class="hljs-string">&quot;comments.json&quot;</span>, <span class="hljs-string">&quot;delimiters.json&quot;</span>, <span class="hljs-string">&quot;partials.json&quot;</span>]
+
+  <span class="hljs-keyword">var</span>
+    specs = newJObject()
+    tmpl: <span class="hljs-built_in">string</span>
+    tests: <span class="hljs-type">JsonNode</span>
+    data: <span class="hljs-type">JsonNode</span>
+    context: <span class="hljs-type">Context</span>
+    partials: <span class="hljs-type">Table</span>[<span class="hljs-built_in">string</span>, <span class="hljs-built_in">string</span>]
+
+  <span class="hljs-keyword">for</span> specfile <span class="hljs-keyword">in</span> specfiles:
+    <span class="hljs-keyword">echo</span> <span class="hljs-string">&quot;📃 &quot;</span> &amp; specfile
+    specs[specfile] = parseFile(specfile)
+    tests = specs[specfile][<span class="hljs-string">&quot;tests&quot;</span>]
+    <span class="hljs-keyword">assert</span> tests.kind == <span class="hljs-type">JArray</span>
+    <span class="hljs-keyword">for</span> test <span class="hljs-keyword">in</span> tests.mitems:
+      <span class="hljs-keyword">assert</span> test.kind == <span class="hljs-type">JObject</span>
+      tmpl = test[<span class="hljs-string">&quot;template&quot;</span>].getStr
+      data = test[<span class="hljs-string">&quot;data&quot;</span>]
+      <span class="hljs-keyword">if</span> data.kind != <span class="hljs-type">JObject</span>:
+        <span class="hljs-keyword">echo</span> <span class="hljs-string">&quot;  ❌ &quot;</span>, test[<span class="hljs-string">&quot;name&quot;</span>].getStr
+        <span class="hljs-keyword">echo</span> <span class="hljs-string">&quot;    data is not an object: &quot;</span> &amp; $data
+        test[<span class="hljs-string">&quot;ok&quot;</span>] = % <span class="hljs-string">&quot;❌&quot;</span>
+        test[<span class="hljs-string">&quot;output&quot;</span>] = % <span class="hljs-string">&quot;❌&quot;</span>
+        <span class="hljs-keyword">continue</span>
+      partials = initTable[<span class="hljs-built_in">string</span>, <span class="hljs-built_in">string</span>]()
+      <span class="hljs-keyword">if</span> <span class="hljs-string">&quot;partials&quot;</span> <span class="hljs-keyword">in</span> test:
+        <span class="hljs-keyword">for</span> key, val <span class="hljs-keyword">in</span> test[<span class="hljs-string">&quot;partials&quot;</span>]:
+          partials[key] = val.getStr
+      context = newContext(searchDirs = @[], partials=partials)
+      <span class="hljs-keyword">for</span> key, val <span class="hljs-keyword">in</span> data.pairs:
+        context[key] = val
+      test[<span class="hljs-string">&quot;output&quot;</span>] = % tmpl.render(context)
+      <span class="hljs-keyword">if</span> test[<span class="hljs-string">&quot;output&quot;</span>].getStr == test[<span class="hljs-string">&quot;expected&quot;</span>].getStr:
+        test[<span class="hljs-string">&quot;ok&quot;</span>] = % <span class="hljs-string">&quot;✅&quot;</span>
+        <span class="hljs-keyword">echo</span> <span class="hljs-string">&quot;  ✅ &quot;</span>, test[<span class="hljs-string">&quot;name&quot;</span>].getStr
+      <span class="hljs-keyword">else</span>:
+        test[<span class="hljs-string">&quot;ok&quot;</span>] = % <span class="hljs-string">&quot;❌&quot;</span>
+        <span class="hljs-keyword">echo</span> <span class="hljs-string">&quot;  ❌ &quot;</span>, test[<span class="hljs-string">&quot;name&quot;</span>].getStr
+
+  <span class="hljs-keyword">proc</span> specsToMarkdown(specs: <span class="hljs-type">JsonNode</span>): <span class="hljs-built_in">string</span> =
+    <span class="hljs-keyword">var</span> partials: <span class="hljs-built_in">string</span>
+    <span class="hljs-keyword">for</span> specfile, spec <span class="hljs-keyword">in</span> specs.pairs:
+      <span class="hljs-literal">result</span>.add <span class="hljs-string">&quot;## &quot;</span> &amp; specfile &amp; <span class="hljs-string">&quot;</span><span class="hljs-meta">\n</span><span class="hljs-meta">\n</span><span class="hljs-string">&quot;</span>
+      <span class="hljs-literal">result</span>.add spec[<span class="hljs-string">&quot;overview&quot;</span>].getStr &amp; <span class="hljs-string">&quot;</span><span class="hljs-meta">\n</span><span class="hljs-string">&quot;</span>
+      <span class="hljs-keyword">for</span> test <span class="hljs-keyword">in</span> spec[<span class="hljs-string">&quot;tests&quot;</span>]:
+        partials = <span class="hljs-string">&quot;&quot;</span>
+        <span class="hljs-keyword">if</span> <span class="hljs-string">&quot;partials&quot;</span> <span class="hljs-keyword">in</span> test:
+          partials = <span class="hljs-string">&quot;Partials:</span><span class="hljs-meta">\n</span><span class="hljs-meta">\n</span><span class="hljs-string">```&quot;</span>
+          <span class="hljs-keyword">for</span> key, val <span class="hljs-keyword">in</span> test[<span class="hljs-string">&quot;partials&quot;</span>]:
+            partials.add &amp;<span class="hljs-string">&quot;{key}: {$val}</span><span class="hljs-meta">\n</span><span class="hljs-string">&quot;</span>
+          partials.add <span class="hljs-string">&quot;```</span><span class="hljs-meta">\n</span><span class="hljs-string">&quot;</span>
+        <span class="hljs-literal">result</span>.add <span class="hljs-string">fmt&quot;&quot;&quot;
+### {test[&quot;ok&quot;].getStr} {test[&quot;name&quot;].getStr}
+
+{test[&quot;desc&quot;].getStr}
+
+Template:
+
+```
+{test[&quot;template&quot;].getStr}
+```
+
+Data:
+
+```
+{$(test[&quot;data&quot;])}
+```
+
+{partials}Expected:
+
+```
+{test[&quot;expected&quot;].getStr}
+```
+
+Output:
+
+```
+{test[&quot;output&quot;].getStr}
+```
+
+&quot;&quot;&quot;</span>
+
+nbText: specs.specsToMarkdown
+
+nbSave</code></pre>
+</section><script>
+function toggleSourceDisplay() {
+  var btn = document.getElementById("show")
+  var source = document.getElementById("source");
+  if (btn.innerHTML=="Show Source") {
+    btn.innerHTML = "Hide Source";
+    source.style.display = "block";
+  } else {
+    btn.innerHTML = "Show Source";
+    source.style.display = "none";
+  }
+}
+</script></body>
+</html>
