@@ -1,7 +1,7 @@
 import nimib, strformat
-
+# add timings
 nbInit
-
+nbUseLatex
 nbText """
 # Bigints Examples
 see <https://github.com/def-/nim-bigints/tree/master/examples>"""
@@ -11,7 +11,10 @@ nbCode:
 
 # todo: add toc
 nbText "## Rosetta code"
-nbText "### [Arbitrary-precision integers](http://rosettacode.org/wiki/Arbitrary-precision_integers_(included))"
+nbText """### [Arbitrary-precision integers](http://rosettacode.org/wiki/Arbitrary-precision_integers_(included))
+
+$$5^{4^{3^2}}$$
+"""
 nbCode:
 # a way to keep this as a separate scope? go the nim way: wrap it in scope!
   var x = 5.pow 4.pow 3.pow 2

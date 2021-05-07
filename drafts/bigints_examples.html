@@ -8,7 +8,10 @@
   <link rel='stylesheet' href='https://unpkg.com/normalize.css/'>
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/kognise/water.css@latest/dist/light.min.css">
   <link rel='stylesheet' href='https://cdn.jsdelivr.net/gh/pietroppeter/nimib/assets/atom-one-light.css'>
-  </head>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.12.0/dist/katex.min.css" integrity="sha384-AfEj0r4/OFrOo5t7NnNe46zW/tFgW6x/bCJG8FqQCEo3+Aro6EYUG4+cU+KJWu/X" crossorigin="anonymous">
+  <script defer src="https://cdn.jsdelivr.net/npm/katex@0.12.0/dist/katex.min.js" integrity="sha384-g7c+Jr9ZivxKLnZTDUhnkOnsh30B4H0rpLUpJ4jAIKs4fnJI+sEnkvrMWph2EDg4" crossorigin="anonymous"></script>
+  <script defer src="https://cdn.jsdelivr.net/npm/katex@0.12.0/dist/contrib/auto-render.min.js" integrity="sha384-mll67QQFJfxn0IYznZYonOWZ644AWYC+Pt2cHqMaRhXVrursRwvLnLaebdGIlYNa" crossorigin="anonymous" onload="renderMathInElement(document.body,{delimiters:[{left: '$$', right: '$$', display: true},{left: '$', right: '$', display: false}]});"></script>
+</head>
 <body>
 <main>
 <h1>Bigints Examples</h1>
@@ -17,6 +20,7 @@
   bigints, sugar</code></pre>
 <h2>Rosetta code</h2>
 <h3><a href="http://rosettacode.org/wiki/Arbitrary-precision_integers_(included)">Arbitrary-precision integers</a></h3>
+<p>$$5^{4^{3^2}}$$</p>
 <pre><code class="nim hljs"><span class="hljs-keyword">var</span> x = <span class="hljs-number">5.</span>pow <span class="hljs-number">4.</span>pow <span class="hljs-number">3.</span>pow <span class="hljs-number">2</span>
 <span class="hljs-keyword">var</span> s = $x
 <span class="hljs-keyword">echo</span> s[<span class="hljs-number">0</span> .. <span class="hljs-number">19</span>] &amp; <span class="hljs-string">&quot;...&quot;</span> &amp; s[^<span class="hljs-number">20</span> .. ^<span class="hljs-number">1</span>]
@@ -62,9 +66,9 @@ permutations = 48935322338186189966677615285264341307180008233417452886421014800
 <button id="show" onclick="toggleSourceDisplay()">Show Source</button>
 <section id="source">
 <pre><code class="nim hljs"><span class="hljs-keyword">import</span> nimib, strformat
-
+<span class="hljs-comment"># add timings</span>
 nbInit
-
+nbUseLatex
 nbText <span class="hljs-string">&quot;&quot;&quot;
 # Bigints Examples
 see &lt;https://github.com/def-/nim-bigints/tree/master/examples&gt;&quot;&quot;&quot;</span>
@@ -74,7 +78,10 @@ nbCode:
 
 <span class="hljs-comment"># todo: add toc</span>
 nbText <span class="hljs-string">&quot;## Rosetta code&quot;</span>
-nbText <span class="hljs-string">&quot;### [Arbitrary-precision integers](http://rosettacode.org/wiki/Arbitrary-precision_integers_(included))&quot;</span>
+nbText <span class="hljs-string">&quot;&quot;&quot;### [Arbitrary-precision integers](http://rosettacode.org/wiki/Arbitrary-precision_integers_(included))
+
+$$5^{4^{3^2}}$$
+&quot;&quot;&quot;</span>
 nbCode:
 <span class="hljs-comment"># a way to keep this as a separate scope? go the nim way: wrap it in scope!</span>
   <span class="hljs-keyword">var</span> x = <span class="hljs-number">5.</span>pow <span class="hljs-number">4.</span>pow <span class="hljs-number">3.</span>pow <span class="hljs-number">2</span>
