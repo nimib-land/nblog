@@ -21,6 +21,19 @@ I also get the opportunity of trying out the existing bridges.
 nbCode:
   import sequtils, nimpy, rnim
 
+#[
+  Think of an Api to implement the split view (which fallback on Mobile?). For example:
+    <div>
+      <div style="width:50%";float:left>
+        ...
+      </div>
+      <div style="width:50%";float:right>
+        ...
+      </div>
+      ...
+    </div>
+]#
+
 block:
   nbText: """
   ### Python

@@ -1,5 +1,7 @@
 import nimib
-
+# I want to use this notebook also to show how one can customzie the nbCode block output
+# (to have output shown as comments) and also possibly to stitch together subsequent code samples
+# (I should use a render change in nbDoc). Probably I should do this after rendering refactoring.
 nbInit
 nbText: """
 # Arraymancer Tutorial - First steps
