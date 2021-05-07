@@ -74,7 +74,15 @@ nbInit
 <span class="hljs-keyword">for</span> file <span class="hljs-keyword">in</span> walkDirRec(nbHomeDir):
   <span class="hljs-keyword">if</span> <span class="hljs-keyword">not</span> file.endswith(<span class="hljs-string">&quot;.html&quot;</span>) <span class="hljs-keyword">or</span> file.name.startsWith(<span class="hljs-string">&quot;index&quot;</span>) <span class="hljs-keyword">or</span> (<span class="hljs-keyword">not</span> file.isGitTracked):
     <span class="hljs-keyword">continue</span>
-  link = file.relPath.replace(<span class="hljs-string">r&quot;\&quot;</span>, <span class="hljs-string">&quot;/&quot;</span>)
+  link = file.relPath.replace(<span class="hljs-string">r&quot;\&quot;</span>, <span class="hljs-string">&quot;/&quot;</span>) <span class="hljs-comment"># what an ugly hack.</span>
+  <span class="hljs-keyword">when</span> <span class="hljs-keyword">defined</span>(nblogRerun):
+    <span class="hljs-keyword">let</span> cmd = <span class="hljs-string">&quot;nim r &quot;</span> &amp; link.replace(<span class="hljs-string">&quot;.html&quot;</span>, <span class="hljs-string">&quot;.nim&quot;</span>)
+    <span class="hljs-keyword">echo</span> <span class="hljs-string">&quot;executing &quot;</span> &amp; cmd
+    <span class="hljs-keyword">if</span> execShellCmd(cmd) != <span class="hljs-number">0</span>:
+      <span class="hljs-keyword">echo</span> cmd &amp; <span class="hljs-string">&quot; FAILED&quot;</span>
+
+  <span class="hljs-comment"># without this (on windows) I get a %5C in place of \ in the href!</span>
+  <span class="hljs-comment"># this should be fixed in nimib!</span>
   listOfDrafts.add &amp;<span class="hljs-string">&quot;* [{link}]({link})</span><span class="hljs-meta">\n</span><span class="hljs-string">&quot;</span>
 
 nbText: <span class="hljs-string">&quot;&quot;&quot;# ✍️🐳👑 nblog

@@ -9,6 +9,12 @@ for file in walkDirRec(nbHomeDir):
   if not file.endswith(".html") or file.name.startsWith("index") or (not file.isGitTracked):
     continue
   link = file.relPath.replace(r"\", "/") # what an ugly hack.
+  when defined(nblogRerun):
+    let cmd = "nim r " & link.replace(".html", ".nim")
+    echo "executing " & cmd
+    if execShellCmd(cmd) != 0:
+      echo cmd & " FAILED"
+
   # without this (on windows) I get a %5C in place of \ in the href!
   # this should be fixed in nimib!
   listOfDrafts.add &"* [{link}]({link})\n"

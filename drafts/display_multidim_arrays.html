@@ -1,16 +1,43 @@
 <!DOCTYPE html>
 <html lang="en-us">
 <head>
-  <title>display_multidim_arrays.nim</title>
+  <title>drafts\display_multidim_arrays.nim</title>
   <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2280%22>🐳</text></svg>">
   <meta content="text/html; charset=utf-8" http-equiv="content-type">
   <meta content="width=device-width, initial-scale=1" name="viewport">
   <link rel='stylesheet' href='https://unpkg.com/normalize.css/'>
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/kognise/water.css@latest/dist/light.min.css">
   <link rel='stylesheet' href='https://cdn.jsdelivr.net/gh/pietroppeter/nimib/assets/atom-one-light.css'>
-  </head>
+  <style>
+.nb-box {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+.nb-small {
+  font-size: 0.8rem;
+}
+button.nb-small {
+  float: right;
+  padding: 2px;
+  padding-right: 5px;
+  padding-left: 5px;
+}
+section#source {
+  display:none
+}
+</style>
+  
+</head>
 <body>
-<main>
+<header>
+<div class="nb-box">
+  <span><a href="..">🏡</a></span>
+  <span><code>drafts\display_multidim_arrays.nim</code></span>
+  <span><a href="https://github.com/pietroppeter/nblog"><svg aria-hidden="true" width="1.2em" height="1.2em" style="vertical-align: middle;" preserveAspectRatio="xMidYMid meet" viewBox="0 0 16 16"><path fill-rule="evenodd" d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59c.4.07.55-.17.55-.38c0-.19-.01-.82-.01-1.49c-2.01.37-2.53-.49-2.69-.94c-.09-.23-.48-.94-.82-1.13c-.28-.15-.68-.52-.01-.53c.63-.01 1.08.58 1.23.82c.72 1.21 1.87.87 2.33.66c.07-.52.28-.87.51-1.07c-1.78-.2-3.64-.89-3.64-3.95c0-.87.31-1.59.82-2.15c-.08-.2-.36-1.02.08-2.12c0 0 .67-.21 2.2.82c.64-.18 1.32-.27 2-.27c.68 0 1.36.09 2 .27c1.53-1.04 2.2-.82 2.2-.82c.44 1.1.16 1.92.08 2.12c.51.56.82 1.27.82 2.15c0 3.07-1.87 3.75-3.65 3.95c.29.25.54.73.54 1.48c0 1.07-.01 1.93-.01 2.2c0 .21.15.46.55.38A8.013 8.013 0 0 0 16 8c0-4.42-3.58-8-8-8z" fill="#000"></path></svg></a></span>
+</div>
+<hr>
+</header><main>
 <h1>Display Multidimensional Arrays</h1>
 <p>I was testing nimib while trying to reproduce <a href="https://pietroppeter.github.io/nblog/drafts/arraymancer_tutorial.html">arraymancer</a> tutorial,
 and I ran into some <a href="https://github.com/mratsim/Arraymancer/issues/500">issues</a>
@@ -24,24 +51,25 @@ This got me to ask myself:</p>
 I also get the opportunity of trying out the existing bridges.</p>
 <pre><code class="nim hljs"><span class="hljs-keyword">import</span>
   sequtils, nimpy, rnim</code></pre>
-<div>
-<div style="width:50%; float:left">
 <h3>Python</h3>
 <p>Using <a href="https://github.com/yglukhov/nimpy">nimpy</a></p>
 <pre><code class="nim hljs"><span class="hljs-keyword">let</span> np = pyImport(<span class="hljs-string">&quot;numpy&quot;</span>)
 <span class="hljs-keyword">var</span> a = np.arange(<span class="hljs-number">15</span>)
 <span class="hljs-keyword">echo</span> a</code></pre>
-<pre><samp>[ 0  1  2  3  4  5  6  7  8  9 10 11 12 13 14]</samp></pre>
+<pre><samp>[ 0  1  2  3  4  5  6  7  8  9 10 11 12 13 14]
+</samp></pre>
 <p>sometimes you see the <code>repr</code> of the array:</p>
 <pre><code class="nim hljs"><span class="hljs-keyword">let</span> py = pyBuiltinsModule()
 <span class="hljs-keyword">echo</span> py.repr(a)</code></pre>
-<pre><samp>array([ 0,  1,  2,  3,  4,  5,  6,  7,  8,  9, 10, 11, 12, 13, 14])</samp></pre>
+<pre><samp>array([ 0,  1,  2,  3,  4,  5,  6,  7,  8,  9, 10, 11, 12, 13, 14])
+</samp></pre>
 <p>let's go in two dimensions:</p>
 <pre><code class="nim hljs">a = a.reshape(<span class="hljs-number">3</span>, <span class="hljs-number">5</span>)
 <span class="hljs-keyword">echo</span> a</code></pre>
 <pre><samp>[[ 0  1  2  3  4]
  [ 5  6  7  8  9]
- [10 11 12 13 14]]</samp></pre>
+ [10 11 12 13 14]]
+</samp></pre>
 <p>now three:</p>
 <pre><code class="nim hljs">a = np.arange(<span class="hljs-number">12</span>).reshape(<span class="hljs-number">2</span>, <span class="hljs-number">2</span>, <span class="hljs-number">3</span>)
 <span class="hljs-keyword">echo</span> a</code></pre>
@@ -49,7 +77,8 @@ I also get the opportunity of trying out the existing bridges.</p>
   [ 3  4  5]]
 
  [[ 6  7  8]
-  [ 9 10 11]]]</samp></pre>
+  [ 9 10 11]]]
+</samp></pre>
 <p>and four:</p>
 <pre><code class="nim hljs">a = np.arange(<span class="hljs-number">16</span>).reshape(<span class="hljs-number">2</span>, <span class="hljs-number">2</span>, <span class="hljs-number">2</span>, <span class="hljs-number">2</span>)
 <span class="hljs-keyword">echo</span> a</code></pre>
@@ -64,7 +93,8 @@ I also get the opportunity of trying out the existing bridges.</p>
    [10 11]]
 
   [[12 13]
-   [14 15]]]]</samp></pre>
+   [14 15]]]]
+</samp></pre>
 <p>and in fact <a href="https://numpy.org/doc/stable/user/quickstart.html#printing-arrays">numpy has a very simple layout</a>
 when printing arrays</p>
 <blockquote>
@@ -103,12 +133,11 @@ when printing arrays</p>
     [26 27]]
 
    [[28 29]
-    [30 31]]]]]</samp></pre>
+    [30 31]]]]]
+</samp></pre>
 <p>Note that lists of matrices have one empty line between matrices,
 lists of lists of matrices have two empty lines between lists of matrices
 and lists of lists of lists of matrices have three empty lines between lists of lists of lists of matrices.</p>
-</div>
-<div style="width:50%; float:right">
 <h3>R</h3>
 <p>Using <a href="https://github.com/SciNim/rnim">rnim</a>.</p>
 <p>First example in R would be: <code>array(1:15)</code>.</p>
@@ -118,25 +147,29 @@ and lists of lists of lists of matrices have three empty lines between lists of 
 <span class="hljs-comment">## echo a # only prints the type info without content</span>
                <span class="hljs-comment">## discard R.print(a) # prints nothing</span>
 <span class="hljs-keyword">echo</span> <span class="hljs-type">R</span>.str(a)</code></pre>
-<pre><samp>[1]  1  2  3  4  5  6  7  8  9 10 11 12 13 14 15
+<pre><samp> [1]  1  2  3  4  5  6  7  8  9 10 11 12 13 14 15
 Type: REALSXP
 attrib: LIST: car = Type: INTSXP
 , cdr = nil, internal = Type: SYMSXP
 
 
  num [1:15(1d)] 1 2 3 4 5 6 7 8 9 10 ...
-nil</samp></pre>
+nil
+</samp></pre>
 <p>I do not know how to obtain a decent display, in R only the line before Type is shown.</p>
 <p>Two dimensions (R equivalent: <code>array(1:15, c(3, 5))</code>):</p>
 <pre><code class="nim hljs">a = <span class="hljs-type">R</span>.<span class="hljs-built_in">array</span>(toSeq(<span class="hljs-number">1</span> .. <span class="hljs-number">15</span>), @[<span class="hljs-number">3</span>, <span class="hljs-number">5</span>])
 <span class="hljs-keyword">echo</span> <span class="hljs-type">R</span>.print(a)</code></pre>
-<pre><samp>[,1] [,2] [,3] [,4] [,5]
+<pre><samp>     [,1] [,2] [,3] [,4] [,5]
 [1,]    1    4    7   10   13
 [2,]    2    5    8   11   14
 [3,]    3    6    9   12   15
 Type: REALSXP
 attrib: LIST: car = Type: INTSXP
-, cdr = nil, internal = Type: SYMSXP</samp></pre>
+, cdr = nil, internal = Type: SYMSXP
+
+
+</samp></pre>
 <p>now three:</p>
 <pre><code class="nim hljs">a = <span class="hljs-type">R</span>.<span class="hljs-built_in">array</span>(toSeq(<span class="hljs-number">1</span> .. <span class="hljs-number">12</span>), @[<span class="hljs-number">2</span>, <span class="hljs-number">2</span>, <span class="hljs-number">3</span>])
 <span class="hljs-keyword">echo</span> <span class="hljs-type">R</span>.print(a)</code></pre>
@@ -160,7 +193,10 @@ attrib: LIST: car = Type: INTSXP
 
 Type: REALSXP
 attrib: LIST: car = Type: INTSXP
-, cdr = nil, internal = Type: SYMSXP</samp></pre>
+, cdr = nil, internal = Type: SYMSXP
+
+
+</samp></pre>
 <p>and four:</p>
 <pre><code class="nim hljs">a = <span class="hljs-type">R</span>.<span class="hljs-built_in">array</span>(toSeq(<span class="hljs-number">1</span> .. <span class="hljs-number">16</span>), @[<span class="hljs-number">2</span>, <span class="hljs-number">2</span>, <span class="hljs-number">2</span>, <span class="hljs-number">2</span>])
 <span class="hljs-keyword">echo</span> <span class="hljs-type">R</span>.print(a)</code></pre>
@@ -190,14 +226,20 @@ attrib: LIST: car = Type: INTSXP
 
 Type: REALSXP
 attrib: LIST: car = Type: INTSXP
-, cdr = nil, internal = Type: SYMSXP</samp></pre>
-</div>
-</div>
+, cdr = nil, internal = Type: SYMSXP
+
+
+</samp></pre>
+
 </main>
 <footer>
 <hr>
-<span id="made">made with <a href="https://github.com/pietroppeter/nimib">nimib 🐳</a></span>
-<button id="show" onclick="toggleSourceDisplay()">Show Source</button>
+<div class="nb-box">
+  <span><span class="nb-small">made with <a href="https://pietroppeter.github.io/nimib/">nimib 🐳</a></span></span>
+  <span></span>
+  <span><button class="nb-small" id="show" onclick="toggleSourceDisplay()">Show Source</button></span>
+</div>
+</footer>
 <section id="source">
 <pre><code class="nim hljs"><span class="hljs-keyword">import</span> nimib, strformat
 
@@ -221,6 +263,19 @@ I also get the opportunity of trying out the existing bridges.
 
 nbCode:
   <span class="hljs-keyword">import</span> sequtils, nimpy, rnim
+
+<span class="hljs-comment">#[
+  Think of an Api to implement the split view (which fallback on Mobile?). For example:
+    &lt;div&gt;
+      &lt;div style=&quot;width:50%&quot;;float:left&gt;
+        ...
+      &lt;/div&gt;
+      &lt;div style=&quot;width:50%&quot;;float:right&gt;
+        ...
+      &lt;/div&gt;
+      ...
+    &lt;/div&gt;
+]#</span>
 
 <span class="hljs-keyword">block</span>:
   nbText: <span class="hljs-string">&quot;&quot;&quot;
@@ -311,8 +366,7 @@ nbCode:
     <span class="hljs-keyword">echo</span> <span class="hljs-type">R</span>.print(a)
 
 nbShow</code></pre>
-</section>
-<script>
+</section><script>
 function toggleSourceDisplay() {
   var btn = document.getElementById("show")
   var source = document.getElementById("source");
@@ -324,25 +378,5 @@ function toggleSourceDisplay() {
     source.style.display = "none";
   }
 }
-</script>
-<style>
-span#made {
-  font-size: 0.8rem;
-}
-button#show {
-  font-size: 0.8rem;
-}
-
-button#show {
-  float: right;
-  padding: 2px;
-  padding-right: 5px;
-  padding-left: 5px;
-}
-section#source {
-  display:none
-}
-</style>
-</footer>
-</body>
+</script></body>
 </html>
