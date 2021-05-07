@@ -1,7 +1,7 @@
 import nimib, strformat
 # add timings
 nbInit
-nbUseLatex
+nbDoc.useLatex
 nbText """
 # Bigints Examples
 see <https://github.com/def-/nim-bigints/tree/master/examples>"""
