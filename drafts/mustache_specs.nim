@@ -1,7 +1,8 @@
-import nimib
+import nimib, os
 
 nbInit
 nbDoc.darkMode
+setCurrentDir nbThisDir.string
 nbText: """ # Mustache Specs
 
 Autogenerate a document containing the results of [nim-mustache](https://github.com/soasme/nim-mustache)
