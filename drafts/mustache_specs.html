@@ -73,19 +73,12 @@ running <a href="https://github.com/mustache/spec/releases/tag/v1.2.1">mustache 
     <span class="hljs-keyword">assert</span> test.kind == <span class="hljs-type">JObject</span>
     tmpl = test[<span class="hljs-string">&quot;template&quot;</span>].getStr
     data = test[<span class="hljs-string">&quot;data&quot;</span>]
-    <span class="hljs-keyword">if</span> data.kind != <span class="hljs-type">JObject</span>:
-      <span class="hljs-keyword">echo</span> <span class="hljs-string">&quot;  ❌ &quot;</span>, test[<span class="hljs-string">&quot;name&quot;</span>].getStr
-      <span class="hljs-keyword">echo</span> <span class="hljs-string">&quot;    data is not an object: &quot;</span> &amp; $data
-      test[<span class="hljs-string">&quot;ok&quot;</span>] = %<span class="hljs-string">&quot;❌&quot;</span>
-      test[<span class="hljs-string">&quot;output&quot;</span>] = %<span class="hljs-string">&quot;❌&quot;</span>
-      <span class="hljs-keyword">continue</span>
     partials = initTable[<span class="hljs-built_in">string</span>, <span class="hljs-built_in">string</span>]()
     <span class="hljs-keyword">if</span> <span class="hljs-string">&quot;partials&quot;</span> <span class="hljs-keyword">in</span> test:
       <span class="hljs-keyword">for</span> key, val <span class="hljs-keyword">in</span> test[<span class="hljs-string">&quot;partials&quot;</span>]:
         partials[key] = val.getStr
-    context = newContext(searchDirs = @[], partials = partials)
-    <span class="hljs-keyword">for</span> key, val <span class="hljs-keyword">in</span> data.pairs:
-      context[key] = val
+    context = newContext(searchDirs = @[], partials = partials,
+                         values = data.toValues)
     test[<span class="hljs-string">&quot;output&quot;</span>] = %tmpl.render(context)
     <span class="hljs-keyword">if</span> test[<span class="hljs-string">&quot;output&quot;</span>].getStr == test[<span class="hljs-string">&quot;expected&quot;</span>].getStr:
       test[<span class="hljs-string">&quot;ok&quot;</span>] = %<span class="hljs-string">&quot;✅&quot;</span>
@@ -159,17 +152,12 @@ Output:
   ✅ Dotted Names - Broken Chains
   ✅ Dotted Names - Broken Chain Resolution
   ✅ Dotted Names - Initial Resolution
-  ❌ Dotted Names - Context Precedence
-  ❌ Implicit Iterators - Basic Interpolation
-    data is not an object: &quot;world&quot;
-  ❌ Implicit Iterators - HTML Escaping
-    data is not an object: &quot;&amp; \&quot; &lt; &gt;&quot;
-  ❌ Implicit Iterators - Triple Mustache
-    data is not an object: &quot;&amp; \&quot; &lt; &gt;&quot;
-  ❌ Implicit Iterators - Ampersand
-    data is not an object: &quot;&amp; \&quot; &lt; &gt;&quot;
-  ❌ Implicit Iterators - Basic Integer Interpolation
-    data is not an object: 85
+  ✅ Dotted Names - Context Precedence
+  ✅ Implicit Iterators - Basic Interpolation
+  ✅ Implicit Iterators - HTML Escaping
+  ✅ Implicit Iterators - Triple Mustache
+  ✅ Implicit Iterators - Ampersand
+  ✅ Implicit Iterators - Basic Integer Interpolation
   ✅ Interpolation - Surrounding Whitespace
   ✅ Triple Mustache - Surrounding Whitespace
   ✅ Ampersand - Surrounding Whitespace
@@ -185,9 +173,9 @@ Output:
   ✅ Null is falsey
   ✅ Context
   ✅ Parent contexts
-  ❌ Variable test
+  ✅ Variable test
   ✅ List Contexts
-  ❌ Deeply Nested Contexts
+  ✅ Deeply Nested Contexts
   ✅ List
   ✅ Empty List
   ✅ Doubled
@@ -649,7 +637,7 @@ interpolation.</li>
 <p>Output:</p>
 <pre><code>&quot;Phil&quot; == &quot;Phil&quot;
 </code></pre>
-<h3>❌ Dotted Names - Context Precedence</h3>
+<h3>✅ Dotted Names - Context Precedence</h3>
 <p>Dotted names should be resolved against former resolutions.</p>
 <p>Template:</p>
 <pre><code>{{#a}}{{b.c}}{{/a}}
@@ -661,9 +649,9 @@ interpolation.</li>
 <pre><code>
 </code></pre>
 <p>Output:</p>
-<pre><code>ERROR
+<pre><code>
 </code></pre>
-<h3>❌ Implicit Iterators - Basic Interpolation</h3>
+<h3>✅ Implicit Iterators - Basic Interpolation</h3>
 <p>Unadorned tags should interpolate content into the template.</p>
 <p>Template:</p>
 <pre><code>Hello, {{.}}!
@@ -677,9 +665,10 @@ interpolation.</li>
 
 </code></pre>
 <p>Output:</p>
-<pre><code>❌
+<pre><code>Hello, world!
+
 </code></pre>
-<h3>❌ Implicit Iterators - HTML Escaping</h3>
+<h3>✅ Implicit Iterators - HTML Escaping</h3>
 <p>Basic interpolation should be HTML escaped.</p>
 <p>Template:</p>
 <pre><code>These characters should be HTML escaped: {{.}}
@@ -693,9 +682,10 @@ interpolation.</li>
 
 </code></pre>
 <p>Output:</p>
-<pre><code>❌
+<pre><code>These characters should be HTML escaped: &amp;amp; &amp;quot; &amp;lt; &amp;gt;
+
 </code></pre>
-<h3>❌ Implicit Iterators - Triple Mustache</h3>
+<h3>✅ Implicit Iterators - Triple Mustache</h3>
 <p>Triple mustaches should interpolate without HTML escaping.</p>
 <p>Template:</p>
 <pre><code>These characters should not be HTML escaped: {{{.}}}
@@ -709,9 +699,10 @@ interpolation.</li>
 
 </code></pre>
 <p>Output:</p>
-<pre><code>❌
+<pre><code>These characters should not be HTML escaped: &amp; &quot; &lt; &gt;
+
 </code></pre>
-<h3>❌ Implicit Iterators - Ampersand</h3>
+<h3>✅ Implicit Iterators - Ampersand</h3>
 <p>Ampersand should interpolate without HTML escaping.</p>
 <p>Template:</p>
 <pre><code>These characters should not be HTML escaped: {{&amp;.}}
@@ -725,9 +716,10 @@ interpolation.</li>
 
 </code></pre>
 <p>Output:</p>
-<pre><code>❌
+<pre><code>These characters should not be HTML escaped: &amp; &quot; &lt; &gt;
+
 </code></pre>
-<h3>❌ Implicit Iterators - Basic Integer Interpolation</h3>
+<h3>✅ Implicit Iterators - Basic Integer Interpolation</h3>
 <p>Integers should interpolate seamlessly.</p>
 <p>Template:</p>
 <pre><code>&quot;{{.}} miles an hour!&quot;
@@ -739,7 +731,7 @@ interpolation.</li>
 <pre><code>&quot;85 miles an hour!&quot;
 </code></pre>
 <p>Output:</p>
-<pre><code>❌
+<pre><code>&quot;85 miles an hour!&quot;
 </code></pre>
 <h3>✅ Interpolation - Surrounding Whitespace</h3>
 <p>Interpolation should not alter surrounding whitespace.</p>
@@ -980,7 +972,7 @@ appropriate.</p>
 <p>Output:</p>
 <pre><code>&quot;foo, bar, baz&quot;
 </code></pre>
-<h3>❌ Variable test</h3>
+<h3>✅ Variable test</h3>
 <p>Non-false sections have their value at the top of context,
 accessible as {{.}} or through the parent context. This gives
 a simple way to display content conditionally if a variable exists.</p>
@@ -994,7 +986,7 @@ a simple way to display content conditionally if a variable exists.</p>
 <pre><code>&quot;bar is bar&quot;
 </code></pre>
 <p>Output:</p>
-<pre><code>&quot; is bar&quot;
+<pre><code>&quot;bar is bar&quot;
 </code></pre>
 <h3>✅ List Contexts</h3>
 <p>All elements on the context stack should be accessible within lists.</p>
@@ -1010,7 +1002,7 @@ a simple way to display content conditionally if a variable exists.</p>
 <p>Output:</p>
 <pre><code>a1.A1x.A1y.
 </code></pre>
-<h3>❌ Deeply Nested Contexts</h3>
+<h3>✅ Deeply Nested Contexts</h3>
 <p>All elements on the context stack should be accessible.</p>
 <p>Template:</p>
 <pre><code>{{#a}}
@@ -1059,7 +1051,7 @@ a simple way to display content conditionally if a variable exists.</p>
 12321
 1234321
 123454321
-123464321
+12345654321
 123454321
 1234321
 12321
@@ -2767,19 +2759,11 @@ nbCode:
       <span class="hljs-keyword">assert</span> test.kind == <span class="hljs-type">JObject</span>
       tmpl = test[<span class="hljs-string">&quot;template&quot;</span>].getStr
       data = test[<span class="hljs-string">&quot;data&quot;</span>]
-      <span class="hljs-keyword">if</span> data.kind != <span class="hljs-type">JObject</span>:
-        <span class="hljs-keyword">echo</span> <span class="hljs-string">&quot;  ❌ &quot;</span>, test[<span class="hljs-string">&quot;name&quot;</span>].getStr
-        <span class="hljs-keyword">echo</span> <span class="hljs-string">&quot;    data is not an object: &quot;</span> &amp; $data
-        test[<span class="hljs-string">&quot;ok&quot;</span>] = % <span class="hljs-string">&quot;❌&quot;</span>
-        test[<span class="hljs-string">&quot;output&quot;</span>] = % <span class="hljs-string">&quot;❌&quot;</span>
-        <span class="hljs-keyword">continue</span>
       partials = initTable[<span class="hljs-built_in">string</span>, <span class="hljs-built_in">string</span>]()
       <span class="hljs-keyword">if</span> <span class="hljs-string">&quot;partials&quot;</span> <span class="hljs-keyword">in</span> test:
         <span class="hljs-keyword">for</span> key, val <span class="hljs-keyword">in</span> test[<span class="hljs-string">&quot;partials&quot;</span>]:
           partials[key] = val.getStr
-      context = newContext(searchDirs = @[], partials=partials)
-      <span class="hljs-keyword">for</span> key, val <span class="hljs-keyword">in</span> data.pairs:
-        context[key] = val
+      context = newContext(searchDirs = @[], partials=partials, values=data.toValues)
       test[<span class="hljs-string">&quot;output&quot;</span>] = % tmpl.render(context)
       <span class="hljs-keyword">if</span> test[<span class="hljs-string">&quot;output&quot;</span>].getStr == test[<span class="hljs-string">&quot;expected&quot;</span>].getStr:
         test[<span class="hljs-string">&quot;ok&quot;</span>] = % <span class="hljs-string">&quot;✅&quot;</span>

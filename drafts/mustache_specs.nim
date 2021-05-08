@@ -33,19 +33,11 @@ nbCode:
       assert test.kind == JObject
       tmpl = test["template"].getStr
       data = test["data"]
-      if data.kind != JObject:
-        echo "  ❌ ", test["name"].getStr
-        echo "    data is not an object: " & $data
-        test["ok"] = % "❌"
-        test["output"] = % "❌"
-        continue
       partials = initTable[string, string]()
       if "partials" in test:
         for key, val in test["partials"]:
           partials[key] = val.getStr
-      context = newContext(searchDirs = @[], partials=partials)
-      for key, val in data.pairs:
-        context[key] = val
+      context = newContext(searchDirs = @[], partials=partials, values=data.toValues)
       test["output"] = % tmpl.render(context)
       if test["output"].getStr == test["expected"].getStr:
         test["ok"] = % "✅"
