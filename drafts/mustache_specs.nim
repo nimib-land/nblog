@@ -54,7 +54,8 @@ nbCode:
       for test in spec["tests"]:
         partials = ""
         if "partials" in test:
-          partials = "Partials:\n\n```"
+          assert test["partials"].kind == JObject
+          partials = "Partials:\n\n```\n"
           for key, val in test["partials"]:
             partials.add &"{key}: {$val}\n"
           partials.add "```\n"

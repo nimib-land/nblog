@@ -94,7 +94,8 @@ running <a href="https://github.com/mustache/spec/releases/tag/v1.2.1">mustache 
     <span class="hljs-keyword">for</span> test <span class="hljs-keyword">in</span> spec[<span class="hljs-string">&quot;tests&quot;</span>]:
       partials = <span class="hljs-string">&quot;&quot;</span>
       <span class="hljs-keyword">if</span> <span class="hljs-string">&quot;partials&quot;</span> <span class="hljs-keyword">in</span> test:
-        partials = <span class="hljs-string">&quot;Partials:</span><span class="hljs-meta">\n</span><span class="hljs-meta">\n</span><span class="hljs-string">```&quot;</span>
+        <span class="hljs-keyword">assert</span> test[<span class="hljs-string">&quot;partials&quot;</span>].kind == <span class="hljs-type">JObject</span>
+        partials = <span class="hljs-string">&quot;Partials:</span><span class="hljs-meta">\n</span><span class="hljs-meta">\n</span><span class="hljs-meta">```\n</span><span class="hljs-string">&quot;</span>
         <span class="hljs-keyword">for</span> key, val <span class="hljs-keyword">in</span> test[<span class="hljs-string">&quot;partials&quot;</span>]:
           partials.add &amp;<span class="hljs-string">&quot;{key}: {$val}</span><span class="hljs-meta">\n</span><span class="hljs-string">&quot;</span>
         partials.add <span class="hljs-string">&quot;```</span><span class="hljs-meta">\n</span><span class="hljs-string">&quot;</span>
@@ -2174,7 +2175,8 @@ delimiter.</p>
 <pre><code>{&quot;value&quot;:&quot;yes&quot;}
 </code></pre>
 <p>Partials:</p>
-<pre><code class="language-include:"></code></pre>
+<pre><code>include: &quot;.{{value}}.&quot;
+</code></pre>
 <p>Expected:</p>
 <pre><code>[ .yes. ]
 [ .yes. ]
@@ -2196,7 +2198,8 @@ delimiter.</p>
 <pre><code>{&quot;value&quot;:&quot;yes&quot;}
 </code></pre>
 <p>Partials:</p>
-<pre><code class="language-include:"></code></pre>
+<pre><code>include: &quot;.{{value}}. {{= | | =}} .|value|.&quot;
+</code></pre>
 <p>Expected:</p>
 <pre><code>[ .yes.  .yes. ]
 [ .yes.  .|value|. ]
@@ -2365,7 +2368,8 @@ indentation, and prepended to each line of the partial before rendering.</p>
 <pre><code>{}
 </code></pre>
 <p>Partials:</p>
-<pre><code class="language-text:"></code></pre>
+<pre><code>text: &quot;from partial&quot;
+</code></pre>
 <p>Expected:</p>
 <pre><code>&quot;from partial&quot;
 </code></pre>
@@ -2381,337 +2385,197 @@ indentation, and prepended to each line of the partial before rendering.</p>
 <pre><code>{}
 </code></pre>
 <p>Partials:</p>
-<pre><code>Expected:
+<pre><code></code></pre>
+<p>Expected:</p>
+<pre><code>&quot;&quot;
+</code></pre>
+<p>Output:</p>
+<pre><code>&quot;&quot;
+</code></pre>
+<h3>✅ Context</h3>
+<p>The greater-than operator should operate within the current context.</p>
+<p>Template:</p>
+<pre><code>&quot;{{&gt;partial}}&quot;
+</code></pre>
+<p>Data:</p>
+<pre><code>{&quot;text&quot;:&quot;content&quot;}
+</code></pre>
+<p>Partials:</p>
+<pre><code>partial: &quot;*{{text}}*&quot;
+</code></pre>
+<p>Expected:</p>
+<pre><code>&quot;*content*&quot;
+</code></pre>
+<p>Output:</p>
+<pre><code>&quot;*content*&quot;
+</code></pre>
+<h3>✅ Recursion</h3>
+<p>The greater-than operator should properly recurse.</p>
+<p>Template:</p>
+<pre><code>{{&gt;node}}
+</code></pre>
+<p>Data:</p>
+<pre><code>{&quot;content&quot;:&quot;X&quot;,&quot;nodes&quot;:[{&quot;content&quot;:&quot;Y&quot;,&quot;nodes&quot;:[]}]}
+</code></pre>
+<p>Partials:</p>
+<pre><code>node: &quot;{{content}}&lt;{{#nodes}}{{&gt;node}}{{/nodes}}&gt;&quot;
+</code></pre>
+<p>Expected:</p>
+<pre><code>X&lt;Y&lt;&gt;&gt;
+</code></pre>
+<p>Output:</p>
+<pre><code>X&lt;Y&lt;&gt;&gt;
+</code></pre>
+<h3>✅ Surrounding Whitespace</h3>
+<p>The greater-than operator should not alter surrounding whitespace.</p>
+<p>Template:</p>
+<pre><code>| {{&gt;partial}} |
+</code></pre>
+<p>Data:</p>
+<pre><code>{}
+</code></pre>
+<p>Partials:</p>
+<pre><code>partial: &quot;\t|\t&quot;
+</code></pre>
+<p>Expected:</p>
+<pre><code>| 	|	 |
+</code></pre>
+<p>Output:</p>
+<pre><code>| 	|	 |
+</code></pre>
+<h3>✅ Inline Indentation</h3>
+<p>Whitespace should be left untouched.</p>
+<p>Template:</p>
+<pre><code>  {{data}}  {{&gt; partial}}
 
-```
-&quot;&quot;
-```
-
-Output:
-
-```
-&quot;&quot;
-```
-
-### ✅ Context
-
-The greater-than operator should operate within the current context.
-
-Template:
-
-```
-&quot;{{&gt;partial}}&quot;
-```
-
-Data:
-
-```
-{&quot;text&quot;:&quot;content&quot;}
-```
-
-Partials:
-
-```partial: &quot;*{{text}}*&quot;
-```
-Expected:
-
-```
-&quot;*content*&quot;
-```
-
-Output:
-
-```
-&quot;*content*&quot;
-```
-
-### ✅ Recursion
-
-The greater-than operator should properly recurse.
-
-Template:
-
-```
-{{&gt;node}}
-```
-
-Data:
-
-```
-{&quot;content&quot;:&quot;X&quot;,&quot;nodes&quot;:[{&quot;content&quot;:&quot;Y&quot;,&quot;nodes&quot;:[]}]}
-```
-
-Partials:
-
-```node: &quot;{{content}}&lt;{{#nodes}}{{&gt;node}}{{/nodes}}&gt;&quot;
-```
-Expected:
-
-```
-X&lt;Y&lt;&gt;&gt;
-```
-
-Output:
-
-```
-X&lt;Y&lt;&gt;&gt;
-```
-
-### ✅ Surrounding Whitespace
-
-The greater-than operator should not alter surrounding whitespace.
-
-Template:
-
-```
-| {{&gt;partial}} |
-```
-
-Data:
-
-```
-{}
-```
-
-Partials:
-
-```partial: &quot;\t|\t&quot;
-```
-Expected:
-
-```
-| 	|	 |
-```
-
-Output:
-
-```
-| 	|	 |
-```
-
-### ✅ Inline Indentation
-
-Whitespace should be left untouched.
-
-Template:
-
-```
-  {{data}}  {{&gt; partial}}
-
-```
-
-Data:
-
-```
-{&quot;data&quot;:&quot;|&quot;}
-```
-
-Partials:
-
-```partial: &quot;&gt;\n&gt;&quot;
-```
-Expected:
-
-```
-  |  &gt;
+</code></pre>
+<p>Data:</p>
+<pre><code>{&quot;data&quot;:&quot;|&quot;}
+</code></pre>
+<p>Partials:</p>
+<pre><code>partial: &quot;&gt;\n&gt;&quot;
+</code></pre>
+<p>Expected:</p>
+<pre><code>  |  &gt;
 &gt;
 
-```
-
-Output:
-
-```
-  |  &gt;
+</code></pre>
+<p>Output:</p>
+<pre><code>  |  &gt;
 &gt;
 
-```
-
-### ✅ Standalone Line Endings
-
-&quot;\r\n&quot; should be considered a newline for standalone tags.
-
-Template:
-
-```
-|
+</code></pre>
+<h3>✅ Standalone Line Endings</h3>
+<p>&quot;\r\n&quot; should be considered a newline for standalone tags.</p>
+<p>Template:</p>
+<pre><code>|
 {{&gt;partial}}
 |
-```
-
-Data:
-
-```
-{}
-```
-
-Partials:
-
-```partial: &quot;&gt;&quot;
-```
-Expected:
-
-```
-|
+</code></pre>
+<p>Data:</p>
+<pre><code>{}
+</code></pre>
+<p>Partials:</p>
+<pre><code>partial: &quot;&gt;&quot;
+</code></pre>
+<p>Expected:</p>
+<pre><code>|
 &gt;|
-```
-
-Output:
-
-```
-|
+</code></pre>
+<p>Output:</p>
+<pre><code>|
 &gt;|
-```
-
-### ✅ Standalone Without Previous Line
-
-Standalone tags should not require a newline to precede them.
-
-Template:
-
-```
-  {{&gt;partial}}
+</code></pre>
+<h3>✅ Standalone Without Previous Line</h3>
+<p>Standalone tags should not require a newline to precede them.</p>
+<p>Template:</p>
+<pre><code>  {{&gt;partial}}
 &gt;
-```
-
-Data:
-
-```
-{}
-```
-
-Partials:
-
-```partial: &quot;&gt;\n&gt;&quot;
-```
-Expected:
-
-```
-  &gt;
+</code></pre>
+<p>Data:</p>
+<pre><code>{}
+</code></pre>
+<p>Partials:</p>
+<pre><code>partial: &quot;&gt;\n&gt;&quot;
+</code></pre>
+<p>Expected:</p>
+<pre><code>  &gt;
   &gt;&gt;
-```
-
-Output:
-
-```
-  &gt;
+</code></pre>
+<p>Output:</p>
+<pre><code>  &gt;
   &gt;&gt;
-```
-
-### ✅ Standalone Without Newline
-
-Standalone tags should not require a newline to follow them.
-
-Template:
-
-```
-&gt;
+</code></pre>
+<h3>✅ Standalone Without Newline</h3>
+<p>Standalone tags should not require a newline to follow them.</p>
+<p>Template:</p>
+<pre><code>&gt;
   {{&gt;partial}}
-```
-
-Data:
-
-```
-{}
-```
-
-Partials:
-
-```partial: &quot;&gt;\n&gt;&quot;
-```
-Expected:
-
-```
-&gt;
+</code></pre>
+<p>Data:</p>
+<pre><code>{}
+</code></pre>
+<p>Partials:</p>
+<pre><code>partial: &quot;&gt;\n&gt;&quot;
+</code></pre>
+<p>Expected:</p>
+<pre><code>&gt;
   &gt;
   &gt;
-```
-
-Output:
-
-```
-&gt;
+</code></pre>
+<p>Output:</p>
+<pre><code>&gt;
   &gt;
   &gt;
-```
-
-### ✅ Standalone Indentation
-
-Each line of the partial should be indented before rendering.
-
-Template:
-
-```
-\
+</code></pre>
+<h3>✅ Standalone Indentation</h3>
+<p>Each line of the partial should be indented before rendering.</p>
+<p>Template:</p>
+<pre><code>\
  {{&gt;partial}}
 /
 
-```
-
-Data:
-
-```
-{&quot;content&quot;:&quot;&lt;\n-&gt;&quot;}
-```
-
-Partials:
-
-```partial: &quot;|\n{{{content}}}\n|\n&quot;
-```
-Expected:
-
-```
-\
+</code></pre>
+<p>Data:</p>
+<pre><code>{&quot;content&quot;:&quot;&lt;\n-&gt;&quot;}
+</code></pre>
+<p>Partials:</p>
+<pre><code>partial: &quot;|\n{{{content}}}\n|\n&quot;
+</code></pre>
+<p>Expected:</p>
+<pre><code>\
  |
  &lt;
 -&gt;
  |
 /
 
-```
-
-Output:
-
-```
-\
+</code></pre>
+<p>Output:</p>
+<pre><code>\
  |
  &lt;
 -&gt;
  |
 /
 
-```
-
-### ✅ Padding Whitespace
-
-Superfluous in-tag whitespace should be ignored.
-
-Template:
-
-```
-|{{&gt; partial }}|
-```
-
-Data:
-
-```
-{&quot;boolean&quot;:true}
-```
-
-Partials:
-
-```partial: &quot;[]&quot;
-```
-Expected:
-
-```
-|[]|
-```
-
-Output:
-
-```
-|[]|
-```
+</code></pre>
+<h3>✅ Padding Whitespace</h3>
+<p>Superfluous in-tag whitespace should be ignored.</p>
+<p>Template:</p>
+<pre><code>|{{&gt; partial }}|
+</code></pre>
+<p>Data:</p>
+<pre><code>{&quot;boolean&quot;:true}
+</code></pre>
+<p>Partials:</p>
+<pre><code>partial: &quot;[]&quot;
+</code></pre>
+<p>Expected:</p>
+<pre><code>|[]|
+</code></pre>
+<p>Output:</p>
+<pre><code>|[]|
 </code></pre>
 
 </main>
@@ -2780,7 +2644,8 @@ nbCode:
       <span class="hljs-keyword">for</span> test <span class="hljs-keyword">in</span> spec[<span class="hljs-string">&quot;tests&quot;</span>]:
         partials = <span class="hljs-string">&quot;&quot;</span>
         <span class="hljs-keyword">if</span> <span class="hljs-string">&quot;partials&quot;</span> <span class="hljs-keyword">in</span> test:
-          partials = <span class="hljs-string">&quot;Partials:</span><span class="hljs-meta">\n</span><span class="hljs-meta">\n</span><span class="hljs-string">```&quot;</span>
+          <span class="hljs-keyword">assert</span> test[<span class="hljs-string">&quot;partials&quot;</span>].kind == <span class="hljs-type">JObject</span>
+          partials = <span class="hljs-string">&quot;Partials:</span><span class="hljs-meta">\n</span><span class="hljs-meta">\n</span><span class="hljs-meta">```\n</span><span class="hljs-string">&quot;</span>
           <span class="hljs-keyword">for</span> key, val <span class="hljs-keyword">in</span> test[<span class="hljs-string">&quot;partials&quot;</span>]:
             partials.add &amp;<span class="hljs-string">&quot;{key}: {$val}</span><span class="hljs-meta">\n</span><span class="hljs-string">&quot;</span>
           partials.add <span class="hljs-string">&quot;```</span><span class="hljs-meta">\n</span><span class="hljs-string">&quot;</span>
