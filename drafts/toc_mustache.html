@@ -1,0 +1,523 @@
+<!DOCTYPE html>
+<html lang="en-us">
+<head>
+  <title>drafts\toc_mustache.nim</title>
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2280%22>🐳</text></svg>">
+  <meta content="text/html; charset=utf-8" http-equiv="content-type">
+  <meta content="width=device-width, initial-scale=1" name="viewport">
+  <link rel='stylesheet' href='https://unpkg.com/normalize.css/'>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/kognise/water.css@latest/dist/light.min.css">
+  <link rel='stylesheet' href='https://cdn.jsdelivr.net/gh/pietroppeter/nimib/assets/atom-one-light.css'>
+  <style>
+.nb-box {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+.nb-small {
+  font-size: 0.8rem;
+}
+button.nb-small {
+  float: right;
+  padding: 2px;
+  padding-right: 5px;
+  padding-left: 5px;
+}
+section#source {
+  display:none
+}
+</style>
+  
+  <script async defer data-domain="pietroppeter.github.io/nblog" src="https://plausible.io/js/plausible.js"></script>
+</head>
+<body>
+<header>
+<div class="nb-box">
+  <span><a href="..">🏡</a></span>
+  <span><code>drafts\toc_mustache.nim</code></span>
+  <span><a href="https://github.com/pietroppeter/nblog"><svg aria-hidden="true" width="1.2em" height="1.2em" style="vertical-align: middle;" preserveAspectRatio="xMidYMid meet" viewBox="0 0 16 16"><path fill-rule="evenodd" d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59c.4.07.55-.17.55-.38c0-.19-.01-.82-.01-1.49c-2.01.37-2.53-.49-2.69-.94c-.09-.23-.48-.94-.82-1.13c-.28-.15-.68-.52-.01-.53c.63-.01 1.08.58 1.23.82c.72 1.21 1.87.87 2.33.66c.07-.52.28-.87.51-1.07c-1.78-.2-3.64-.89-3.64-3.95c0-.87.31-1.59.82-2.15c-.08-.2-.36-1.02.08-2.12c0 0 .67-.21 2.2.82c.64-.18 1.32-.27 2-.27c.68 0 1.36.09 2 .27c1.53-1.04 2.2-.82 2.2-.82c.44 1.1.16 1.92.08 2.12c.51.56.82 1.27.82 2.15c0 3.07-1.87 3.75-3.65 3.95c.29.25.54.73.54 1.48c0 1.07-.01 1.93-.01 2.2c0 .21.15.46.55.38A8.013 8.013 0 0 0 16 8c0-4.42-3.58-8-8-8z" fill="#000"></path></svg></a></span>
+</div>
+<hr>
+</header><main>
+<h1>Creating a TOC with mustache</h1>
+<p>I am working on porting <a href="https://rust-lang.github.io/mdBook/">mdbook</a>
+to nim. It is called <a href="https://github.com/pietroppeter/nimiBook">nimiBook</a>.
+This is motivated by the work being done in
+<a href="https://github.com/SciNim/getting-started">sciNim/getting-started</a>.</p>
+<p>An issue is how to generate the TOC.
+Below I show a way to do it using mustache.</p>
+<pre><code class="nim hljs"><span class="hljs-keyword">import</span>
+  mustache, json, tables
+
+<span class="hljs-keyword">var</span>
+  context: <span class="hljs-type">Context</span>
+  text: <span class="hljs-built_in">string</span>
+  partials: <span class="hljs-type">Table</span>[<span class="hljs-built_in">string</span>, <span class="hljs-built_in">string</span>]
+  data: <span class="hljs-type">JsonNode</span></code></pre>
+<p>An example result:</p>
+<pre><code class="language-html">&lt;ol class=&quot;chapter&quot;&gt;
+  &lt;li class=&quot;chapter-item expanded &quot;&gt;
+    &lt;a href=&quot;./index.html&quot; tabindex=&quot;0&quot; class=&quot;active&quot;&gt;
+      &lt;strong aria-hidden=&quot;true&quot;&gt;1.&lt;/strong&gt; Introduction
+    &lt;/a&gt;
+  &lt;/li&gt;
+  &lt;li class=&quot;chapter-item expanded &quot;&gt;
+    &lt;a href=&quot;./basics/index.html&quot; tabindex=&quot;0&quot;&gt;
+      &lt;strong aria-hidden=&quot;true&quot;&gt;2.&lt;/strong&gt; Basics
+    &lt;/a&gt;
+  &lt;/li&gt;
+  &lt;li&gt;
+    &lt;ol class=&quot;section&quot;&gt;
+      &lt;li class=&quot;chapter-item expanded &quot;&gt;
+        &lt;a href=&quot;./basics/plotting.html&quot; tabindex=&quot;0&quot;&gt;
+          &lt;strong aria-hidden=&quot;true&quot;&gt;2.1.&lt;/strong&gt; Plotting
+        &lt;/a&gt;
+      &lt;/li&gt;
+      &lt;li class=&quot;chapter-item expanded &quot;&gt;
+        &lt;a href=&quot;./basics/data_manipulation.html&quot; tabindex=&quot;0&quot;&gt;
+          &lt;strong aria-hidden=&quot;true&quot;&gt;2.2.&lt;/strong&gt; Data Manipulation
+        &lt;/a&gt;
+      &lt;/li&gt;
+      &lt;li class=&quot;chapter-item expanded &quot;&gt;
+        &lt;a href=&quot;./basics/models.html&quot; tabindex=&quot;0&quot;&gt;
+          &lt;strong aria-hidden=&quot;true&quot;&gt;2.3.&lt;/strong&gt; Models
+        &lt;/a&gt;
+      &lt;/li&gt;
+    &lt;/ol&gt;
+  &lt;li class=&quot;chapter-item expanded &quot;&gt;
+    &lt;a href=&quot;./misc/but/very/far/contributors.html&quot; tabindex=&quot;0&quot;&gt;Contributors&lt;/a&gt;
+  &lt;/li&gt;
+&lt;/ol&gt;
+</code></pre>
+<p>The basic element is the list item which is this template:</p>
+<pre><code class="nim hljs"><span class="hljs-keyword">var</span> listItem = <span class="hljs-string">&quot;&quot;&quot;&lt;li class=&quot;chapter-item expanded &quot;&gt;
+  &lt;a href=&quot;{{path_to_root}}{{path_to_page}}&quot; tabindex=&quot;0&quot;{{#is_active}} class=&quot;active&quot;{{/is_active}}&gt;
+    {{#id}}&lt;strong aria-hidden=&quot;true&quot;&gt;{{id}}&lt;/strong&gt; {{/id}}{{label}}
+  &lt;/a&gt;
+&lt;/li&gt;
+&quot;&quot;&quot;</span></code></pre>
+<pre><code class="language-html">&lt;li class=&quot;chapter-item expanded &quot;&gt;
+  &lt;a href=&quot;{{path_to_root}}{{path_to_page}}&quot; tabindex=&quot;0&quot;{{#is_active}} class=&quot;active&quot;{{/is_active}}&gt;
+    {{#id}}&lt;strong aria-hidden=&quot;true&quot;&gt;{{id}}&lt;/strong&gt; {{/id}}{{label}}
+  &lt;/a&gt;
+&lt;/li&gt;
+
+</code></pre>
+<p>And given some data we can render <code>listItem</code> template:</p>
+<pre><code class="nim hljs"><span class="hljs-keyword">var</span> dataItem = %*{<span class="hljs-string">&quot;path_to_root&quot;</span>: <span class="hljs-string">&quot;basics/&quot;</span>, <span class="hljs-string">&quot;path_to_page&quot;</span>: <span class="hljs-string">&quot;plotting.html&quot;</span>,
+                  <span class="hljs-string">&quot;is_active&quot;</span>: <span class="hljs-literal">false</span>, <span class="hljs-string">&quot;id&quot;</span>: <span class="hljs-string">&quot;2.1&quot;</span>, <span class="hljs-string">&quot;label&quot;</span>: <span class="hljs-string">&quot;Plotting&quot;</span>}
+context = newContext(values = dataItem.toValues)
+<span class="hljs-keyword">echo</span> listItem.render(context)</code></pre>
+<pre><samp>&lt;li class=&quot;chapter-item expanded &quot;&gt;
+  &lt;a href=&quot;basics/plotting.html&quot; tabindex=&quot;0&quot;&gt;
+    &lt;strong aria-hidden=&quot;true&quot;&gt;2.1&lt;/strong&gt; Plotting
+  &lt;/a&gt;
+&lt;/li&gt;
+
+</samp></pre>
+<pre><code class="nim hljs">context[<span class="hljs-string">&quot;is_active&quot;</span>] = <span class="hljs-literal">true</span>
+<span class="hljs-keyword">echo</span> listItem.render(context)</code></pre>
+<pre><samp>&lt;li class=&quot;chapter-item expanded &quot;&gt;
+  &lt;a href=&quot;basics/plotting.html&quot; tabindex=&quot;0&quot; class=&quot;active&quot;&gt;
+    &lt;strong aria-hidden=&quot;true&quot;&gt;2.1&lt;/strong&gt; Plotting
+  &lt;/a&gt;
+&lt;/li&gt;
+
+</samp></pre>
+<pre><code class="nim hljs">context[<span class="hljs-string">&quot;id&quot;</span>] = <span class="hljs-literal">false</span>
+<span class="hljs-keyword">echo</span> listItem.render(context)</code></pre>
+<pre><samp>&lt;li class=&quot;chapter-item expanded &quot;&gt;
+  &lt;a href=&quot;basics/plotting.html&quot; tabindex=&quot;0&quot; class=&quot;active&quot;&gt;
+    Plotting
+  &lt;/a&gt;
+&lt;/li&gt;
+
+</samp></pre>
+<p>But a list item can also contain a section:</p>
+<pre><code class="nim hljs"><span class="hljs-keyword">let</span> section = <span class="hljs-string">&quot;&quot;&quot;&lt;ol class=&quot;section&quot;&gt;
+  {{#items}}
+    {{&gt; list_item }}
+  {{/items}}
+&lt;/ol&gt;
+&quot;&quot;&quot;</span></code></pre>
+<pre><code class="language-html">&lt;ol class=&quot;section&quot;&gt;
+  {{#items}}
+    {{&gt; list_item }}
+  {{/items}}
+&lt;/ol&gt;
+
+</code></pre>
+<p>Let's test it with some data:</p>
+<pre><code class="nim hljs"><span class="hljs-keyword">var</span> dataSection = %*{<span class="hljs-string">&quot;is_section&quot;</span>: <span class="hljs-literal">true</span>, <span class="hljs-string">&quot;items&quot;</span>: [{<span class="hljs-string">&quot;path_to_root&quot;</span>: <span class="hljs-string">&quot;basics/&quot;</span>,
+    <span class="hljs-string">&quot;path_to_page&quot;</span>: <span class="hljs-string">&quot;plotting.html&quot;</span>, <span class="hljs-string">&quot;is_active&quot;</span>: <span class="hljs-literal">true</span>, <span class="hljs-string">&quot;id&quot;</span>: <span class="hljs-string">&quot;2.1&quot;</span>,
+    <span class="hljs-string">&quot;label&quot;</span>: <span class="hljs-string">&quot;Plotting&quot;</span>}, {<span class="hljs-string">&quot;path_to_root&quot;</span>: <span class="hljs-string">&quot;basics/&quot;</span>,
+                           <span class="hljs-string">&quot;path_to_page&quot;</span>: <span class="hljs-string">&quot;data_manipulation.html&quot;</span>,
+                           <span class="hljs-string">&quot;is_active&quot;</span>: <span class="hljs-literal">false</span>, <span class="hljs-string">&quot;id&quot;</span>: <span class="hljs-string">&quot;2.2&quot;</span>,
+                           <span class="hljs-string">&quot;label&quot;</span>: <span class="hljs-string">&quot;Data Manipulation&quot;</span>}, {
+    <span class="hljs-string">&quot;path_to_root&quot;</span>: <span class="hljs-string">&quot;basics/&quot;</span>, <span class="hljs-string">&quot;path_to_page&quot;</span>: <span class="hljs-string">&quot;models.html&quot;</span>,
+    <span class="hljs-string">&quot;is_active&quot;</span>: <span class="hljs-literal">false</span>, <span class="hljs-string">&quot;id&quot;</span>: <span class="hljs-string">&quot;2.3&quot;</span>, <span class="hljs-string">&quot;label&quot;</span>: <span class="hljs-string">&quot;Models&quot;</span>}]}
+context = newContext(partials = {<span class="hljs-string">&quot;list_item&quot;</span>: listItem}.toTable,
+                     values = dataSection.toValues)
+<span class="hljs-keyword">echo</span> section.render(context)</code></pre>
+<pre><samp>&lt;ol class=&quot;section&quot;&gt;
+    &lt;li class=&quot;chapter-item expanded &quot;&gt;
+      &lt;a href=&quot;basics/plotting.html&quot; tabindex=&quot;0&quot; class=&quot;active&quot;&gt;
+        &lt;strong aria-hidden=&quot;true&quot;&gt;2.1&lt;/strong&gt; Plotting
+      &lt;/a&gt;
+    &lt;/li&gt;
+    &lt;li class=&quot;chapter-item expanded &quot;&gt;
+      &lt;a href=&quot;basics/data_manipulation.html&quot; tabindex=&quot;0&quot;&gt;
+        &lt;strong aria-hidden=&quot;true&quot;&gt;2.2&lt;/strong&gt; Data Manipulation
+      &lt;/a&gt;
+    &lt;/li&gt;
+    &lt;li class=&quot;chapter-item expanded &quot;&gt;
+      &lt;a href=&quot;basics/models.html&quot; tabindex=&quot;0&quot;&gt;
+        &lt;strong aria-hidden=&quot;true&quot;&gt;2.3&lt;/strong&gt; Models
+      &lt;/a&gt;
+    &lt;/li&gt;
+&lt;/ol&gt;
+
+</samp></pre>
+<p>And the idea is that a <code>list_item</code> is either a single item or a section:</p>
+<pre><code class="nim hljs">listItem = <span class="hljs-string">&quot;&quot;&quot;{{#is_section}}
+&lt;li&gt;
+  &lt;ol class=&quot;section&quot;&gt;
+  {{#items}}
+    {{&gt; list_item }}
+  {{/items}}
+  &lt;/ol&gt;
+&lt;/li&gt;
+{{/is_section}}
+{{#label}}
+  &lt;li class=&quot;chapter-item expanded &quot;&gt;
+    &lt;a href=&quot;{{path_to_root}}{{path_to_page}}&quot; tabindex=&quot;0&quot;{{#is_active}} class=&quot;active&quot;{{/is_active}}&gt;
+      {{#id}}&lt;strong aria-hidden=&quot;true&quot;&gt;{{id}}&lt;/strong&gt; {{/id}}{{label}}
+    &lt;/a&gt;
+  &lt;/li&gt;
+{{/label}}
+&quot;&quot;&quot;</span></code></pre>
+<p>Note that the partial is recursive!</p>
+<p>We only need the final toc template:</p>
+<pre><code class="nim hljs"><span class="hljs-keyword">let</span> toc = <span class="hljs-string">&quot;&quot;&quot;&lt;ol class=&quot;chapter&quot;&gt;
+{{#chapters}}
+  {{&gt; list_item}}
+{{/chapters}}
+&lt;/ol&gt;
+&quot;&quot;&quot;</span></code></pre>
+<pre><code class="nim hljs">data = %*{<span class="hljs-string">&quot;chapters&quot;</span>: [{<span class="hljs-string">&quot;is_section&quot;</span>: <span class="hljs-literal">false</span>, <span class="hljs-string">&quot;path_to_root&quot;</span>: <span class="hljs-string">&quot;./&quot;</span>,
+                        <span class="hljs-string">&quot;path_to_page&quot;</span>: <span class="hljs-string">&quot;introduction.html&quot;</span>, <span class="hljs-string">&quot;is_active&quot;</span>: <span class="hljs-literal">true</span>,
+                        <span class="hljs-string">&quot;id&quot;</span>: <span class="hljs-string">&quot;1.&quot;</span>, <span class="hljs-string">&quot;label&quot;</span>: <span class="hljs-string">&quot;Introduction&quot;</span>}, {
+    <span class="hljs-string">&quot;is_section&quot;</span>: <span class="hljs-literal">false</span>, <span class="hljs-string">&quot;path_to_root&quot;</span>: <span class="hljs-string">&quot;./&quot;</span>,
+    <span class="hljs-string">&quot;path_to_page&quot;</span>: <span class="hljs-string">&quot;basics/index.html&quot;</span>, <span class="hljs-string">&quot;is_active&quot;</span>: <span class="hljs-literal">false</span>, <span class="hljs-string">&quot;id&quot;</span>: <span class="hljs-string">&quot;2.&quot;</span>,
+    <span class="hljs-string">&quot;label&quot;</span>: <span class="hljs-string">&quot;Basics&quot;</span>}, {<span class="hljs-string">&quot;is_section&quot;</span>: <span class="hljs-literal">true</span>, <span class="hljs-string">&quot;items&quot;</span>: [{<span class="hljs-string">&quot;is_section&quot;</span>: <span class="hljs-literal">false</span>,
+    <span class="hljs-string">&quot;path_to_root&quot;</span>: <span class="hljs-string">&quot;./&quot;</span>, <span class="hljs-string">&quot;path_to_page&quot;</span>: <span class="hljs-string">&quot;basics/plotting.html&quot;</span>,
+    <span class="hljs-string">&quot;is_active&quot;</span>: <span class="hljs-literal">true</span>, <span class="hljs-string">&quot;id&quot;</span>: <span class="hljs-string">&quot;2.1&quot;</span>, <span class="hljs-string">&quot;label&quot;</span>: <span class="hljs-string">&quot;Plotting&quot;</span>}, {<span class="hljs-string">&quot;is_section&quot;</span>: <span class="hljs-literal">false</span>,
+    <span class="hljs-string">&quot;path_to_root&quot;</span>: <span class="hljs-string">&quot;./&quot;</span>, <span class="hljs-string">&quot;path_to_page&quot;</span>: <span class="hljs-string">&quot;basics/data_manipulation.html&quot;</span>,
+    <span class="hljs-string">&quot;is_active&quot;</span>: <span class="hljs-literal">false</span>, <span class="hljs-string">&quot;id&quot;</span>: <span class="hljs-string">&quot;2.2&quot;</span>, <span class="hljs-string">&quot;label&quot;</span>: <span class="hljs-string">&quot;Data Manipulation&quot;</span>}, {
+    <span class="hljs-string">&quot;is_section&quot;</span>: <span class="hljs-literal">false</span>, <span class="hljs-string">&quot;path_to_root&quot;</span>: <span class="hljs-string">&quot;./&quot;</span>,
+    <span class="hljs-string">&quot;path_to_page&quot;</span>: <span class="hljs-string">&quot;basics/models.html&quot;</span>, <span class="hljs-string">&quot;is_active&quot;</span>: <span class="hljs-literal">false</span>, <span class="hljs-string">&quot;id&quot;</span>: <span class="hljs-string">&quot;2.3&quot;</span>,
+    <span class="hljs-string">&quot;label&quot;</span>: <span class="hljs-string">&quot;Models&quot;</span>}]}, {<span class="hljs-string">&quot;is_section&quot;</span>: <span class="hljs-literal">false</span>, <span class="hljs-string">&quot;path_to_root&quot;</span>: <span class="hljs-string">&quot;./&quot;</span>, <span class="hljs-string">&quot;path_to_page&quot;</span>: <span class="hljs-string">&quot;misc/but/very/far/contributors.html&quot;</span>,
+                           <span class="hljs-string">&quot;is_active&quot;</span>: <span class="hljs-literal">false</span>, <span class="hljs-string">&quot;label&quot;</span>: <span class="hljs-string">&quot;Contributors&quot;</span>}]}
+context = newContext(partials = {<span class="hljs-string">&quot;list_item&quot;</span>: listItem, <span class="hljs-string">&quot;toc&quot;</span>: toc}.toTable,
+                     values = data.toValues)
+<span class="hljs-keyword">echo</span> <span class="hljs-string">&quot;{{&gt;toc}}&quot;</span>.render(context)</code></pre>
+<pre><samp>&lt;ol class=&quot;chapter&quot;&gt;
+    &lt;li class=&quot;chapter-item expanded &quot;&gt;
+      &lt;a href=&quot;./introduction.html&quot; tabindex=&quot;0&quot; class=&quot;active&quot;&gt;
+        &lt;strong aria-hidden=&quot;true&quot;&gt;1.&lt;/strong&gt; Introduction
+      &lt;/a&gt;
+    &lt;/li&gt;
+    &lt;li class=&quot;chapter-item expanded &quot;&gt;
+      &lt;a href=&quot;./basics/index.html&quot; tabindex=&quot;0&quot;&gt;
+        &lt;strong aria-hidden=&quot;true&quot;&gt;2.&lt;/strong&gt; Basics
+      &lt;/a&gt;
+    &lt;/li&gt;
+  &lt;li&gt;
+    &lt;ol class=&quot;section&quot;&gt;
+        &lt;li class=&quot;chapter-item expanded &quot;&gt;
+          &lt;a href=&quot;./basics/plotting.html&quot; tabindex=&quot;0&quot; class=&quot;active&quot;&gt;
+            &lt;strong aria-hidden=&quot;true&quot;&gt;2.1&lt;/strong&gt; Plotting
+          &lt;/a&gt;
+        &lt;/li&gt;
+        &lt;li class=&quot;chapter-item expanded &quot;&gt;
+          &lt;a href=&quot;./basics/data_manipulation.html&quot; tabindex=&quot;0&quot;&gt;
+            &lt;strong aria-hidden=&quot;true&quot;&gt;2.2&lt;/strong&gt; Data Manipulation
+          &lt;/a&gt;
+        &lt;/li&gt;
+        &lt;li class=&quot;chapter-item expanded &quot;&gt;
+          &lt;a href=&quot;./basics/models.html&quot; tabindex=&quot;0&quot;&gt;
+            &lt;strong aria-hidden=&quot;true&quot;&gt;2.3&lt;/strong&gt; Models
+          &lt;/a&gt;
+        &lt;/li&gt;
+    &lt;/ol&gt;
+  &lt;/li&gt;
+    &lt;li class=&quot;chapter-item expanded &quot;&gt;
+      &lt;a href=&quot;./misc/but/very/far/contributors.html&quot; tabindex=&quot;0&quot;&gt;
+        Contributors
+      &lt;/a&gt;
+    &lt;/li&gt;
+&lt;/ol&gt;
+
+</samp></pre>
+<p>It works 🎉!  I have to be very careful. At first I did not put <code>is_section: false</code>
+in the single items, and the rendering went into a loop.</p>
+<p>How does this help in generating a toc for nimiBook?
+Well, the idea is that from a user-defined file, every page is
+able to create the <code>data</code> json above and put the <code>is_active</code> in the correct place.
+The two partials <code>toc</code> and <code>list_item</code> are then fixed mustache templates.</p>
+<p>The user-defined file could be a <code>SUMMARY.md</code> like
+<a href="https://rust-lang.github.io/mdBook/format/summary.html">the one found in mdbook</a>.</p>
+
+</main>
+<footer>
+<hr>
+<div class="nb-box">
+  <span><span class="nb-small">made with <a href="https://pietroppeter.github.io/nimib/">nimib 🐳</a></span></span>
+  <span></span>
+  <span><button class="nb-small" id="show" onclick="toggleSourceDisplay()">Show Source</button></span>
+</div>
+</footer>
+<section id="source">
+<pre><code class="nim hljs"><span class="hljs-keyword">import</span> nimib, strformat
+nbInit
+nbText: <span class="hljs-string">&quot;&quot;&quot; # Creating a TOC with mustache
+
+I am working on porting [mdbook](https://rust-lang.github.io/mdBook/)
+to nim. It is called [nimiBook](https://github.com/pietroppeter/nimiBook).
+This is motivated by the work being done in
+[sciNim/getting-started](https://github.com/SciNim/getting-started).
+
+An issue is how to generate the TOC.
+Below I show a way to do it using mustache.
+&quot;&quot;&quot;</span>
+nbCode:
+  <span class="hljs-keyword">import</span> mustache, json, tables
+  <span class="hljs-keyword">var</span>
+    context: <span class="hljs-type">Context</span>
+    text: <span class="hljs-built_in">string</span>
+    partials: <span class="hljs-type">Table</span>[<span class="hljs-built_in">string</span>, <span class="hljs-built_in">string</span>]
+    data: <span class="hljs-type">JsonNode</span>
+nbText: <span class="hljs-string">&quot;&quot;&quot;An example result:
+
+```html
+&lt;ol class=&quot;chapter&quot;&gt;
+  &lt;li class=&quot;chapter-item expanded &quot;&gt;
+    &lt;a href=&quot;./index.html&quot; tabindex=&quot;0&quot; class=&quot;active&quot;&gt;
+      &lt;strong aria-hidden=&quot;true&quot;&gt;1.&lt;/strong&gt; Introduction
+    &lt;/a&gt;
+  &lt;/li&gt;
+  &lt;li class=&quot;chapter-item expanded &quot;&gt;
+    &lt;a href=&quot;./basics/index.html&quot; tabindex=&quot;0&quot;&gt;
+      &lt;strong aria-hidden=&quot;true&quot;&gt;2.&lt;/strong&gt; Basics
+    &lt;/a&gt;
+  &lt;/li&gt;
+  &lt;li&gt;
+    &lt;ol class=&quot;section&quot;&gt;
+      &lt;li class=&quot;chapter-item expanded &quot;&gt;
+        &lt;a href=&quot;./basics/plotting.html&quot; tabindex=&quot;0&quot;&gt;
+          &lt;strong aria-hidden=&quot;true&quot;&gt;2.1.&lt;/strong&gt; Plotting
+        &lt;/a&gt;
+      &lt;/li&gt;
+      &lt;li class=&quot;chapter-item expanded &quot;&gt;
+        &lt;a href=&quot;./basics/data_manipulation.html&quot; tabindex=&quot;0&quot;&gt;
+          &lt;strong aria-hidden=&quot;true&quot;&gt;2.2.&lt;/strong&gt; Data Manipulation
+        &lt;/a&gt;
+      &lt;/li&gt;
+      &lt;li class=&quot;chapter-item expanded &quot;&gt;
+        &lt;a href=&quot;./basics/models.html&quot; tabindex=&quot;0&quot;&gt;
+          &lt;strong aria-hidden=&quot;true&quot;&gt;2.3.&lt;/strong&gt; Models
+        &lt;/a&gt;
+      &lt;/li&gt;
+    &lt;/ol&gt;
+  &lt;li class=&quot;chapter-item expanded &quot;&gt;
+    &lt;a href=&quot;./misc/but/very/far/contributors.html&quot; tabindex=&quot;0&quot;&gt;Contributors&lt;/a&gt;
+  &lt;/li&gt;
+&lt;/ol&gt;
+```
+&quot;&quot;&quot;</span>
+nbText: <span class="hljs-string">&quot;&quot;&quot;The basic element is the list item which is this template:&quot;&quot;&quot;</span>
+nbCode:
+  <span class="hljs-keyword">var</span> listItem = <span class="hljs-string">&quot;&quot;&quot;
+&lt;li class=&quot;chapter-item expanded &quot;&gt;
+  &lt;a href=&quot;{{path_to_root}}{{path_to_page}}&quot; tabindex=&quot;0&quot;{{#is_active}} class=&quot;active&quot;{{/is_active}}&gt;
+    {{#id}}&lt;strong aria-hidden=&quot;true&quot;&gt;{{id}}&lt;/strong&gt; {{/id}}{{label}}
+  &lt;/a&gt;
+&lt;/li&gt;
+&quot;&quot;&quot;</span>
+nbText: <span class="hljs-string">fmt&quot;&quot;&quot;```html
+{listItem}
+```&quot;&quot;&quot;</span>
+nbText: <span class="hljs-string">&quot;And given some data we can render `listItem` template:&quot;</span>
+nbCode:
+  <span class="hljs-keyword">var</span> dataItem = %* {
+    <span class="hljs-string">&quot;path_to_root&quot;</span>: <span class="hljs-string">&quot;basics/&quot;</span>,
+    <span class="hljs-string">&quot;path_to_page&quot;</span>: <span class="hljs-string">&quot;plotting.html&quot;</span>,
+    <span class="hljs-string">&quot;is_active&quot;</span>: <span class="hljs-literal">false</span>,
+    <span class="hljs-string">&quot;id&quot;</span>: <span class="hljs-string">&quot;2.1&quot;</span>,
+    <span class="hljs-string">&quot;label&quot;</span>: <span class="hljs-string">&quot;Plotting&quot;</span>
+  } 
+  context = newContext(values=dataItem.toValues)
+  <span class="hljs-keyword">echo</span> listItem.render(context)
+nbCode:
+  context[<span class="hljs-string">&quot;is_active&quot;</span>] = <span class="hljs-literal">true</span>
+  <span class="hljs-keyword">echo</span> listItem.render(context)
+nbCode:
+  context[<span class="hljs-string">&quot;id&quot;</span>] = <span class="hljs-literal">false</span>
+  <span class="hljs-keyword">echo</span> listItem.render(context)
+nbText: <span class="hljs-string">&quot;&quot;&quot;But a list item can also contain a section:&quot;&quot;&quot;</span>
+nbCode:
+  <span class="hljs-keyword">let</span> section = <span class="hljs-string">&quot;&quot;&quot;
+&lt;ol class=&quot;section&quot;&gt;
+  {{#items}}
+    {{&gt; list_item }}
+  {{/items}}
+&lt;/ol&gt;
+&quot;&quot;&quot;</span>
+nbText: <span class="hljs-string">fmt&quot;&quot;&quot;```html
+{section}
+```&quot;&quot;&quot;</span>
+nbText: <span class="hljs-string">&quot;Let's test it with some data:&quot;</span>
+nbCode:
+  <span class="hljs-keyword">var</span> dataSection = %* {
+    <span class="hljs-string">&quot;is_section&quot;</span>: <span class="hljs-literal">true</span>,
+    <span class="hljs-string">&quot;items&quot;</span>: [
+      {
+        <span class="hljs-string">&quot;path_to_root&quot;</span>: <span class="hljs-string">&quot;basics/&quot;</span>,
+        <span class="hljs-string">&quot;path_to_page&quot;</span>: <span class="hljs-string">&quot;plotting.html&quot;</span>,
+        <span class="hljs-string">&quot;is_active&quot;</span>: <span class="hljs-literal">true</span>,
+        <span class="hljs-string">&quot;id&quot;</span>: <span class="hljs-string">&quot;2.1&quot;</span>,
+        <span class="hljs-string">&quot;label&quot;</span>: <span class="hljs-string">&quot;Plotting&quot;</span>
+      },
+      {
+        <span class="hljs-string">&quot;path_to_root&quot;</span>: <span class="hljs-string">&quot;basics/&quot;</span>,
+        <span class="hljs-string">&quot;path_to_page&quot;</span>: <span class="hljs-string">&quot;data_manipulation.html&quot;</span>,
+        <span class="hljs-string">&quot;is_active&quot;</span>: <span class="hljs-literal">false</span>,
+        <span class="hljs-string">&quot;id&quot;</span>: <span class="hljs-string">&quot;2.2&quot;</span>,
+        <span class="hljs-string">&quot;label&quot;</span>: <span class="hljs-string">&quot;Data Manipulation&quot;</span>
+      },
+      {
+        <span class="hljs-string">&quot;path_to_root&quot;</span>: <span class="hljs-string">&quot;basics/&quot;</span>,
+        <span class="hljs-string">&quot;path_to_page&quot;</span>: <span class="hljs-string">&quot;models.html&quot;</span>,
+        <span class="hljs-string">&quot;is_active&quot;</span>: <span class="hljs-literal">false</span>,
+        <span class="hljs-string">&quot;id&quot;</span>: <span class="hljs-string">&quot;2.3&quot;</span>,
+        <span class="hljs-string">&quot;label&quot;</span>: <span class="hljs-string">&quot;Models&quot;</span>
+      }
+    ]
+  }
+  context = newContext(partials={<span class="hljs-string">&quot;list_item&quot;</span>: listItem}.toTable, values=dataSection.toValues)
+  <span class="hljs-keyword">echo</span> section.render(context)
+nbText: <span class="hljs-string">&quot;And the idea is that a `list_item` is either a single item or a section:&quot;</span>
+nbCode:
+  listItem = <span class="hljs-string">&quot;&quot;&quot;
+{{#is_section}}
+&lt;li&gt;
+  &lt;ol class=&quot;section&quot;&gt;
+  {{#items}}
+    {{&gt; list_item }}
+  {{/items}}
+  &lt;/ol&gt;
+&lt;/li&gt;
+{{/is_section}}
+{{#label}}
+  &lt;li class=&quot;chapter-item expanded &quot;&gt;
+    &lt;a href=&quot;{{path_to_root}}{{path_to_page}}&quot; tabindex=&quot;0&quot;{{#is_active}} class=&quot;active&quot;{{/is_active}}&gt;
+      {{#id}}&lt;strong aria-hidden=&quot;true&quot;&gt;{{id}}&lt;/strong&gt; {{/id}}{{label}}
+    &lt;/a&gt;
+  &lt;/li&gt;
+{{/label}}
+&quot;&quot;&quot;</span>
+nbText: <span class="hljs-string">&quot;&quot;&quot;Note that the partial is recursive!
+
+We only need the final toc template:
+&quot;&quot;&quot;</span>
+nbCode:
+  <span class="hljs-keyword">let</span> toc = <span class="hljs-string">&quot;&quot;&quot;
+&lt;ol class=&quot;chapter&quot;&gt;
+{{#chapters}}
+  {{&gt; list_item}}
+{{/chapters}}
+&lt;/ol&gt;
+&quot;&quot;&quot;</span>
+nbCode:
+  data = %* {<span class="hljs-string">&quot;chapters&quot;</span>: [
+      {
+        <span class="hljs-string">&quot;is_section&quot;</span>: <span class="hljs-literal">false</span>,
+        <span class="hljs-string">&quot;path_to_root&quot;</span>: <span class="hljs-string">&quot;./&quot;</span>,
+        <span class="hljs-string">&quot;path_to_page&quot;</span>: <span class="hljs-string">&quot;introduction.html&quot;</span>,
+        <span class="hljs-string">&quot;is_active&quot;</span>: <span class="hljs-literal">true</span>,
+        <span class="hljs-string">&quot;id&quot;</span>: <span class="hljs-string">&quot;1.&quot;</span>,
+        <span class="hljs-string">&quot;label&quot;</span>: <span class="hljs-string">&quot;Introduction&quot;</span>
+      },
+      {
+        <span class="hljs-string">&quot;is_section&quot;</span>: <span class="hljs-literal">false</span>,
+        <span class="hljs-string">&quot;path_to_root&quot;</span>: <span class="hljs-string">&quot;./&quot;</span>,
+        <span class="hljs-string">&quot;path_to_page&quot;</span>: <span class="hljs-string">&quot;basics/index.html&quot;</span>,
+        <span class="hljs-string">&quot;is_active&quot;</span>: <span class="hljs-literal">false</span>,
+        <span class="hljs-string">&quot;id&quot;</span>: <span class="hljs-string">&quot;2.&quot;</span>,
+        <span class="hljs-string">&quot;label&quot;</span>: <span class="hljs-string">&quot;Basics&quot;</span>
+      },
+      {
+        <span class="hljs-string">&quot;is_section&quot;</span>: <span class="hljs-literal">true</span>,
+        <span class="hljs-string">&quot;items&quot;</span>: [
+          {
+            <span class="hljs-string">&quot;is_section&quot;</span>: <span class="hljs-literal">false</span>,
+            <span class="hljs-string">&quot;path_to_root&quot;</span>: <span class="hljs-string">&quot;./&quot;</span>,
+            <span class="hljs-string">&quot;path_to_page&quot;</span>: <span class="hljs-string">&quot;basics/plotting.html&quot;</span>,
+            <span class="hljs-string">&quot;is_active&quot;</span>: <span class="hljs-literal">true</span>,
+            <span class="hljs-string">&quot;id&quot;</span>: <span class="hljs-string">&quot;2.1&quot;</span>,
+            <span class="hljs-string">&quot;label&quot;</span>: <span class="hljs-string">&quot;Plotting&quot;</span>
+          },
+          {
+            <span class="hljs-string">&quot;is_section&quot;</span>: <span class="hljs-literal">false</span>,
+            <span class="hljs-string">&quot;path_to_root&quot;</span>: <span class="hljs-string">&quot;./&quot;</span>,
+            <span class="hljs-string">&quot;path_to_page&quot;</span>: <span class="hljs-string">&quot;basics/data_manipulation.html&quot;</span>,
+            <span class="hljs-string">&quot;is_active&quot;</span>: <span class="hljs-literal">false</span>,
+            <span class="hljs-string">&quot;id&quot;</span>: <span class="hljs-string">&quot;2.2&quot;</span>,
+            <span class="hljs-string">&quot;label&quot;</span>: <span class="hljs-string">&quot;Data Manipulation&quot;</span>
+          },
+          {
+            <span class="hljs-string">&quot;is_section&quot;</span>: <span class="hljs-literal">false</span>,
+            <span class="hljs-string">&quot;path_to_root&quot;</span>: <span class="hljs-string">&quot;./&quot;</span>,
+            <span class="hljs-string">&quot;path_to_page&quot;</span>: <span class="hljs-string">&quot;basics/models.html&quot;</span>,
+            <span class="hljs-string">&quot;is_active&quot;</span>: <span class="hljs-literal">false</span>,
+            <span class="hljs-string">&quot;id&quot;</span>: <span class="hljs-string">&quot;2.3&quot;</span>,
+            <span class="hljs-string">&quot;label&quot;</span>: <span class="hljs-string">&quot;Models&quot;</span>
+          }
+        ]
+      },
+      {
+        <span class="hljs-string">&quot;is_section&quot;</span>: <span class="hljs-literal">false</span>,
+        <span class="hljs-string">&quot;path_to_root&quot;</span>: <span class="hljs-string">&quot;./&quot;</span>,
+        <span class="hljs-string">&quot;path_to_page&quot;</span>: <span class="hljs-string">&quot;misc/but/very/far/contributors.html&quot;</span>,
+        <span class="hljs-string">&quot;is_active&quot;</span>: <span class="hljs-literal">false</span>,
+        <span class="hljs-string">&quot;label&quot;</span>: <span class="hljs-string">&quot;Contributors&quot;</span>
+      }
+  ]}
+  context = newContext(partials={<span class="hljs-string">&quot;list_item&quot;</span>: listItem, <span class="hljs-string">&quot;toc&quot;</span>: toc}.toTable, values=data.toValues)
+  <span class="hljs-keyword">echo</span> <span class="hljs-string">&quot;{{&gt;toc}}&quot;</span>.render(context)
+nbText: <span class="hljs-string">&quot;&quot;&quot;It works 🎉!  I have to be very careful. At first I did not put `is_section: false`
+in the single items, and the rendering went into a loop.
+
+How does this help in generating a toc for nimiBook?
+Well, the idea is that from a user-defined file, every page is
+able to create the `data` json above and put the `is_active` in the correct place.
+The two partials `toc` and `list_item` are then fixed mustache templates.
+
+The user-defined file could be a `SUMMARY.md` like
+[the one found in mdbook](https://rust-lang.github.io/mdBook/format/summary.html).
+&quot;&quot;&quot;</span>
+nbShow</code></pre>
+</section><script>
+function toggleSourceDisplay() {
+  var btn = document.getElementById("show")
+  var source = document.getElementById("source");
+  if (btn.innerHTML=="Show Source") {
+    btn.innerHTML = "Hide Source";
+    source.style.display = "block";
+  } else {
+    btn.innerHTML = "Show Source";
+    source.style.display = "none";
+  }
+}
+</script></body>
+</html>
