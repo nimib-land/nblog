@@ -56,7 +56,7 @@ running <a href="https://github.com/mustache/spec/releases/tag/v1.2.1">mustache 
 
 <span class="hljs-keyword">const</span>
   specfiles = [<span class="hljs-string">&quot;interpolation.json&quot;</span>, <span class="hljs-string">&quot;sections.json&quot;</span>, <span class="hljs-string">&quot;inverted.json&quot;</span>,
-    <span class="hljs-string">&quot;comments.json&quot;</span>, <span class="hljs-string">&quot;delimiters.json&quot;</span>, <span class="hljs-string">&quot;partials.json&quot;</span>]
+    <span class="hljs-string">&quot;comments.json&quot;</span>, <span class="hljs-string">&quot;delimiters.json&quot;</span>, <span class="hljs-string">&quot;partials.json&quot;</span>, <span class="hljs-string">&quot;~inheritance.json&quot;</span>]
 <span class="hljs-keyword">var</span>
   specs = newJObject()
   tmpl: <span class="hljs-built_in">string</span>
@@ -66,7 +66,7 @@ running <a href="https://github.com/mustache/spec/releases/tag/v1.2.1">mustache 
   partials: <span class="hljs-type">Table</span>[<span class="hljs-built_in">string</span>, <span class="hljs-built_in">string</span>]
 <span class="hljs-keyword">for</span> specfile <span class="hljs-keyword">in</span> specfiles:
   <span class="hljs-keyword">echo</span> <span class="hljs-string">&quot;📃 &quot;</span> &amp; specfile
-  specs[specfile] = parseFile(specfile)
+  specs[specfile] = parseFile(<span class="hljs-string">&quot;mustache-specs/&quot;</span> &amp; specfile)
   tests = specs[specfile][<span class="hljs-string">&quot;tests&quot;</span>]
   <span class="hljs-keyword">assert</span> tests.kind == <span class="hljs-type">JArray</span>
   <span class="hljs-keyword">for</span> test <span class="hljs-keyword">in</span> tests.mitems:
@@ -261,6 +261,28 @@ Output:
   ✅ Standalone Without Newline
   ✅ Standalone Indentation
   ✅ Padding Whitespace
+📃 ~inheritance.json
+  ✅ Default
+  ✅ Variable
+  ✅ Triple Mustache
+  ✅ Sections
+  ✅ Negative Sections
+  ✅ Mustache Injection
+  ✅ Inherit
+  ✅ Overridden content
+  ✅ Data does not override block
+  ✅ Data does not override block default
+  ✅ Overridden parent
+  ✅ Two overridden parents
+  ✅ Override parent with newlines
+  ✅ Inherit indentation
+  ✅ Only one override
+  ✅ Parent template
+  ✅ Recursion
+  ✅ Multi-level inheritance
+  ✅ Multi-level inheritance, no sub child
+  ✅ Text inside parent
+  ✅ Text inside parent
 </samp></pre>
 <h2>interpolation.json</h2>
 <p>Interpolation tags are used to integrate dynamic content into the template.</p>
@@ -2577,6 +2599,423 @@ indentation, and prepended to each line of the partial before rendering.</p>
 <p>Output:</p>
 <pre><code>|[]|
 </code></pre>
+<h2>~inheritance.json</h2>
+<p>Like partials, Parent tags are used to expand an external template into the
+current template. Unlike partials, Parent tags may contain optional
+arguments delimited by Block tags. For this reason, Parent tags may also be
+referred to as Parametric Partials.</p>
+<p>The Parent tags' content MUST be a non-whitespace character sequence NOT
+containing the current closing delimiter; each Parent tag MUST be followed by
+an End Section tag with the same content within the matching Parent tag.</p>
+<p>This tag's content names the Parent template to inject. Set Delimiter tags
+Preceding a Parent tag MUST NOT affect the parsing of the injected external
+template. The Parent MUST be rendered against the context stack local to the
+tag. If the named Parent cannot be found, the empty string SHOULD be used
+instead, as in interpolations.</p>
+<p>Parent tags SHOULD be treated as standalone when appropriate. If this tag is
+used standalone, any whitespace preceding the tag should be treated as
+indentation, and prepended to each line of the Parent before rendering.</p>
+<p>The Block tags' content MUST be a non-whitespace character sequence NOT
+containing the current closing delimiter. Each Block tag MUST be followed by
+an End Section tag with the same content within the matching Block tag. This
+tag's content determines the parameter or argument name.</p>
+<p>Block tags may appear both inside and outside of Parent tags. In both cases,
+they specify a position within the template that can be overridden; it is a
+parameter of the containing template. The template text between the Block tag
+and its matching End Section tag defines the default content to render when
+the parameter is not overridden from outside.</p>
+<p>In addition, when used inside of a Parent tag, the template text between a
+Block tag and its matching End Section tag defines content that replaces the
+default defined in the Parent template. This content is the argument passed
+to the Parent template.</p>
+<p>The practice of injecting an external template using a Parent tag is referred
+to as inheritance. If the Parent tag includes a Block tag that overrides a
+parameter of the Parent template, this may also be referred to as
+substitution.</p>
+<p>Parent templates are taken from the same namespace as regular Partial
+templates and in fact, injecting a regular Partial is exactly equivalent to
+injecting a Parent without making any substitutions. Parameter and arguments
+names live in a namespace that is distinct from both Partials and the context.</p>
+<h3>✅ Default</h3>
+<p>Default content should be rendered if the block isn't overridden</p>
+<p>Template:</p>
+<pre><code>{{$title}}Default title{{/title}}
+
+</code></pre>
+<p>Data:</p>
+<pre><code>{}
+</code></pre>
+<p>Expected:</p>
+<pre><code>Default title
+
+</code></pre>
+<p>Output:</p>
+<pre><code>Default title
+
+</code></pre>
+<h3>✅ Variable</h3>
+<p>Default content renders variables</p>
+<p>Template:</p>
+<pre><code>{{$foo}}default {{bar}} content{{/foo}}
+
+</code></pre>
+<p>Data:</p>
+<pre><code>{&quot;bar&quot;:&quot;baz&quot;}
+</code></pre>
+<p>Expected:</p>
+<pre><code>default baz content
+
+</code></pre>
+<p>Output:</p>
+<pre><code>default baz content
+
+</code></pre>
+<h3>✅ Triple Mustache</h3>
+<p>Default content renders triple mustache variables</p>
+<p>Template:</p>
+<pre><code>{{$foo}}default {{{bar}}} content{{/foo}}
+
+</code></pre>
+<p>Data:</p>
+<pre><code>{&quot;bar&quot;:&quot;&lt;baz&gt;&quot;}
+</code></pre>
+<p>Expected:</p>
+<pre><code>default &lt;baz&gt; content
+
+</code></pre>
+<p>Output:</p>
+<pre><code>default &lt;baz&gt; content
+
+</code></pre>
+<h3>✅ Sections</h3>
+<p>Default content renders sections</p>
+<p>Template:</p>
+<pre><code>{{$foo}}default {{#bar}}{{baz}}{{/bar}} content{{/foo}}
+
+</code></pre>
+<p>Data:</p>
+<pre><code>{&quot;bar&quot;:{&quot;baz&quot;:&quot;qux&quot;}}
+</code></pre>
+<p>Expected:</p>
+<pre><code>default qux content
+
+</code></pre>
+<p>Output:</p>
+<pre><code>default qux content
+
+</code></pre>
+<h3>✅ Negative Sections</h3>
+<p>Default content renders negative sections</p>
+<p>Template:</p>
+<pre><code>{{$foo}}default {{^bar}}{{baz}}{{/bar}} content{{/foo}}
+
+</code></pre>
+<p>Data:</p>
+<pre><code>{&quot;baz&quot;:&quot;three&quot;}
+</code></pre>
+<p>Expected:</p>
+<pre><code>default three content
+
+</code></pre>
+<p>Output:</p>
+<pre><code>default three content
+
+</code></pre>
+<h3>✅ Mustache Injection</h3>
+<p>Mustache injection in default content</p>
+<p>Template:</p>
+<pre><code>{{$foo}}default {{#bar}}{{baz}}{{/bar}} content{{/foo}}
+
+</code></pre>
+<p>Data:</p>
+<pre><code>{&quot;bar&quot;:{&quot;baz&quot;:&quot;{{qux}}&quot;}}
+</code></pre>
+<p>Expected:</p>
+<pre><code>default {{qux}} content
+
+</code></pre>
+<p>Output:</p>
+<pre><code>default {{qux}} content
+
+</code></pre>
+<h3>✅ Inherit</h3>
+<p>Default content rendered inside inherited templates</p>
+<p>Template:</p>
+<pre><code>{{&lt;include}}{{/include}}
+
+</code></pre>
+<p>Data:</p>
+<pre><code>{}
+</code></pre>
+<p>Partials:</p>
+<pre><code>include: &quot;{{$foo}}default content{{/foo}}&quot;
+</code></pre>
+<p>Expected:</p>
+<pre><code>default content
+</code></pre>
+<p>Output:</p>
+<pre><code>default content
+</code></pre>
+<h3>✅ Overridden content</h3>
+<p>Overridden content</p>
+<p>Template:</p>
+<pre><code>{{&lt;super}}{{$title}}sub template title{{/title}}{{/super}}
+</code></pre>
+<p>Data:</p>
+<pre><code>{}
+</code></pre>
+<p>Partials:</p>
+<pre><code>super: &quot;...{{$title}}Default title{{/title}}...&quot;
+</code></pre>
+<p>Expected:</p>
+<pre><code>...sub template title...
+</code></pre>
+<p>Output:</p>
+<pre><code>...sub template title...
+</code></pre>
+<h3>✅ Data does not override block</h3>
+<p>Context does not override argument passed into parent</p>
+<p>Template:</p>
+<pre><code>{{&lt;include}}{{$var}}var in template{{/var}}{{/include}}
+</code></pre>
+<p>Data:</p>
+<pre><code>{&quot;var&quot;:&quot;var in data&quot;}
+</code></pre>
+<p>Partials:</p>
+<pre><code>include: &quot;{{$var}}var in include{{/var}}&quot;
+</code></pre>
+<p>Expected:</p>
+<pre><code>var in template
+</code></pre>
+<p>Output:</p>
+<pre><code>var in template
+</code></pre>
+<h3>✅ Data does not override block default</h3>
+<p>Context does not override default content of block</p>
+<p>Template:</p>
+<pre><code>{{&lt;include}}{{/include}}
+</code></pre>
+<p>Data:</p>
+<pre><code>{&quot;var&quot;:&quot;var in data&quot;}
+</code></pre>
+<p>Partials:</p>
+<pre><code>include: &quot;{{$var}}var in include{{/var}}&quot;
+</code></pre>
+<p>Expected:</p>
+<pre><code>var in include
+</code></pre>
+<p>Output:</p>
+<pre><code>var in include
+</code></pre>
+<h3>✅ Overridden parent</h3>
+<p>Overridden parent</p>
+<p>Template:</p>
+<pre><code>test {{&lt;parent}}{{$stuff}}override{{/stuff}}{{/parent}}
+</code></pre>
+<p>Data:</p>
+<pre><code>{}
+</code></pre>
+<p>Partials:</p>
+<pre><code>parent: &quot;{{$stuff}}...{{/stuff}}&quot;
+</code></pre>
+<p>Expected:</p>
+<pre><code>test override
+</code></pre>
+<p>Output:</p>
+<pre><code>test override
+</code></pre>
+<h3>✅ Two overridden parents</h3>
+<p>Two overridden parents with different content</p>
+<p>Template:</p>
+<pre><code>test {{&lt;parent}}{{$stuff}}override1{{/stuff}}{{/parent}} {{&lt;parent}}{{$stuff}}override2{{/stuff}}{{/parent}}
+
+</code></pre>
+<p>Data:</p>
+<pre><code>{}
+</code></pre>
+<p>Partials:</p>
+<pre><code>parent: &quot;|{{$stuff}}...{{/stuff}}{{$default}} default{{/default}}|&quot;
+</code></pre>
+<p>Expected:</p>
+<pre><code>test |override1 default| |override2 default|
+
+</code></pre>
+<p>Output:</p>
+<pre><code>test |override1 default| |override2 default|
+
+</code></pre>
+<h3>✅ Override parent with newlines</h3>
+<p>Override parent with newlines</p>
+<p>Template:</p>
+<pre><code>{{&lt;parent}}{{$ballmer}}
+peaked
+
+:(
+{{/ballmer}}{{/parent}}
+</code></pre>
+<p>Data:</p>
+<pre><code>{}
+</code></pre>
+<p>Partials:</p>
+<pre><code>parent: &quot;{{$ballmer}}peaking{{/ballmer}}&quot;
+</code></pre>
+<p>Expected:</p>
+<pre><code>peaked
+
+:(
+
+</code></pre>
+<p>Output:</p>
+<pre><code>peaked
+
+:(
+
+</code></pre>
+<h3>✅ Inherit indentation</h3>
+<p>Inherit indentation when overriding a parent</p>
+<p>Template:</p>
+<pre><code>{{&lt;parent}}{{$nineties}}hammer time{{/nineties}}{{/parent}}
+</code></pre>
+<p>Data:</p>
+<pre><code>{}
+</code></pre>
+<p>Partials:</p>
+<pre><code>parent: &quot;stop:\n  {{$nineties}}collaborate and listen{{/nineties}}\n&quot;
+</code></pre>
+<p>Expected:</p>
+<pre><code>stop:
+  hammer time
+
+</code></pre>
+<p>Output:</p>
+<pre><code>stop:
+  hammer time
+
+</code></pre>
+<h3>✅ Only one override</h3>
+<p>Override one parameter but not the other</p>
+<p>Template:</p>
+<pre><code>{{&lt;parent}}{{$stuff2}}override two{{/stuff2}}{{/parent}}
+</code></pre>
+<p>Data:</p>
+<pre><code>{}
+</code></pre>
+<p>Partials:</p>
+<pre><code>parent: &quot;{{$stuff}}new default one{{/stuff}}, {{$stuff2}}new default two{{/stuff2}}&quot;
+</code></pre>
+<p>Expected:</p>
+<pre><code>new default one, override two
+</code></pre>
+<p>Output:</p>
+<pre><code>new default one, override two
+</code></pre>
+<h3>✅ Parent template</h3>
+<p>Parent templates behave identically to partials when called with no parameters</p>
+<p>Template:</p>
+<pre><code>{{&gt;parent}}|{{&lt;parent}}{{/parent}}
+</code></pre>
+<p>Data:</p>
+<pre><code>{}
+</code></pre>
+<p>Partials:</p>
+<pre><code>parent: &quot;{{$foo}}default content{{/foo}}&quot;
+</code></pre>
+<p>Expected:</p>
+<pre><code>default content|default content
+</code></pre>
+<p>Output:</p>
+<pre><code>default content|default content
+</code></pre>
+<h3>✅ Recursion</h3>
+<p>Recursion in inherited templates</p>
+<p>Template:</p>
+<pre><code>{{&lt;parent}}{{$foo}}override{{/foo}}{{/parent}}
+</code></pre>
+<p>Data:</p>
+<pre><code>{}
+</code></pre>
+<p>Partials:</p>
+<pre><code>parent: &quot;{{$foo}}default content{{/foo}} {{$bar}}{{&lt;parent2}}{{/parent2}}{{/bar}}&quot;
+parent2: &quot;{{$foo}}parent2 default content{{/foo}} {{&lt;parent}}{{$bar}}don't recurse{{/bar}}{{/parent}}&quot;
+</code></pre>
+<p>Expected:</p>
+<pre><code>override override override don't recurse
+</code></pre>
+<p>Output:</p>
+<pre><code>override override override don't recurse
+</code></pre>
+<h3>✅ Multi-level inheritance</h3>
+<p>Top-level substitutions take precedence in multi-level inheritance</p>
+<p>Template:</p>
+<pre><code>{{&lt;parent}}{{$a}}c{{/a}}{{/parent}}
+</code></pre>
+<p>Data:</p>
+<pre><code>{}
+</code></pre>
+<p>Partials:</p>
+<pre><code>parent: &quot;{{&lt;older}}{{$a}}p{{/a}}{{/older}}&quot;
+older: &quot;{{&lt;grandParent}}{{$a}}o{{/a}}{{/grandParent}}&quot;
+grandParent: &quot;{{$a}}g{{/a}}&quot;
+</code></pre>
+<p>Expected:</p>
+<pre><code>c
+</code></pre>
+<p>Output:</p>
+<pre><code>c
+</code></pre>
+<h3>✅ Multi-level inheritance, no sub child</h3>
+<p>Top-level substitutions take precedence in multi-level inheritance</p>
+<p>Template:</p>
+<pre><code>{{&lt;parent}}{{/parent}}
+</code></pre>
+<p>Data:</p>
+<pre><code>{}
+</code></pre>
+<p>Partials:</p>
+<pre><code>parent: &quot;{{&lt;older}}{{$a}}p{{/a}}{{/older}}&quot;
+older: &quot;{{&lt;grandParent}}{{$a}}o{{/a}}{{/grandParent}}&quot;
+grandParent: &quot;{{$a}}g{{/a}}&quot;
+</code></pre>
+<p>Expected:</p>
+<pre><code>p
+</code></pre>
+<p>Output:</p>
+<pre><code>p
+</code></pre>
+<h3>✅ Text inside parent</h3>
+<p>Ignores text inside parent templates, but does parse $ tags</p>
+<p>Template:</p>
+<pre><code>{{&lt;parent}} asdfasd {{$foo}}hmm{{/foo}} asdfasdfasdf {{/parent}}
+</code></pre>
+<p>Data:</p>
+<pre><code>{}
+</code></pre>
+<p>Partials:</p>
+<pre><code>parent: &quot;{{$foo}}default content{{/foo}}&quot;
+</code></pre>
+<p>Expected:</p>
+<pre><code>hmm
+</code></pre>
+<p>Output:</p>
+<pre><code>hmm
+</code></pre>
+<h3>✅ Text inside parent</h3>
+<p>Allows text inside a parent tag, but ignores it</p>
+<p>Template:</p>
+<pre><code>{{&lt;parent}} asdfasd asdfasdfasdf {{/parent}}
+</code></pre>
+<p>Data:</p>
+<pre><code>{}
+</code></pre>
+<p>Partials:</p>
+<pre><code>parent: &quot;{{$foo}}default content{{/foo}}&quot;
+</code></pre>
+<p>Expected:</p>
+<pre><code>default content
+</code></pre>
+<p>Output:</p>
+<pre><code>default content
+</code></pre>
 
 </main>
 <footer>
@@ -2604,8 +3043,9 @@ nbCode:
   <span class="hljs-keyword">import</span> json
   <span class="hljs-keyword">import</span> strformat
   <span class="hljs-keyword">import</span> tables
-  <span class="hljs-keyword">const</span> specfiles = [<span class="hljs-string">&quot;interpolation.json&quot;</span>, <span class="hljs-string">&quot;sections.json&quot;</span>, <span class="hljs-string">&quot;inverted.json&quot;</span>, <span class="hljs-string">&quot;comments.json&quot;</span>, <span class="hljs-string">&quot;delimiters.json&quot;</span>, <span class="hljs-string">&quot;partials.json&quot;</span>]
-
+  
+  <span class="hljs-keyword">const</span> specfiles = [<span class="hljs-string">&quot;interpolation.json&quot;</span>, <span class="hljs-string">&quot;sections.json&quot;</span>, <span class="hljs-string">&quot;inverted.json&quot;</span>, <span class="hljs-string">&quot;comments.json&quot;</span>, <span class="hljs-string">&quot;delimiters.json&quot;</span>, <span class="hljs-string">&quot;partials.json&quot;</span>, <span class="hljs-string">&quot;~inheritance.json&quot;</span>]
+  
   <span class="hljs-keyword">var</span>
     specs = newJObject()
     tmpl: <span class="hljs-built_in">string</span>
@@ -2616,7 +3056,7 @@ nbCode:
 
   <span class="hljs-keyword">for</span> specfile <span class="hljs-keyword">in</span> specfiles:
     <span class="hljs-keyword">echo</span> <span class="hljs-string">&quot;📃 &quot;</span> &amp; specfile
-    specs[specfile] = parseFile(specfile)
+    specs[specfile] = parseFile(<span class="hljs-string">&quot;mustache-specs/&quot;</span> &amp; specfile)
     tests = specs[specfile][<span class="hljs-string">&quot;tests&quot;</span>]
     <span class="hljs-keyword">assert</span> tests.kind == <span class="hljs-type">JArray</span>
     <span class="hljs-keyword">for</span> test <span class="hljs-keyword">in</span> tests.mitems:

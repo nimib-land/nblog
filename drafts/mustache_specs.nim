@@ -14,8 +14,9 @@ nbCode:
   import json
   import strformat
   import tables
-  const specfiles = ["interpolation.json", "sections.json", "inverted.json", "comments.json", "delimiters.json", "partials.json"]
-
+  
+  const specfiles = ["interpolation.json", "sections.json", "inverted.json", "comments.json", "delimiters.json", "partials.json", "~inheritance.json"]
+  
   var
     specs = newJObject()
     tmpl: string
@@ -26,7 +27,7 @@ nbCode:
 
   for specfile in specfiles:
     echo "📃 " & specfile
-    specs[specfile] = parseFile(specfile)
+    specs[specfile] = parseFile("mustache-specs/" & specfile)
     tests = specs[specfile]["tests"]
     assert tests.kind == JArray
     for test in tests.mitems:
