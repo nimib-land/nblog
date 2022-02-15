@@ -30,7 +30,8 @@ section#source {
   
   <script async defer data-domain="pietroppeter.github.io/nblog" src="https://plausible.io/js/plausible.js"></script>
 </head>
-<script src="https://cdn.jsdelivr.net/npm/mermaid/dist/mermaid.min.js"></script><body>
+<script src="https://cdn.jsdelivr.net/npm/mermaid/dist/mermaid.min.js"></script>
+<link rel="stylesheet" href="https://cdn.bootcss.com/font-awesome/4.7.0/css/font-awesome.css"><body>
 <header>
 <div class="nb-box">
   <span><a href="..">🏡</a></span>
@@ -84,7 +85,8 @@ nbDiagram:
 <p>this is an implementation that depends on a <a href="https://github.com/pietroppeter/nimib/pull/78">yet unmerged PR</a></p>
 <pre><code class="nim hljs"><span class="hljs-keyword">proc</span> useMermaid(doc: <span class="hljs-keyword">var</span> <span class="hljs-type">NbDoc</span>) =
   nb.partials[<span class="hljs-string">&quot;head&quot;</span>] &amp;=
-      <span class="hljs-string">&quot;&quot;&quot;&lt;script src=&quot;https://cdn.jsdelivr.net/npm/mermaid/dist/mermaid.min.js&quot;&gt;&lt;/script&gt;&quot;&quot;&quot;</span>
+      <span class="hljs-string">&quot;&quot;&quot;&lt;script src=&quot;https://cdn.jsdelivr.net/npm/mermaid/dist/mermaid.min.js&quot;&gt;&lt;/script&gt;
+&lt;link rel=&quot;stylesheet&quot; href=&quot;https://cdn.bootcss.com/font-awesome/4.7.0/css/font-awesome.css&quot;&gt;&quot;&quot;&quot;</span>
   nb.partials[<span class="hljs-string">&quot;right&quot;</span>] = <span class="hljs-string">&quot;&quot;&quot;&lt;script&gt;mermaid.initialize({startOnLoad:true});&lt;/script&gt;&quot;&quot;&quot;</span>
   doc.partials[<span class="hljs-string">&quot;nbDiagram&quot;</span>] = <span class="hljs-string">&quot;&quot;&quot;&lt;div class=&quot;mermaid&quot;&gt;
 {{specs}}
@@ -109,7 +111,7 @@ graph LR
 (here <code>head_other</code> template is used by plausible through a mustache template and had to append to head)</li>
 <li>I should add a <code>scripts</code> partial at the end of <code>body</code> in default template
 to allow for adding js scripts inside body</li>
-<li>font awesome support in mermaid <a href="https://github.com/mermaid-js/mermaid/issues/1457">has issues</a></li>
+<li>to use font awesome you need to add them (not mentioned in documentation as reported above, see <a href="https://github.com/mermaid-js/mermaid/issues/830">this issue</a>)</li>
 </ul>
 </main>
 <script>mermaid.initialize({startOnLoad:true});</script><footer>
@@ -184,7 +186,8 @@ nbCodeInBlock:
 nbText: <span class="hljs-string">&quot;this is an implementation that depends on a [yet unmerged PR](https://github.com/pietroppeter/nimib/pull/78)&quot;</span>
 nbCode:
   <span class="hljs-keyword">proc</span> useMermaid(doc: <span class="hljs-keyword">var</span> <span class="hljs-type">NbDoc</span>) =
-    nb.partials[<span class="hljs-string">&quot;head&quot;</span>] &amp;= <span class="hljs-string">&quot;&quot;&quot;&lt;script src=&quot;https://cdn.jsdelivr.net/npm/mermaid/dist/mermaid.min.js&quot;&gt;&lt;/script&gt;&quot;&quot;&quot;</span>
+    nb.partials[<span class="hljs-string">&quot;head&quot;</span>] &amp;= <span class="hljs-string">&quot;&quot;&quot;&lt;script src=&quot;https://cdn.jsdelivr.net/npm/mermaid/dist/mermaid.min.js&quot;&gt;&lt;/script&gt;
+&lt;link rel=&quot;stylesheet&quot; href=&quot;https://cdn.bootcss.com/font-awesome/4.7.0/css/font-awesome.css&quot;&gt;&quot;&quot;&quot;</span>
     nb.partials[<span class="hljs-string">&quot;right&quot;</span>] = <span class="hljs-string">&quot;&quot;&quot;&lt;script&gt;mermaid.initialize({startOnLoad:true});&lt;/script&gt;&quot;&quot;&quot;</span>
     doc.partials[<span class="hljs-string">&quot;nbDiagram&quot;</span>] = <span class="hljs-string">&quot;&quot;&quot;&lt;div class=&quot;mermaid&quot;&gt;
 {{specs}}
@@ -210,7 +213,7 @@ nbText: <span class="hljs-string">&quot;&quot;&quot;## notes
   (here `head_other` template is used by plausible through a mustache template and had to append to head)
 * I should add a `scripts` partial at the end of `body` in default template
   to allow for adding js scripts inside body
-* font awesome support in mermaid [has issues](https://github.com/mermaid-js/mermaid/issues/1457)
+* to use font awesome you need to add them (not mentioned in documentation as reported above, see [this issue](https://github.com/mermaid-js/mermaid/issues/830))
 
 &quot;&quot;&quot;</span>
 nbSave</code></pre>

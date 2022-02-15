@@ -61,7 +61,8 @@ nbCodeInBlock:
 nbText: "this is an implementation that depends on a [yet unmerged PR](https://github.com/pietroppeter/nimib/pull/78)"
 nbCode:
   proc useMermaid(doc: var NbDoc) =
-    nb.partials["head"] &= """<script src="https://cdn.jsdelivr.net/npm/mermaid/dist/mermaid.min.js"></script>"""
+    nb.partials["head"] &= """<script src="https://cdn.jsdelivr.net/npm/mermaid/dist/mermaid.min.js"></script>
+<link rel="stylesheet" href="https://cdn.bootcss.com/font-awesome/4.7.0/css/font-awesome.css">"""
     nb.partials["right"] = """<script>mermaid.initialize({startOnLoad:true});</script>"""
     doc.partials["nbDiagram"] = """<div class="mermaid">
 {{specs}}
@@ -87,7 +88,7 @@ nbText: """## notes
   (here `head_other` template is used by plausible through a mustache template and had to append to head)
 * I should add a `scripts` partial at the end of `body` in default template
   to allow for adding js scripts inside body
-* font awesome support in mermaid [has issues](https://github.com/mermaid-js/mermaid/issues/1457)
+* to use font awesome you need to add them (not mentioned in documentation as reported above, see [this issue](https://github.com/mermaid-js/mermaid/issues/830))
 
 """
 nbSave
