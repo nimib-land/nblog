@@ -6,8 +6,8 @@ nbText: """# Making Diagrams using [mermaid.js] 🧜‍♀️
 
 Github has started yesterday to support [creation of diagrams]
 in Markdown using [mermaid.js] and the [HN crowd] seemed to like it.
-So I asked myself, how long does it take me to support
-diagrams in Nimib using Mermaid?
+So I asked myself, _how long does it take me to support
+diagrams in Nimib using Mermaid_?
 
 According to mermaid's [documentation] it is three easy steps:
 
@@ -79,7 +79,7 @@ nbDiagram: """graph LR
   B-->C[fa:fa-ban forbidden]
   B-->D(fa:fa-spinner);
 """
-nbText: "This took less than 30 minutes from conception to realization"
+nbText: "_This took less than 30 minutes from conception to realization!_"
 nbText: """## notes
 
 * I should add html highlighting to nimib
