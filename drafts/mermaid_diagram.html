@@ -42,8 +42,8 @@ section#source {
 <h1>Making Diagrams using <a href="https://github.com/mermaid-js/mermaid#readme">mermaid.js</a> 🧜‍♀️</h1>
 <p>Github has started yesterday to support <a href="https://github.blog/2022-02-14-include-diagrams-markdown-files-mermaid/">creation of diagrams</a>
 in Markdown using <a href="https://github.com/mermaid-js/mermaid#readme">mermaid.js</a> and the <a href="https://news.ycombinator.com/item?id=30334338">HN crowd</a> seemed to like it.
-So I asked myself, how long does it take me to support
-diagrams in Nimib using Mermaid?</p>
+So I asked myself, <em>how long does it take me to support
+diagrams in Nimib using Mermaid</em>?</p>
 <p>According to mermaid's <a href="https://mermaid-js.github.io/mermaid/#/usage?id=using-mermaid">documentation</a> it is three easy steps:</p>
 <ol>
 <li>Inclusion of the mermaid address in the html page using
@@ -85,7 +85,7 @@ nbDiagram:
 <pre><code class="nim hljs"><span class="hljs-keyword">proc</span> useMermaid(doc: <span class="hljs-keyword">var</span> <span class="hljs-type">NbDoc</span>) =
   nb.partials[<span class="hljs-string">&quot;head&quot;</span>] &amp;=
       <span class="hljs-string">&quot;&quot;&quot;&lt;script src=&quot;https://cdn.jsdelivr.net/npm/mermaid/dist/mermaid.min.js&quot;&gt;&lt;/script&gt;&quot;&quot;&quot;</span>
-  nb.partials[<span class="hljs-string">&quot;footer&quot;</span>] = <span class="hljs-string">&quot;&quot;&quot;&lt;script&gt;mermaid.initialize({startOnLoad:true});&lt;/script&gt;&quot;&quot;&quot;</span>
+  nb.partials[<span class="hljs-string">&quot;right&quot;</span>] = <span class="hljs-string">&quot;&quot;&quot;&lt;script&gt;mermaid.initialize({startOnLoad:true});&lt;/script&gt;&quot;&quot;&quot;</span>
   doc.partials[<span class="hljs-string">&quot;nbDiagram&quot;</span>] = <span class="hljs-string">&quot;&quot;&quot;&lt;div class=&quot;mermaid&quot;&gt;
 {{specs}}
 &lt;/div&gt;&quot;&quot;&quot;</span>
@@ -101,7 +101,7 @@ graph LR
   B--&gt;D(fa:fa-spinner);
 
 </div>
-<p>This took less than 30 minutes from conception to realization</p>
+<p><em>This took less than 30 minutes from conception to realization!</em></p>
 <h2>notes</h2>
 <ul>
 <li>I should add html highlighting to nimib</li>
@@ -109,7 +109,122 @@ graph LR
 (here <code>head_other</code> template is used by plausible through a mustache template and had to append to head)</li>
 <li>I should add a <code>scripts</code> partial at the end of <code>body</code> in default template
 to allow for adding js scripts inside body</li>
+<li>font awesome support in mermaid <a href="https://github.com/mermaid-js/mermaid/issues/1457">has issues</a></li>
 </ul>
 </main>
-<script>mermaid.initialize({startOnLoad:true});</script></body>
+<script>mermaid.initialize({startOnLoad:true});</script><footer>
+<hr>
+<div class="nb-box">
+  <span><span class="nb-small">made with <a href="https://pietroppeter.github.io/nimib/">nimib 🐳</a></span></span>
+  <span></span>
+  <span><button class="nb-small" id="show" onclick="toggleSourceDisplay()">Show Source</button></span>
+</div>
+</footer>
+<section id="source">
+<pre><code class="nim hljs"><span class="hljs-keyword">import</span> nimib
+
+nbInit
+
+nbText: <span class="hljs-string">&quot;&quot;&quot;# Making Diagrams using [mermaid.js] 🧜‍♀️
+
+Github has started yesterday to support [creation of diagrams]
+in Markdown using [mermaid.js] and the [HN crowd] seemed to like it.
+So I asked myself, _how long does it take me to support
+diagrams in Nimib using Mermaid_?
+
+According to mermaid's [documentation] it is three easy steps:
+
+  1. Inclusion of the mermaid address in the html page using
+  a `script` tag, in the `src` section. Example:
+  
+  ```html
+  &lt;script src=&quot;https://cdn.jsdelivr.net/npm/mermaid/dist/mermaid.min.js&quot;&gt;&lt;/script&gt;
+  ```
+
+  2. The `mermaidAPI` call, in a separate `script` tag. Example:
+
+  ```html
+  &lt;script&gt;mermaid.initialize({startOnLoad:true});&lt;/script&gt;
+  ```
+
+  3. A graph definition, inside `&lt;div&gt;` tags labeled `class=mermaid`. Example:
+  
+  ```html
+  &lt;div class=&quot;mermaid&quot;&gt;
+     graph LR
+      A --- B
+      B--&gt;C[fa:fa-ban forbidden]
+      B--&gt;D(fa:fa-spinner);
+  &lt;/div&gt;
+  ```
+
+[mermaid.js]: https://github.com/mermaid-js/mermaid#readme
+[creation of diagrams]: https://github.blog/2022-02-14-include-diagrams-markdown-files-mermaid/
+[HN crowd]: https://news.ycombinator.com/item?id=30334338
+[documentation]: https://mermaid-js.github.io/mermaid/#/usage?id=using-mermaid
+&quot;&quot;&quot;</span>
+nbText: <span class="hljs-string">&quot;&quot;&quot;## A nimib API for mermaid.js
+
+This is the API I am targeting
+&quot;&quot;&quot;</span>
+nbCodeInBlock:
+  <span class="hljs-keyword">proc</span> useMermaid(doc: <span class="hljs-keyword">var</span> <span class="hljs-type">NbDoc</span>) =
+    <span class="hljs-keyword">discard</span>
+
+  <span class="hljs-keyword">template</span> nbDiagram(spec: <span class="hljs-built_in">string</span>) =
+    <span class="hljs-keyword">discard</span>
+
+  nb.useMermaid
+  nbDiagram: <span class="hljs-string">&quot;&quot;&quot;graph LR
+      A --- B
+      B--&gt;C[fa:fa-ban forbidden]
+      B--&gt;D(fa:fa-spinner);
+&quot;&quot;&quot;</span>
+
+nbText: <span class="hljs-string">&quot;this is an implementation that depends on a [yet unmerged PR](https://github.com/pietroppeter/nimib/pull/78)&quot;</span>
+nbCode:
+  <span class="hljs-keyword">proc</span> useMermaid(doc: <span class="hljs-keyword">var</span> <span class="hljs-type">NbDoc</span>) =
+    nb.partials[<span class="hljs-string">&quot;head&quot;</span>] &amp;= <span class="hljs-string">&quot;&quot;&quot;&lt;script src=&quot;https://cdn.jsdelivr.net/npm/mermaid/dist/mermaid.min.js&quot;&gt;&lt;/script&gt;&quot;&quot;&quot;</span>
+    nb.partials[<span class="hljs-string">&quot;right&quot;</span>] = <span class="hljs-string">&quot;&quot;&quot;&lt;script&gt;mermaid.initialize({startOnLoad:true});&lt;/script&gt;&quot;&quot;&quot;</span>
+    doc.partials[<span class="hljs-string">&quot;nbDiagram&quot;</span>] = <span class="hljs-string">&quot;&quot;&quot;&lt;div class=&quot;mermaid&quot;&gt;
+{{specs}}
+&lt;/div&gt;&quot;&quot;&quot;</span>
+
+  <span class="hljs-keyword">template</span> nbDiagram(specs: <span class="hljs-built_in">string</span>) =
+    newNbBlock(<span class="hljs-string">&quot;nbDiagram&quot;</span>, nb, nb.blk, body):
+      nb.blk.context[<span class="hljs-string">&quot;specs&quot;</span>] = specs
+
+nbText: <span class="hljs-string">&quot;and here is an example of usage&quot;</span>
+
+nb.useMermaid
+nbDiagram: <span class="hljs-string">&quot;&quot;&quot;graph LR
+  A --- B
+  B--&gt;C[fa:fa-ban forbidden]
+  B--&gt;D(fa:fa-spinner);
+&quot;&quot;&quot;</span>
+nbText: <span class="hljs-string">&quot;_This took less than 30 minutes from conception to realization!_&quot;</span>
+nbText: <span class="hljs-string">&quot;&quot;&quot;## notes
+
+* I should add html highlighting to nimib
+* find a way to add more stuff to `head` independently
+  (here `head_other` template is used by plausible through a mustache template and had to append to head)
+* I should add a `scripts` partial at the end of `body` in default template
+  to allow for adding js scripts inside body
+* font awesome support in mermaid [has issues](https://github.com/mermaid-js/mermaid/issues/1457)
+
+&quot;&quot;&quot;</span>
+nbSave</code></pre>
+</section><script>
+function toggleSourceDisplay() {
+  var btn = document.getElementById("show")
+  var source = document.getElementById("source");
+  if (btn.innerHTML=="Show Source") {
+    btn.innerHTML = "Hide Source";
+    source.style.display = "block";
+  } else {
+    btn.innerHTML = "Show Source";
+    source.style.display = "none";
+  }
+}
+</script></body>
 </html>
