@@ -1,0 +1,650 @@
+<!DOCTYPE html>
+<html lang="en-us">
+<head>
+  <title>drafts/z3_examples.nim</title>
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2280%22>🐳</text></svg>">
+  <meta content="text/html; charset=utf-8" http-equiv="content-type">
+  <meta content="width=device-width, initial-scale=1" name="viewport">
+  <link rel='stylesheet' href='https://unpkg.com/normalize.css/'>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/kognise/water.css@latest/dist/light.min.css">
+  <link rel='stylesheet' href='https://cdn.jsdelivr.net/gh/pietroppeter/nimib/assets/atom-one-light.css'>
+  <style>
+.nb-box {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+.nb-small {
+  font-size: 0.8rem;
+}
+button.nb-small {
+  float: right;
+  padding: 2px;
+  padding-right: 5px;
+  padding-left: 5px;
+}
+section#source {
+  display:none
+}
+</style>
+  
+  <script async defer data-domain="pietroppeter.github.io/nblog" src="https://plausible.io/js/plausible.js"></script>
+</head>
+<body>
+<header>
+<div class="nb-box">
+  <span><a href="..">🏡</a></span>
+  <span><code>drafts/z3_examples.nim</code></span>
+  <span><a href="https://github.com/pietroppeter/nblog"><svg aria-hidden="true" width="1.2em" height="1.2em" style="vertical-align: middle;" preserveAspectRatio="xMidYMid meet" viewBox="0 0 16 16"><path fill-rule="evenodd" d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59c.4.07.55-.17.55-.38c0-.19-.01-.82-.01-1.49c-2.01.37-2.53-.49-2.69-.94c-.09-.23-.48-.94-.82-1.13c-.28-.15-.68-.52-.01-.53c.63-.01 1.08.58 1.23.82c.72 1.21 1.87.87 2.33.66c.07-.52.28-.87.51-1.07c-1.78-.2-3.64-.89-3.64-3.95c0-.87.31-1.59.82-2.15c-.08-.2-.36-1.02.08-2.12c0 0 .67-.21 2.2.82c.64-.18 1.32-.27 2-.27c.68 0 1.36.09 2 .27c1.53-1.04 2.2-.82 2.2-.82c.44 1.1.16 1.92.08 2.12c.51.56.82 1.27.82 2.15c0 3.07-1.87 3.75-3.65 3.95c.29.25.54.73.54 1.48c0 1.07-.01 1.93-.01 2.2c0 .21.15.46.55.38A8.013 8.013 0 0 0 16 8c0-4.42-3.58-8-8-8z" fill="#000"></path></svg></a></span>
+</div>
+<hr>
+</header><main>
+<h1>Z3 Examples</h1>
+<p>All examples below come from z3-nim <a href="https://github.com/zevv/nimz3/blob/62a3ead5e02e04df787b65af453323bfa9413610/tests/test1.nim">tests</a></p>
+<h2>Installing Z3</h2>
+<p>If you try to run the z3 examples without installing z3 you will
+see an error such as <code>could not load libz3.so</code> (on windows it will mention <code>libz3.dll</code>).</p>
+<p><code>nim-z3</code> depends on z3 dynamic library which has to be recovered independently.
+Releases with prebuilt libraries are available but being on a Mac M1 I had to build the library myself.</p>
+<pre><code>git clone https://github.com/Z3Prover/z3.git
+cd z3
+</code></pre>
+<p>then (following instructions in <a href="https://github.com/Z3Prover/z3#building-z3-using-make-and-gccclang">repo's readme</a>)</p>
+<pre><code>python scripts/mk_make.py
+cd build
+make
+sudo make install
+</code></pre>
+<p>The last command (<code>sudo make install</code>) did not work for me and I just copied
+the generated <code>libz3.dylib</code> in the folder from where I am running this script
+(a better way - which was what <code>make install</code> was trying to do - would be
+to move it in folder in path, along with z3 executable and header files).
+I also had to rename the library to <code>libz3.so</code>, since this is what z3-nim looks for.</p>
+<p>For the examples to work you must first import the library:</p>
+<pre><code class="nim hljs"><span class="hljs-keyword">import</span> z3</code></pre>
+<h2>De Morgan</h2>
+<pre><code class="nim hljs">z3:
+  <span class="hljs-keyword">let</span> x = <span class="hljs-type">Bool</span>(<span class="hljs-string">&quot;x&quot;</span>)
+  <span class="hljs-keyword">let</span> y = <span class="hljs-type">Bool</span>(<span class="hljs-string">&quot;y&quot;</span>)
+  <span class="hljs-keyword">let</span> exp = <span class="hljs-keyword">not</span> (<span class="hljs-keyword">not</span> (x <span class="hljs-keyword">and</span> y )) &lt;-&gt; ((<span class="hljs-keyword">not</span> x) <span class="hljs-keyword">or</span> (<span class="hljs-keyword">not</span> y))
+  <span class="hljs-keyword">echo</span> exp
+  <span class="hljs-keyword">let</span> s = <span class="hljs-type">Solver</span>()
+  s.<span class="hljs-keyword">assert</span> (x <span class="hljs-keyword">and</span> y) <span class="hljs-keyword">or</span> (<span class="hljs-keyword">not</span> x <span class="hljs-keyword">and</span> y)
+  <span class="hljs-keyword">if</span> s.check() == <span class="hljs-type">Z3_L_TRUE</span>:
+    <span class="hljs-keyword">echo</span> s.get_model()</code></pre><pre><samp>(= (not (not (and x y))) (or (not x) (not y)))
+y -&gt; true
+x -&gt; false</samp></pre>
+<h2>tie or shirt?</h2>
+<pre><code class="nim hljs">z3:
+  <span class="hljs-keyword">let</span> tie = <span class="hljs-type">Bool</span>(<span class="hljs-string">&quot;tie&quot;</span>)
+  <span class="hljs-keyword">let</span> shirt = <span class="hljs-type">Bool</span>(<span class="hljs-string">&quot;shirt&quot;</span>)
+  <span class="hljs-keyword">let</span> s = <span class="hljs-type">Solver</span>()
+  s.<span class="hljs-keyword">assert</span> (<span class="hljs-keyword">not</span> tie) <span class="hljs-keyword">or</span> shirt
+  s.<span class="hljs-keyword">assert</span> (<span class="hljs-keyword">not</span> tie) <span class="hljs-keyword">or</span> <span class="hljs-keyword">not</span>(shirt)
+  <span class="hljs-keyword">if</span> s.check() == <span class="hljs-type">Z3_L_TRUE</span>:
+    <span class="hljs-keyword">echo</span> s.get_model()</code></pre><pre><samp>tie -&gt; false
+shirt -&gt; false</samp></pre>
+<h2>math school problem</h2>
+<pre><code class="nim hljs">z3:
+  <span class="hljs-keyword">let</span> x = <span class="hljs-type">Int</span>(<span class="hljs-string">&quot;x&quot;</span>)
+  <span class="hljs-keyword">let</span> y = <span class="hljs-type">Int</span>(<span class="hljs-string">&quot;y&quot;</span>)
+  <span class="hljs-keyword">let</span> z = <span class="hljs-type">Int</span>(<span class="hljs-string">&quot;z&quot;</span>)
+  <span class="hljs-keyword">let</span> s = <span class="hljs-type">Solver</span>()
+  s.<span class="hljs-keyword">assert</span> <span class="hljs-number">3</span> * x + <span class="hljs-number">2</span> * y - z == <span class="hljs-number">1</span>
+  s.<span class="hljs-keyword">assert</span> <span class="hljs-number">2</span> * x - <span class="hljs-number">2</span> * y + <span class="hljs-number">4</span> * z == -<span class="hljs-number">2</span>
+  s.<span class="hljs-keyword">assert</span> x * -<span class="hljs-number">1</span> + y / <span class="hljs-number">2</span> - z == <span class="hljs-number">0</span>
+  <span class="hljs-keyword">echo</span> s
+  <span class="hljs-keyword">if</span> s.check() == <span class="hljs-type">Z3_L_TRUE</span>:
+    <span class="hljs-keyword">echo</span> s.get_model()</code></pre><pre><samp>(declare-fun z () Int)
+(declare-fun y () Int)
+(declare-fun x () Int)
+(assert (= (- (+ (* 3 x) (* 2 y)) z) 1))
+(assert (= (+ (- (* 2 x) (* 2 y)) (* 4 z)) (- 2)))
+(assert (= (- (+ (* x (- 1)) (div y 2)) z) 0))
+
+z -&gt; (- 2)
+y -&gt; (- 2)
+x -&gt; 1</samp></pre>
+<h2>XKCD restaurant order</h2>
+<pre><code class="nim hljs">z3:
+  <span class="hljs-keyword">let</span> a = <span class="hljs-type">Int</span>(<span class="hljs-string">&quot;a&quot;</span>)
+  <span class="hljs-keyword">let</span> b = <span class="hljs-type">Int</span>(<span class="hljs-string">&quot;b&quot;</span>)
+  <span class="hljs-keyword">let</span> c = <span class="hljs-type">Int</span>(<span class="hljs-string">&quot;c&quot;</span>)
+  <span class="hljs-keyword">let</span> d = <span class="hljs-type">Int</span>(<span class="hljs-string">&quot;d&quot;</span>)
+  <span class="hljs-keyword">let</span> e = <span class="hljs-type">Int</span>(<span class="hljs-string">&quot;e&quot;</span>)
+  <span class="hljs-keyword">let</span> f = <span class="hljs-type">Int</span>(<span class="hljs-string">&quot;f&quot;</span>)
+
+  <span class="hljs-keyword">let</span> s = <span class="hljs-type">Solver</span>()
+  s.<span class="hljs-keyword">assert</span> a*<span class="hljs-number">215</span> + b*<span class="hljs-number">275</span> + c*<span class="hljs-number">335</span> + d*<span class="hljs-number">355</span> + e*<span class="hljs-number">420</span> + f*<span class="hljs-number">580</span> == <span class="hljs-number">1505</span>
+  s.<span class="hljs-keyword">assert</span> a&lt;<span class="hljs-number">100</span> <span class="hljs-keyword">and</span> b&lt;<span class="hljs-number">100</span> <span class="hljs-keyword">and</span> c&lt;<span class="hljs-number">100</span> <span class="hljs-keyword">and</span> d&lt;<span class="hljs-number">100</span> <span class="hljs-keyword">and</span> e&lt;<span class="hljs-number">100</span> <span class="hljs-keyword">and</span> f&lt;<span class="hljs-number">100</span>
+  s.<span class="hljs-keyword">assert</span> a&gt;=<span class="hljs-number">0</span> <span class="hljs-keyword">and</span> b&gt;=<span class="hljs-number">0</span> <span class="hljs-keyword">and</span> c&gt;=<span class="hljs-number">0</span> <span class="hljs-keyword">and</span> d&gt;=<span class="hljs-number">0</span> <span class="hljs-keyword">and</span> e&gt;=<span class="hljs-number">0</span> <span class="hljs-keyword">and</span> f&gt;=<span class="hljs-number">0</span>
+  <span class="hljs-keyword">if</span> s.check() == <span class="hljs-type">Z3_L_TRUE</span>:
+    <span class="hljs-keyword">echo</span> s.get_model()</code></pre><pre><samp>d -&gt; 0
+b -&gt; 0
+a -&gt; 7
+f -&gt; 0
+c -&gt; 0
+e -&gt; 0</samp></pre>
+<h2>sudoku</h2>
+<pre><code class="nim hljs"><span class="hljs-comment"># &quot;Extreme&quot; sudoku: http://www.sudokuwiki.org/Weekly_Sudoku.asp?puz=28</span>
+
+<span class="hljs-keyword">let</span> · = <span class="hljs-number">0</span>
+<span class="hljs-keyword">let</span> sudoku = [
+  [ ·, ·, ·, ·, ·, <span class="hljs-number">8</span>, <span class="hljs-number">9</span>, <span class="hljs-number">4</span>, · ],
+  [ <span class="hljs-number">9</span>, ·, ·, ·, ·, <span class="hljs-number">6</span>, <span class="hljs-number">1</span>, ·, · ],
+  [ ·, <span class="hljs-number">7</span>, ·, ·, <span class="hljs-number">4</span>, ·, ·, ·, · ],
+  [ <span class="hljs-number">2</span>, ·, ·, <span class="hljs-number">6</span>, <span class="hljs-number">1</span>, ·, ·, ·, · ],
+  [ ·, ·, ·, ·, ·, ·, <span class="hljs-number">2</span>, ·, · ],
+  [ ·, <span class="hljs-number">8</span>, <span class="hljs-number">9</span>, ·, ·, <span class="hljs-number">2</span>, ·, ·, · ],
+  [ ·, ·, ·, ·, <span class="hljs-number">6</span>, ·, ·, ·, <span class="hljs-number">5</span> ],
+  [ ·, ·, ·, ·, ·, ·, ·, <span class="hljs-number">3</span>, · ],
+  [ <span class="hljs-number">8</span>, ·, ·, ·, ·, <span class="hljs-number">1</span>, <span class="hljs-number">6</span>, ·, · ],
+]
+
+z3:
+  <span class="hljs-keyword">let</span> s = <span class="hljs-type">Solver</span>()
+  <span class="hljs-keyword">var</span> cs: <span class="hljs-built_in">array</span>[<span class="hljs-number">9</span>, <span class="hljs-built_in">array</span>[<span class="hljs-number">9</span>, <span class="hljs-type">Z3_ast_int</span>]]
+
+  <span class="hljs-comment"># Create sudoku cells</span>
+
+  <span class="hljs-keyword">for</span> y, row <span class="hljs-keyword">in</span> sudoku.pairs():
+    <span class="hljs-keyword">for</span> x, v <span class="hljs-keyword">in</span> row.pairs():
+      <span class="hljs-keyword">let</span> c = <span class="hljs-type">Int</span>($x &amp; <span class="hljs-string">&quot;,&quot;</span> &amp; $y)
+      cs[y][x] = c
+      <span class="hljs-keyword">if</span> v != <span class="hljs-number">0</span>:
+        s.<span class="hljs-keyword">assert</span> c == v
+      <span class="hljs-keyword">else</span>:
+        s.<span class="hljs-keyword">assert</span> c &gt;= <span class="hljs-number">1</span> <span class="hljs-keyword">and</span> c &lt;= <span class="hljs-number">9</span>
+
+  <span class="hljs-comment"># Each row and col contains each digit only once</span>
+
+  <span class="hljs-keyword">for</span> row <span class="hljs-keyword">in</span> cs:
+    s.<span class="hljs-keyword">assert</span> distinc row
+
+  <span class="hljs-keyword">for</span> y <span class="hljs-keyword">in</span> <span class="hljs-number">0.</span>.<span class="hljs-number">8</span>:
+    <span class="hljs-keyword">var</span> col: <span class="hljs-built_in">seq</span>[<span class="hljs-type">Z3_ast_int</span>]
+    <span class="hljs-keyword">for</span> x <span class="hljs-keyword">in</span> <span class="hljs-number">0.</span>.<span class="hljs-number">8</span>:
+      col.add cs[x][y]
+    s.<span class="hljs-keyword">assert</span> distinc(col)
+
+  <span class="hljs-comment"># Each 3x3 square contains each digit only once</span>
+
+  <span class="hljs-keyword">for</span> x <span class="hljs-keyword">in</span> [<span class="hljs-number">0</span>, <span class="hljs-number">3</span>, <span class="hljs-number">6</span>]:
+    <span class="hljs-keyword">for</span> y <span class="hljs-keyword">in</span> [<span class="hljs-number">0</span>, <span class="hljs-number">3</span>, <span class="hljs-number">6</span>]:
+      <span class="hljs-keyword">var</span> sq: <span class="hljs-built_in">seq</span>[<span class="hljs-type">Z3_ast_int</span>]
+      <span class="hljs-keyword">for</span> dx <span class="hljs-keyword">in</span> <span class="hljs-number">0.</span>.<span class="hljs-number">2</span>:
+        <span class="hljs-keyword">for</span> dy <span class="hljs-keyword">in</span> <span class="hljs-number">0.</span>.<span class="hljs-number">2</span>:
+          sq.add cs[x+dx][y+dy]
+      s.<span class="hljs-keyword">assert</span> distinc sq
+
+  <span class="hljs-comment"># Get model and print solution</span>
+
+  s.check_model:
+    <span class="hljs-keyword">for</span> row <span class="hljs-keyword">in</span> cs:
+      <span class="hljs-keyword">for</span> c <span class="hljs-keyword">in</span> row:
+        <span class="hljs-literal">stdout</span>.write $eval(c) &amp; <span class="hljs-string">&quot; &quot;</span>
+      <span class="hljs-literal">stdout</span>.write <span class="hljs-string">&quot;</span><span class="hljs-meta">\n</span><span class="hljs-string">&quot;</span></code></pre><pre><samp>5 6 2 1 7 8 9 4 3 
+9 4 3 5 2 6 1 8 7 
+1 7 8 9 4 3 5 6 2 
+2 5 7 6 1 4 3 9 8 
+3 1 4 8 9 7 2 5 6 
+6 8 9 3 5 2 7 1 4 
+4 3 1 7 6 9 8 2 5 
+7 9 6 2 8 5 4 3 1 
+8 2 5 4 3 1 6 7 9 </samp></pre>
+<h2>scopes</h2>
+<pre><code class="nim hljs">z3:
+  <span class="hljs-keyword">let</span> x = <span class="hljs-type">Int</span> <span class="hljs-string">&quot;x&quot;</span>
+  <span class="hljs-keyword">let</span> y = <span class="hljs-type">Int</span> <span class="hljs-string">&quot;y&quot;</span>
+  <span class="hljs-keyword">let</span> s = <span class="hljs-type">Solver</span>()
+  s.push:
+    s.<span class="hljs-keyword">assert</span> -x + y == <span class="hljs-number">10</span>
+    s.<span class="hljs-keyword">assert</span> x + y * <span class="hljs-number">2</span> == <span class="hljs-number">20</span>
+    <span class="hljs-keyword">echo</span> s.check
+  s.push:
+    s.<span class="hljs-keyword">assert</span> <span class="hljs-number">3</span> * x + y == <span class="hljs-number">10</span>
+    s.<span class="hljs-keyword">assert</span> <span class="hljs-number">2</span> * x + <span class="hljs-number">2</span> * y == <span class="hljs-number">21</span>
+    <span class="hljs-keyword">echo</span> s.check</code></pre><pre><samp>Z3_L_TRUE
+Z3_L_FALSE</samp></pre>
+<h2>simplify</h2>
+<pre><code class="nim hljs">z3:
+  <span class="hljs-keyword">let</span> x = <span class="hljs-type">Int</span> <span class="hljs-string">&quot;x&quot;</span>
+  <span class="hljs-keyword">let</span> y = <span class="hljs-type">Int</span> <span class="hljs-string">&quot;y&quot;</span>
+  <span class="hljs-keyword">let</span> e =  x + <span class="hljs-number">2</span> * y + <span class="hljs-number">3</span> * x - y - y
+  <span class="hljs-keyword">echo</span> e
+  <span class="hljs-keyword">echo</span> simplify e</code></pre><pre><samp>(- (- (+ x (* 2 y) (* 3 x)) y) y)
+(* 4 x)</samp></pre>
+<h2>floating point</h2>
+<pre><code class="nim hljs">z3:
+  <span class="hljs-keyword">let</span> x = <span class="hljs-type">Float</span> <span class="hljs-string">&quot;x&quot;</span>
+  <span class="hljs-keyword">let</span> y = <span class="hljs-type">Float</span> <span class="hljs-string">&quot;y&quot;</span>
+  <span class="hljs-keyword">let</span> s = <span class="hljs-type">Solver</span>()
+  s.<span class="hljs-keyword">assert</span> x * <span class="hljs-number">2.0</span> == y
+  s.<span class="hljs-keyword">assert</span> x == <span class="hljs-number">15.0</span>
+  <span class="hljs-keyword">if</span> s.check() == <span class="hljs-type">Z3_L_TRUE</span>:
+    <span class="hljs-keyword">let</span> model = s.get_model()
+    <span class="hljs-keyword">echo</span> eval(x)</code></pre><pre><samp>(fp #b0 #b10000000010 #xe000000000000)</samp></pre>
+<h2>forall</h2>
+<pre><code class="nim hljs">z3:
+  <span class="hljs-keyword">let</span> s = <span class="hljs-type">Solver</span>()
+  <span class="hljs-keyword">let</span> x = <span class="hljs-type">Int</span> <span class="hljs-string">&quot;x&quot;</span>
+  <span class="hljs-keyword">let</span> y = <span class="hljs-type">Int</span> <span class="hljs-string">&quot;y&quot;</span>
+  s.<span class="hljs-keyword">assert</span> y == <span class="hljs-number">1</span>
+  s.<span class="hljs-keyword">assert</span> forall([x], x * y == x)
+  <span class="hljs-keyword">if</span> s.check() == <span class="hljs-type">Z3_L_TRUE</span>:
+    <span class="hljs-keyword">echo</span> s.get_model()</code></pre><pre><samp>y -&gt; 1</samp></pre>
+<h2>exists</h2>
+<pre><code class="nim hljs">z3:
+  <span class="hljs-keyword">let</span> s = <span class="hljs-type">Solver</span>()
+  <span class="hljs-keyword">let</span> x = <span class="hljs-type">Int</span> <span class="hljs-string">&quot;x&quot;</span>
+  <span class="hljs-keyword">let</span> y = <span class="hljs-type">Int</span> <span class="hljs-string">&quot;y&quot;</span>
+  s.<span class="hljs-keyword">assert</span> y == <span class="hljs-number">20</span>
+  s.<span class="hljs-keyword">assert</span> exists([x], x * y == <span class="hljs-number">180</span>)
+  <span class="hljs-keyword">if</span> s.check() == <span class="hljs-type">Z3_L_TRUE</span>:
+    <span class="hljs-keyword">echo</span> s.get_model()</code></pre><pre><samp>y -&gt; 20</samp></pre>
+<h2>planetary/epicyclic gear system</h2>
+<pre><code class="nim hljs"><span class="hljs-comment"># Find the gear tooth count for a planetary gear system with a</span>
+<span class="hljs-comment"># ratio of 1:12</span>
+
+z3:
+  <span class="hljs-keyword">let</span> <span class="hljs-type">R</span> = <span class="hljs-type">Int</span>(<span class="hljs-string">&quot;R&quot;</span>) <span class="hljs-comment"># ring teeth</span>
+  <span class="hljs-keyword">let</span> <span class="hljs-type">S</span> = <span class="hljs-type">Int</span>(<span class="hljs-string">&quot;S&quot;</span>) <span class="hljs-comment"># sun teeth</span>
+  <span class="hljs-keyword">let</span> <span class="hljs-type">P</span> = <span class="hljs-type">Int</span>(<span class="hljs-string">&quot;P&quot;</span>) <span class="hljs-comment"># planet teeth</span>
+
+  <span class="hljs-keyword">let</span> <span class="hljs-type">Tr</span> = <span class="hljs-type">Int</span>(<span class="hljs-string">&quot;Tr&quot;</span>)  <span class="hljs-comment"># ring turns</span>
+  <span class="hljs-keyword">let</span> <span class="hljs-type">Ts</span> = <span class="hljs-type">Int</span>(<span class="hljs-string">&quot;Ts&quot;</span>)  <span class="hljs-comment"># sun turns</span>
+  <span class="hljs-keyword">let</span> <span class="hljs-type">Ty</span> = <span class="hljs-type">Int</span>(<span class="hljs-string">&quot;Ty&quot;</span>)  <span class="hljs-comment"># carrier turns</span>
+
+  <span class="hljs-keyword">let</span> s = <span class="hljs-type">Solver</span>()
+
+  s.<span class="hljs-keyword">assert</span> <span class="hljs-type">Ts</span> == <span class="hljs-number">12</span>    <span class="hljs-comment"># Sun speed</span>
+  s.<span class="hljs-keyword">assert</span> <span class="hljs-type">Tr</span> == <span class="hljs-number">0</span>     <span class="hljs-comment"># Ring speed</span>
+  s.<span class="hljs-keyword">assert</span> <span class="hljs-type">Ty</span> == <span class="hljs-number">1</span>     <span class="hljs-comment"># Y-carrier speed</span>
+
+  s.<span class="hljs-keyword">assert</span> <span class="hljs-type">R</span> &gt;= <span class="hljs-number">10</span> <span class="hljs-comment"># Don't make gears too small</span>
+  s.<span class="hljs-keyword">assert</span> <span class="hljs-type">P</span> &gt;= <span class="hljs-number">10</span>
+  s.<span class="hljs-keyword">assert</span> <span class="hljs-type">S</span> &gt;= <span class="hljs-number">10</span>
+
+  <span class="hljs-comment"># Planetary gears constraints</span>
+  s.<span class="hljs-keyword">assert</span> (<span class="hljs-type">R</span> + <span class="hljs-type">S</span>) * <span class="hljs-type">Ty</span> == <span class="hljs-type">R</span> * <span class="hljs-type">Tr</span> + <span class="hljs-type">Ts</span> * <span class="hljs-type">S</span>
+  s.<span class="hljs-keyword">assert</span> <span class="hljs-type">R</span> == <span class="hljs-number">2</span> * <span class="hljs-type">P</span> + <span class="hljs-type">S</span>
+
+  s.check_model:
+    <span class="hljs-keyword">echo</span> model</code></pre><pre><samp>Ts -&gt; 12
+Tr -&gt; 0
+Ty -&gt; 1
+P -&gt; 50
+R -&gt; 110
+S -&gt; 10</samp></pre>
+<h2>very simple optimize</h2>
+<pre><code class="nim hljs">z3:
+  <span class="hljs-comment"># this does not come from tests</span>
+  <span class="hljs-keyword">let</span> s = <span class="hljs-type">Optimizer</span>()
+  <span class="hljs-keyword">let</span> n = <span class="hljs-type">Int</span> <span class="hljs-string">&quot;n&quot;</span>
+  s.<span class="hljs-keyword">assert</span> n &lt;= <span class="hljs-number">3</span>
+  s.maximize n
+  <span class="hljs-keyword">echo</span> s
+
+  <span class="hljs-comment"># this code fails:</span>
+  <span class="hljs-comment"># s.check() == Z3_L_TRUE</span>
+  <span class="hljs-comment">#  echo s.get_model()</span>
+
+  <span class="hljs-comment"># this code does not fail:</span>
+  <span class="hljs-keyword">echo</span> s.check()
+  <span class="hljs-keyword">echo</span> s.get_model()</code></pre><pre><samp>0
+(declare-fun n () Int)
+(assert (&lt;= n 3))
+(maximize n)
+(check-sat)
+
+Z3_L_TRUE
+n -&gt; 3</samp></pre>
+<h2>optimize</h2>
+<pre><code class="nim hljs"><span class="hljs-comment"># Pablo buys popsicles for his friends. The store sells single popsicles</span>
+<span class="hljs-comment"># for $1 each, 3-popsicle boxes for $2, and 5-popsicle boxes for $3. What</span>
+<span class="hljs-comment"># is the greatest number of popsicles that Pablo can buy with $8?</span>
+z3:
+  <span class="hljs-keyword">let</span> s = <span class="hljs-type">Optimizer</span>()
+  <span class="hljs-keyword">let</span> a = <span class="hljs-type">Int</span> <span class="hljs-string">&quot;a&quot;</span>
+  <span class="hljs-keyword">let</span> n = <span class="hljs-type">Int</span> <span class="hljs-string">&quot;n&quot;</span>
+  <span class="hljs-keyword">let</span> p1 = <span class="hljs-type">Int</span> <span class="hljs-string">&quot;p1&quot;</span>
+  <span class="hljs-keyword">let</span> p3 = <span class="hljs-type">Int</span> <span class="hljs-string">&quot;p3&quot;</span>
+  <span class="hljs-keyword">let</span> p5 = <span class="hljs-type">Int</span> <span class="hljs-string">&quot;p5&quot;</span>
+  s.<span class="hljs-keyword">assert</span> a == p1 * <span class="hljs-number">1</span> + p3 * <span class="hljs-number">2</span> + p5 * <span class="hljs-number">3</span>
+  s.<span class="hljs-keyword">assert</span> n == p1 * <span class="hljs-number">1</span> + p3 * <span class="hljs-number">3</span> + p5 * <span class="hljs-number">5</span>
+  s.<span class="hljs-keyword">assert</span> p1 &gt;= <span class="hljs-number">0</span> <span class="hljs-keyword">and</span> p3 &gt;= <span class="hljs-number">0</span> <span class="hljs-keyword">and</span> p5 &gt;= <span class="hljs-number">0</span>
+  s.<span class="hljs-keyword">assert</span> a == <span class="hljs-number">8</span>
+  s.maximize n
+  <span class="hljs-keyword">echo</span> s
+  <span class="hljs-comment"># this code fails:</span>
+  <span class="hljs-comment">#if s.check() == Z3_L_TRUE:</span>
+  <span class="hljs-comment">#  echo s.get_model()</span>
+  <span class="hljs-keyword">echo</span> s.check()
+  <span class="hljs-keyword">echo</span> s.get_model()</code></pre><pre><samp>0
+(declare-fun p5 () Int)
+(declare-fun p3 () Int)
+(declare-fun p1 () Int)
+(declare-fun a () Int)
+(declare-fun n () Int)
+(assert (= a (+ (* p1 1) (* p3 2) (* p5 3))))
+(assert (= n (+ (* p1 1) (* p3 3) (* p5 5))))
+(assert (and (&gt;= p1 0) (&gt;= p3 0) (&gt;= p5 0)))
+(assert (= a 8))
+(maximize n)
+(check-sat)
+
+Z3_L_TRUE
+p5 -&gt; 2
+p3 -&gt; 1
+a -&gt; 8
+n -&gt; 13
+p1 -&gt; 0</samp></pre>
+</main>
+<footer>
+<hr>
+<div class="nb-box">
+  <span><span class="nb-small">made with <a href="https://pietroppeter.github.io/nimib/">nimib 🐳</a></span></span>
+  <span></span>
+  <span><button class="nb-small" id="show" onclick="toggleSourceDisplay()">Show Source</button></span>
+</div>
+</footer>
+<section id="source">
+<pre><code class="nim hljs"><span class="hljs-keyword">import</span> nimib
+
+nbInit
+nbText: <span class="hljs-string">&quot;&quot;&quot;# Z3 Examples
+
+All examples below come from z3-nim [tests](https://github.com/zevv/nimz3/blob/62a3ead5e02e04df787b65af453323bfa9413610/tests/test1.nim)
+
+## Installing Z3
+If you try to run the z3 examples without installing z3 you will
+see an error such as `could not load libz3.so` (on windows it will mention `libz3.dll`).
+
+`nim-z3` depends on z3 dynamic library which has to be recovered independently.
+Releases with prebuilt libraries are available but being on a Mac M1 I had to build the library myself.
+
+```
+git clone https://github.com/Z3Prover/z3.git
+cd z3
+```
+
+then (following instructions in [repo's readme](https://github.com/Z3Prover/z3#building-z3-using-make-and-gccclang))
+
+```
+python scripts/mk_make.py
+cd build
+make
+sudo make install
+```
+
+The last command (`sudo make install`) did not work for me and I just copied
+the generated `libz3.dylib` in the folder from where I am running this script
+(a better way - which was what `make install` was trying to do - would be
+to move it in folder in path, along with z3 executable and header files).
+I also had to rename the library to `libz3.so`, since this is what z3-nim looks for.
+
+For the examples to work you must first import the library:
+&quot;&quot;&quot;</span>
+nbCode:
+  <span class="hljs-keyword">import</span> z3
+nbText: <span class="hljs-string">&quot;## De Morgan&quot;</span>
+nbCode:
+  z3:
+    <span class="hljs-keyword">let</span> x = <span class="hljs-type">Bool</span>(<span class="hljs-string">&quot;x&quot;</span>)
+    <span class="hljs-keyword">let</span> y = <span class="hljs-type">Bool</span>(<span class="hljs-string">&quot;y&quot;</span>)
+    <span class="hljs-keyword">let</span> exp = <span class="hljs-keyword">not</span> (<span class="hljs-keyword">not</span> (x <span class="hljs-keyword">and</span> y )) &lt;-&gt; ((<span class="hljs-keyword">not</span> x) <span class="hljs-keyword">or</span> (<span class="hljs-keyword">not</span> y))
+    <span class="hljs-keyword">echo</span> exp
+    <span class="hljs-keyword">let</span> s = <span class="hljs-type">Solver</span>()
+    s.<span class="hljs-keyword">assert</span> (x <span class="hljs-keyword">and</span> y) <span class="hljs-keyword">or</span> (<span class="hljs-keyword">not</span> x <span class="hljs-keyword">and</span> y)
+    <span class="hljs-keyword">if</span> s.check() == <span class="hljs-type">Z3_L_TRUE</span>:
+      <span class="hljs-keyword">echo</span> s.get_model()
+nbText: <span class="hljs-string">&quot;## tie or shirt?&quot;</span>
+nbCode:
+  z3:
+    <span class="hljs-keyword">let</span> tie = <span class="hljs-type">Bool</span>(<span class="hljs-string">&quot;tie&quot;</span>)
+    <span class="hljs-keyword">let</span> shirt = <span class="hljs-type">Bool</span>(<span class="hljs-string">&quot;shirt&quot;</span>)
+    <span class="hljs-keyword">let</span> s = <span class="hljs-type">Solver</span>()
+    s.<span class="hljs-keyword">assert</span> (<span class="hljs-keyword">not</span> tie) <span class="hljs-keyword">or</span> shirt
+    s.<span class="hljs-keyword">assert</span> (<span class="hljs-keyword">not</span> tie) <span class="hljs-keyword">or</span> <span class="hljs-keyword">not</span>(shirt)
+    <span class="hljs-keyword">if</span> s.check() == <span class="hljs-type">Z3_L_TRUE</span>:
+      <span class="hljs-keyword">echo</span> s.get_model()
+
+nbText: <span class="hljs-string">&quot;## math school problem&quot;</span>
+nbCode:
+  z3:
+    <span class="hljs-keyword">let</span> x = <span class="hljs-type">Int</span>(<span class="hljs-string">&quot;x&quot;</span>)
+    <span class="hljs-keyword">let</span> y = <span class="hljs-type">Int</span>(<span class="hljs-string">&quot;y&quot;</span>)
+    <span class="hljs-keyword">let</span> z = <span class="hljs-type">Int</span>(<span class="hljs-string">&quot;z&quot;</span>)
+    <span class="hljs-keyword">let</span> s = <span class="hljs-type">Solver</span>()
+    s.<span class="hljs-keyword">assert</span> <span class="hljs-number">3</span> * x + <span class="hljs-number">2</span> * y - z == <span class="hljs-number">1</span>
+    s.<span class="hljs-keyword">assert</span> <span class="hljs-number">2</span> * x - <span class="hljs-number">2</span> * y + <span class="hljs-number">4</span> * z == -<span class="hljs-number">2</span>
+    s.<span class="hljs-keyword">assert</span> x * -<span class="hljs-number">1</span> + y / <span class="hljs-number">2</span> - z == <span class="hljs-number">0</span>
+    <span class="hljs-keyword">echo</span> s
+    <span class="hljs-keyword">if</span> s.check() == <span class="hljs-type">Z3_L_TRUE</span>:
+      <span class="hljs-keyword">echo</span> s.get_model()
+
+nbText: <span class="hljs-string">&quot;## XKCD restaurant order&quot;</span>
+nbCode:
+  z3:
+    <span class="hljs-keyword">let</span> a = <span class="hljs-type">Int</span>(<span class="hljs-string">&quot;a&quot;</span>)
+    <span class="hljs-keyword">let</span> b = <span class="hljs-type">Int</span>(<span class="hljs-string">&quot;b&quot;</span>)
+    <span class="hljs-keyword">let</span> c = <span class="hljs-type">Int</span>(<span class="hljs-string">&quot;c&quot;</span>)
+    <span class="hljs-keyword">let</span> d = <span class="hljs-type">Int</span>(<span class="hljs-string">&quot;d&quot;</span>)
+    <span class="hljs-keyword">let</span> e = <span class="hljs-type">Int</span>(<span class="hljs-string">&quot;e&quot;</span>)
+    <span class="hljs-keyword">let</span> f = <span class="hljs-type">Int</span>(<span class="hljs-string">&quot;f&quot;</span>)
+
+    <span class="hljs-keyword">let</span> s = <span class="hljs-type">Solver</span>()
+    s.<span class="hljs-keyword">assert</span> a*<span class="hljs-number">215</span> + b*<span class="hljs-number">275</span> + c*<span class="hljs-number">335</span> + d*<span class="hljs-number">355</span> + e*<span class="hljs-number">420</span> + f*<span class="hljs-number">580</span> == <span class="hljs-number">1505</span>
+    s.<span class="hljs-keyword">assert</span> a&lt;<span class="hljs-number">100</span> <span class="hljs-keyword">and</span> b&lt;<span class="hljs-number">100</span> <span class="hljs-keyword">and</span> c&lt;<span class="hljs-number">100</span> <span class="hljs-keyword">and</span> d&lt;<span class="hljs-number">100</span> <span class="hljs-keyword">and</span> e&lt;<span class="hljs-number">100</span> <span class="hljs-keyword">and</span> f&lt;<span class="hljs-number">100</span>
+    s.<span class="hljs-keyword">assert</span> a&gt;=<span class="hljs-number">0</span> <span class="hljs-keyword">and</span> b&gt;=<span class="hljs-number">0</span> <span class="hljs-keyword">and</span> c&gt;=<span class="hljs-number">0</span> <span class="hljs-keyword">and</span> d&gt;=<span class="hljs-number">0</span> <span class="hljs-keyword">and</span> e&gt;=<span class="hljs-number">0</span> <span class="hljs-keyword">and</span> f&gt;=<span class="hljs-number">0</span>
+    <span class="hljs-keyword">if</span> s.check() == <span class="hljs-type">Z3_L_TRUE</span>:
+      <span class="hljs-keyword">echo</span> s.get_model()
+
+nbText <span class="hljs-string">&quot;## sudoku&quot;</span>
+nbCode:
+  <span class="hljs-comment"># &quot;Extreme&quot; sudoku: http://www.sudokuwiki.org/Weekly_Sudoku.asp?puz=28</span>
+
+  <span class="hljs-keyword">let</span> · = <span class="hljs-number">0</span>
+  <span class="hljs-keyword">let</span> sudoku = [
+    [ ·, ·, ·, ·, ·, <span class="hljs-number">8</span>, <span class="hljs-number">9</span>, <span class="hljs-number">4</span>, · ],
+    [ <span class="hljs-number">9</span>, ·, ·, ·, ·, <span class="hljs-number">6</span>, <span class="hljs-number">1</span>, ·, · ],
+    [ ·, <span class="hljs-number">7</span>, ·, ·, <span class="hljs-number">4</span>, ·, ·, ·, · ],
+    [ <span class="hljs-number">2</span>, ·, ·, <span class="hljs-number">6</span>, <span class="hljs-number">1</span>, ·, ·, ·, · ],
+    [ ·, ·, ·, ·, ·, ·, <span class="hljs-number">2</span>, ·, · ],
+    [ ·, <span class="hljs-number">8</span>, <span class="hljs-number">9</span>, ·, ·, <span class="hljs-number">2</span>, ·, ·, · ],
+    [ ·, ·, ·, ·, <span class="hljs-number">6</span>, ·, ·, ·, <span class="hljs-number">5</span> ],
+    [ ·, ·, ·, ·, ·, ·, ·, <span class="hljs-number">3</span>, · ],
+    [ <span class="hljs-number">8</span>, ·, ·, ·, ·, <span class="hljs-number">1</span>, <span class="hljs-number">6</span>, ·, · ],
+  ]
+
+  z3:
+    <span class="hljs-keyword">let</span> s = <span class="hljs-type">Solver</span>()
+    <span class="hljs-keyword">var</span> cs: <span class="hljs-built_in">array</span>[<span class="hljs-number">9</span>, <span class="hljs-built_in">array</span>[<span class="hljs-number">9</span>, <span class="hljs-type">Z3_ast_int</span>]]
+
+    <span class="hljs-comment"># Create sudoku cells</span>
+
+    <span class="hljs-keyword">for</span> y, row <span class="hljs-keyword">in</span> sudoku.pairs():
+      <span class="hljs-keyword">for</span> x, v <span class="hljs-keyword">in</span> row.pairs():
+        <span class="hljs-keyword">let</span> c = <span class="hljs-type">Int</span>($x &amp; <span class="hljs-string">&quot;,&quot;</span> &amp; $y)
+        cs[y][x] = c
+        <span class="hljs-keyword">if</span> v != <span class="hljs-number">0</span>:
+          s.<span class="hljs-keyword">assert</span> c == v
+        <span class="hljs-keyword">else</span>:
+          s.<span class="hljs-keyword">assert</span> c &gt;= <span class="hljs-number">1</span> <span class="hljs-keyword">and</span> c &lt;= <span class="hljs-number">9</span>
+
+    <span class="hljs-comment"># Each row and col contains each digit only once</span>
+
+    <span class="hljs-keyword">for</span> row <span class="hljs-keyword">in</span> cs:
+      s.<span class="hljs-keyword">assert</span> distinc row
+
+    <span class="hljs-keyword">for</span> y <span class="hljs-keyword">in</span> <span class="hljs-number">0.</span>.<span class="hljs-number">8</span>:
+      <span class="hljs-keyword">var</span> col: <span class="hljs-built_in">seq</span>[<span class="hljs-type">Z3_ast_int</span>]
+      <span class="hljs-keyword">for</span> x <span class="hljs-keyword">in</span> <span class="hljs-number">0.</span>.<span class="hljs-number">8</span>:
+        col.add cs[x][y]
+      s.<span class="hljs-keyword">assert</span> distinc(col)
+
+    <span class="hljs-comment"># Each 3x3 square contains each digit only once</span>
+
+    <span class="hljs-keyword">for</span> x <span class="hljs-keyword">in</span> [<span class="hljs-number">0</span>, <span class="hljs-number">3</span>, <span class="hljs-number">6</span>]:
+      <span class="hljs-keyword">for</span> y <span class="hljs-keyword">in</span> [<span class="hljs-number">0</span>, <span class="hljs-number">3</span>, <span class="hljs-number">6</span>]:
+        <span class="hljs-keyword">var</span> sq: <span class="hljs-built_in">seq</span>[<span class="hljs-type">Z3_ast_int</span>]
+        <span class="hljs-keyword">for</span> dx <span class="hljs-keyword">in</span> <span class="hljs-number">0.</span>.<span class="hljs-number">2</span>:
+          <span class="hljs-keyword">for</span> dy <span class="hljs-keyword">in</span> <span class="hljs-number">0.</span>.<span class="hljs-number">2</span>:
+            sq.add cs[x+dx][y+dy]
+        s.<span class="hljs-keyword">assert</span> distinc sq
+
+    <span class="hljs-comment"># Get model and print solution</span>
+
+    s.check_model:
+      <span class="hljs-keyword">for</span> row <span class="hljs-keyword">in</span> cs:
+        <span class="hljs-keyword">for</span> c <span class="hljs-keyword">in</span> row:
+          <span class="hljs-literal">stdout</span>.write $eval(c) &amp; <span class="hljs-string">&quot; &quot;</span>
+        <span class="hljs-literal">stdout</span>.write <span class="hljs-string">&quot;</span><span class="hljs-meta">\n</span><span class="hljs-string">&quot;</span>
+
+nbText <span class="hljs-string">&quot;## scopes&quot;</span>
+nbCode:
+  z3:
+    <span class="hljs-keyword">let</span> x = <span class="hljs-type">Int</span> <span class="hljs-string">&quot;x&quot;</span>
+    <span class="hljs-keyword">let</span> y = <span class="hljs-type">Int</span> <span class="hljs-string">&quot;y&quot;</span>
+    <span class="hljs-keyword">let</span> s = <span class="hljs-type">Solver</span>()
+    s.push:
+      s.<span class="hljs-keyword">assert</span> -x + y == <span class="hljs-number">10</span>
+      s.<span class="hljs-keyword">assert</span> x + y * <span class="hljs-number">2</span> == <span class="hljs-number">20</span>
+      <span class="hljs-keyword">echo</span> s.check
+    s.push:
+      s.<span class="hljs-keyword">assert</span> <span class="hljs-number">3</span> * x + y == <span class="hljs-number">10</span>
+      s.<span class="hljs-keyword">assert</span> <span class="hljs-number">2</span> * x + <span class="hljs-number">2</span> * y == <span class="hljs-number">21</span>
+      <span class="hljs-keyword">echo</span> s.check
+
+nbText <span class="hljs-string">&quot;## simplify&quot;</span>
+nbCode:
+  z3:
+    <span class="hljs-keyword">let</span> x = <span class="hljs-type">Int</span> <span class="hljs-string">&quot;x&quot;</span>
+    <span class="hljs-keyword">let</span> y = <span class="hljs-type">Int</span> <span class="hljs-string">&quot;y&quot;</span>
+    <span class="hljs-keyword">let</span> e =  x + <span class="hljs-number">2</span> * y + <span class="hljs-number">3</span> * x - y - y
+    <span class="hljs-keyword">echo</span> e
+    <span class="hljs-keyword">echo</span> simplify e
+
+nbText <span class="hljs-string">&quot;## floating point&quot;</span>
+nbCode:
+  z3:
+    <span class="hljs-keyword">let</span> x = <span class="hljs-type">Float</span> <span class="hljs-string">&quot;x&quot;</span>
+    <span class="hljs-keyword">let</span> y = <span class="hljs-type">Float</span> <span class="hljs-string">&quot;y&quot;</span>
+    <span class="hljs-keyword">let</span> s = <span class="hljs-type">Solver</span>()
+    s.<span class="hljs-keyword">assert</span> x * <span class="hljs-number">2.0</span> == y
+    s.<span class="hljs-keyword">assert</span> x == <span class="hljs-number">15.0</span>
+    <span class="hljs-keyword">if</span> s.check() == <span class="hljs-type">Z3_L_TRUE</span>:
+      <span class="hljs-keyword">let</span> model = s.get_model()
+      <span class="hljs-keyword">echo</span> eval(x)
+
+nbText <span class="hljs-string">&quot;## forall&quot;</span>
+nbCode:
+  z3:
+    <span class="hljs-keyword">let</span> s = <span class="hljs-type">Solver</span>()
+    <span class="hljs-keyword">let</span> x = <span class="hljs-type">Int</span> <span class="hljs-string">&quot;x&quot;</span>
+    <span class="hljs-keyword">let</span> y = <span class="hljs-type">Int</span> <span class="hljs-string">&quot;y&quot;</span>
+    s.<span class="hljs-keyword">assert</span> y == <span class="hljs-number">1</span>
+    s.<span class="hljs-keyword">assert</span> forall([x], x * y == x)
+    <span class="hljs-keyword">if</span> s.check() == <span class="hljs-type">Z3_L_TRUE</span>:
+      <span class="hljs-keyword">echo</span> s.get_model()
+
+nbText <span class="hljs-string">&quot;## exists&quot;</span>
+nbCode:
+  z3:
+    <span class="hljs-keyword">let</span> s = <span class="hljs-type">Solver</span>()
+    <span class="hljs-keyword">let</span> x = <span class="hljs-type">Int</span> <span class="hljs-string">&quot;x&quot;</span>
+    <span class="hljs-keyword">let</span> y = <span class="hljs-type">Int</span> <span class="hljs-string">&quot;y&quot;</span>
+    s.<span class="hljs-keyword">assert</span> y == <span class="hljs-number">20</span>
+    s.<span class="hljs-keyword">assert</span> exists([x], x * y == <span class="hljs-number">180</span>)
+    <span class="hljs-keyword">if</span> s.check() == <span class="hljs-type">Z3_L_TRUE</span>:
+      <span class="hljs-keyword">echo</span> s.get_model()
+
+nbText <span class="hljs-string">&quot;## planetary/epicyclic gear system&quot;</span>
+nbCode:
+  <span class="hljs-comment"># Find the gear tooth count for a planetary gear system with a</span>
+  <span class="hljs-comment"># ratio of 1:12</span>
+
+  z3:
+    <span class="hljs-keyword">let</span> <span class="hljs-type">R</span> = <span class="hljs-type">Int</span>(<span class="hljs-string">&quot;R&quot;</span>) <span class="hljs-comment"># ring teeth</span>
+    <span class="hljs-keyword">let</span> <span class="hljs-type">S</span> = <span class="hljs-type">Int</span>(<span class="hljs-string">&quot;S&quot;</span>) <span class="hljs-comment"># sun teeth</span>
+    <span class="hljs-keyword">let</span> <span class="hljs-type">P</span> = <span class="hljs-type">Int</span>(<span class="hljs-string">&quot;P&quot;</span>) <span class="hljs-comment"># planet teeth</span>
+
+    <span class="hljs-keyword">let</span> <span class="hljs-type">Tr</span> = <span class="hljs-type">Int</span>(<span class="hljs-string">&quot;Tr&quot;</span>)  <span class="hljs-comment"># ring turns</span>
+    <span class="hljs-keyword">let</span> <span class="hljs-type">Ts</span> = <span class="hljs-type">Int</span>(<span class="hljs-string">&quot;Ts&quot;</span>)  <span class="hljs-comment"># sun turns</span>
+    <span class="hljs-keyword">let</span> <span class="hljs-type">Ty</span> = <span class="hljs-type">Int</span>(<span class="hljs-string">&quot;Ty&quot;</span>)  <span class="hljs-comment"># carrier turns</span>
+
+    <span class="hljs-keyword">let</span> s = <span class="hljs-type">Solver</span>()
+
+    s.<span class="hljs-keyword">assert</span> <span class="hljs-type">Ts</span> == <span class="hljs-number">12</span>    <span class="hljs-comment"># Sun speed</span>
+    s.<span class="hljs-keyword">assert</span> <span class="hljs-type">Tr</span> == <span class="hljs-number">0</span>     <span class="hljs-comment"># Ring speed</span>
+    s.<span class="hljs-keyword">assert</span> <span class="hljs-type">Ty</span> == <span class="hljs-number">1</span>     <span class="hljs-comment"># Y-carrier speed</span>
+
+    s.<span class="hljs-keyword">assert</span> <span class="hljs-type">R</span> &gt;= <span class="hljs-number">10</span> <span class="hljs-comment"># Don't make gears too small</span>
+    s.<span class="hljs-keyword">assert</span> <span class="hljs-type">P</span> &gt;= <span class="hljs-number">10</span>
+    s.<span class="hljs-keyword">assert</span> <span class="hljs-type">S</span> &gt;= <span class="hljs-number">10</span>
+
+    <span class="hljs-comment"># Planetary gears constraints</span>
+    s.<span class="hljs-keyword">assert</span> (<span class="hljs-type">R</span> + <span class="hljs-type">S</span>) * <span class="hljs-type">Ty</span> == <span class="hljs-type">R</span> * <span class="hljs-type">Tr</span> + <span class="hljs-type">Ts</span> * <span class="hljs-type">S</span>
+    s.<span class="hljs-keyword">assert</span> <span class="hljs-type">R</span> == <span class="hljs-number">2</span> * <span class="hljs-type">P</span> + <span class="hljs-type">S</span>
+
+    s.check_model:
+      <span class="hljs-keyword">echo</span> model
+
+nbText <span class="hljs-string">&quot;## very simple optimize&quot;</span>
+nbCode:
+  z3:
+    <span class="hljs-comment"># this does not come from tests</span>
+    <span class="hljs-keyword">let</span> s = <span class="hljs-type">Optimizer</span>()
+    <span class="hljs-keyword">let</span> n = <span class="hljs-type">Int</span> <span class="hljs-string">&quot;n&quot;</span>
+    s.<span class="hljs-keyword">assert</span> n &lt;= <span class="hljs-number">3</span>
+    s.maximize n
+    <span class="hljs-keyword">echo</span> s
+
+    <span class="hljs-comment"># this code fails:</span>
+    <span class="hljs-comment"># s.check() == Z3_L_TRUE</span>
+    <span class="hljs-comment">#  echo s.get_model()</span>
+
+    <span class="hljs-comment"># this code does not fail:</span>
+    <span class="hljs-keyword">echo</span> s.check()
+    <span class="hljs-keyword">echo</span> s.get_model()
+
+nbText <span class="hljs-string">&quot;## optimize&quot;</span>
+nbCode:
+  <span class="hljs-comment"># Pablo buys popsicles for his friends. The store sells single popsicles</span>
+  <span class="hljs-comment"># for $1 each, 3-popsicle boxes for $2, and 5-popsicle boxes for $3. What</span>
+  <span class="hljs-comment"># is the greatest number of popsicles that Pablo can buy with $8?</span>
+  z3:
+    <span class="hljs-keyword">let</span> s = <span class="hljs-type">Optimizer</span>()
+    <span class="hljs-keyword">let</span> a = <span class="hljs-type">Int</span> <span class="hljs-string">&quot;a&quot;</span>
+    <span class="hljs-keyword">let</span> n = <span class="hljs-type">Int</span> <span class="hljs-string">&quot;n&quot;</span>
+    <span class="hljs-keyword">let</span> p1 = <span class="hljs-type">Int</span> <span class="hljs-string">&quot;p1&quot;</span>
+    <span class="hljs-keyword">let</span> p3 = <span class="hljs-type">Int</span> <span class="hljs-string">&quot;p3&quot;</span>
+    <span class="hljs-keyword">let</span> p5 = <span class="hljs-type">Int</span> <span class="hljs-string">&quot;p5&quot;</span>
+    s.<span class="hljs-keyword">assert</span> a == p1 * <span class="hljs-number">1</span> + p3 * <span class="hljs-number">2</span> + p5 * <span class="hljs-number">3</span>
+    s.<span class="hljs-keyword">assert</span> n == p1 * <span class="hljs-number">1</span> + p3 * <span class="hljs-number">3</span> + p5 * <span class="hljs-number">5</span>
+    s.<span class="hljs-keyword">assert</span> p1 &gt;= <span class="hljs-number">0</span> <span class="hljs-keyword">and</span> p3 &gt;= <span class="hljs-number">0</span> <span class="hljs-keyword">and</span> p5 &gt;= <span class="hljs-number">0</span>
+    s.<span class="hljs-keyword">assert</span> a == <span class="hljs-number">8</span>
+    s.maximize n
+    <span class="hljs-keyword">echo</span> s
+    <span class="hljs-comment"># this code fails:</span>
+    <span class="hljs-comment">#if s.check() == Z3_L_TRUE:</span>
+    <span class="hljs-comment">#  echo s.get_model()</span>
+    <span class="hljs-keyword">echo</span> s.check()
+    <span class="hljs-keyword">echo</span> s.get_model()
+
+
+nbSave</code></pre>
+</section><script>
+function toggleSourceDisplay() {
+  var btn = document.getElementById("show")
+  var source = document.getElementById("source");
+  if (btn.innerHTML=="Show Source") {
+    btn.innerHTML = "Hide Source";
+    source.style.display = "block";
+  } else {
+    btn.innerHTML = "Show Source";
+    source.style.display = "none";
+  }
+}
+</script></body>
+</html>
