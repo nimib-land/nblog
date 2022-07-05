@@ -1,0 +1,430 @@
+<!DOCTYPE html>
+<html lang="en-us">
+<head>
+  <title>drafts/show_plotly.nim</title>
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2280%22>🐳</text></svg>">
+  <meta content="text/html; charset=utf-8" http-equiv="content-type">
+  <meta content="width=device-width, initial-scale=1" name="viewport">
+  <link rel='stylesheet' href='https://unpkg.com/normalize.css/'>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/kognise/water.css@latest/dist/light.min.css">
+  <link rel='stylesheet' href='https://cdn.jsdelivr.net/gh/pietroppeter/nimib/assets/atom-one-light.css'>
+  <style>
+.nb-box {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+.nb-small {
+  font-size: 0.8rem;
+}
+button.nb-small {
+  float: right;
+  padding: 2px;
+  padding-right: 5px;
+  padding-left: 5px;
+}
+section#source {
+  display:none
+}
+</style>
+  
+  <script async defer data-domain="pietroppeter.github.io/nblog" src="https://plausible.io/js/plausible.js"></script>
+</head>
+<script src="https://cdn.plot.ly/plotly-latest.min.js"></script><body>
+<header>
+<div class="nb-box">
+  <span><a href="..">🏡</a></span>
+  <span><code>drafts/show_plotly.nim</code></span>
+  <span><a href="https://github.com/pietroppeter/nblog"><svg aria-hidden="true" width="1.2em" height="1.2em" style="vertical-align: middle;" preserveAspectRatio="xMidYMid meet" viewBox="0 0 16 16"><path fill-rule="evenodd" d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59c.4.07.55-.17.55-.38c0-.19-.01-.82-.01-1.49c-2.01.37-2.53-.49-2.69-.94c-.09-.23-.48-.94-.82-1.13c-.28-.15-.68-.52-.01-.53c.63-.01 1.08.58 1.23.82c.72 1.21 1.87.87 2.33.66c.07-.52.28-.87.51-1.07c-1.78-.2-3.64-.89-3.64-3.95c0-.87.31-1.59.82-2.15c-.08-.2-.36-1.02.08-2.12c0 0 .67-.21 2.2.82c.64-.18 1.32-.27 2-.27c.68 0 1.36.09 2 .27c1.53-1.04 2.2-.82 2.2-.82c.44 1.1.16 1.92.08 2.12c.51.56.82 1.27.82 2.15c0 3.07-1.87 3.75-3.65 3.95c.29.25.54.73.54 1.48c0 1.07-.01 1.93-.01 2.2c0 .21.15.46.55.38A8.013 8.013 0 0 0 16 8c0-4.42-3.58-8-8-8z" fill="#000"></path></svg></a></span>
+</div>
+<hr>
+</header><main>
+<h1>Plotly in nimib</h1>
+<p>I want to be able to show a plot by <a href="https://github.com/SciNim/nim-plotly">plotly</a>
+in a nimib document. This will likely be integrated in nimib and is currently based on a 0.3 in dev version.</p>
+<pre><code class="nim hljs"><span class="hljs-keyword">import</span> plotly
+<span class="hljs-keyword">import</span> chroma</code></pre>
+<pre><code class="nim hljs"><span class="hljs-keyword">const</span> colors = @[<span class="hljs-type">Color</span>(r:<span class="hljs-number">0.9</span>, g:<span class="hljs-number">0.4</span>, b:<span class="hljs-number">0.0</span>, a: <span class="hljs-number">1.0</span>),
+                <span class="hljs-type">Color</span>(r:<span class="hljs-number">0.9</span>, g:<span class="hljs-number">0.4</span>, b:<span class="hljs-number">0.2</span>, a: <span class="hljs-number">1.0</span>),
+                <span class="hljs-type">Color</span>(r:<span class="hljs-number">0.2</span>, g:<span class="hljs-number">0.9</span>, b:<span class="hljs-number">0.2</span>, a: <span class="hljs-number">1.0</span>),
+                <span class="hljs-type">Color</span>(r:<span class="hljs-number">0.1</span>, g:<span class="hljs-number">0.7</span>, b:<span class="hljs-number">0.1</span>, a: <span class="hljs-number">1.0</span>),
+                <span class="hljs-type">Color</span>(r:<span class="hljs-number">0.0</span>, g:<span class="hljs-number">0.5</span>, b:<span class="hljs-number">0.1</span>, a: <span class="hljs-number">1.0</span>)]
+<span class="hljs-keyword">let</span>
+  d = <span class="hljs-type">Trace</span>[<span class="hljs-built_in">int</span>](mode: <span class="hljs-type">PlotMode</span>.<span class="hljs-type">LinesMarkers</span>, `<span class="hljs-keyword">type</span>`: <span class="hljs-type">PlotType</span>.<span class="hljs-type">Scatter</span>)
+  size = @[<span class="hljs-number">16.</span><span class="hljs-built_in">int</span>]
+d.marker = <span class="hljs-type">Marker</span>[<span class="hljs-built_in">int</span>](size: size, color: colors)
+d.xs = @[<span class="hljs-number">1</span>, <span class="hljs-number">2</span>, <span class="hljs-number">3</span>, <span class="hljs-number">4</span>, <span class="hljs-number">5</span>]
+d.ys = @[<span class="hljs-number">1</span>, <span class="hljs-number">2</span>, <span class="hljs-number">1</span>, <span class="hljs-number">9</span>, <span class="hljs-number">5</span>]
+d.text = @[<span class="hljs-string">&quot;hello&quot;</span>, <span class="hljs-string">&quot;data-point&quot;</span>, <span class="hljs-string">&quot;third&quot;</span>, <span class="hljs-string">&quot;highest&quot;</span>, <span class="hljs-string">&quot;&lt;b&gt;bold&lt;/b&gt;&quot;</span>]
+
+<span class="hljs-keyword">let</span>
+  layout = <span class="hljs-type">Layout</span>(title: <span class="hljs-string">&quot;testing&quot;</span>, width: <span class="hljs-number">1200</span>, height: <span class="hljs-number">400</span>,
+                  xaxis: <span class="hljs-type">Axis</span>(title:<span class="hljs-string">&quot;my x-axis&quot;</span>),
+                  yaxis: <span class="hljs-type">Axis</span>(title: <span class="hljs-string">&quot;y-axis too&quot;</span>),
+                  autosize: <span class="hljs-literal">false</span>)
+  p = <span class="hljs-type">Plot</span>[<span class="hljs-built_in">int</span>](layout: layout, traces: @[d])
+<span class="hljs-keyword">echo</span> p.save()
+p.show()</code></pre><pre><samp>/var/folders/90/gx6vt2cs24359rhsb7rwy1x40000gn/T/nim_plotly/nim_plotly_2022-07-05_22-28-09.011.html</samp></pre>
+<p>the above creates a temporary html file and opens it in the browser.</p>
+<p>This is the source of the html file:</p>
+<pre><code class="language-html">&lt;!DOCTYPE html&gt;
+&lt;html&gt;
+  &lt;head&gt;
+    &lt;meta charset=&quot;utf-8&quot; /&gt;
+    &lt;title&gt;testing&lt;/title&gt;
+     &lt;script src=&quot;https://cdn.plot.ly/plotly-latest.min.js&quot;&gt;&lt;/script&gt;
+  &lt;/head&gt;
+  &lt;body&gt;
+    &lt;div id=&quot;plot0&quot;&gt;&lt;/div&gt;
+    &lt;script&gt;
+            runRelayout = function() {
+        var margin = 50; // if 0, would introduce scrolling
+        Plotly.relayout('plot0', {width: window.innerWidth - margin, height: window.innerHeight - margin } );
+      };
+      window.onresize = runRelayout;
+      Plotly.newPlot('plot0', [{&quot;x&quot;:[1,2,3,4,5],&quot;y&quot;:[1,2,1,9,5],&quot;mode&quot;:&quot;lines+markers&quot;,&quot;type&quot;:&quot;scatter&quot;,&quot;text&quot;:[&quot;hello&quot;,&quot;data-point&quot;,&quot;third&quot;,&quot;highest&quot;,&quot;&lt;b&gt;bold&lt;/b&gt;&quot;],&quot;marker&quot;:{&quot;size&quot;:16,&quot;color&quot;:[&quot;#E56600&quot;,&quot;#E56633&quot;,&quot;#33E533&quot;,&quot;#19B219&quot;,&quot;#007F19&quot;]}}], {&quot;title&quot;:&quot;testing&quot;,&quot;width&quot;:1200,&quot;height&quot;:400,&quot;xaxis&quot;:{&quot;title&quot;:&quot;my x-axis&quot;,&quot;autorange&quot;:true},&quot;yaxis&quot;:{&quot;title&quot;:&quot;y-axis too&quot;,&quot;autorange&quot;:true},&quot;hovermode&quot;:&quot;closest&quot;}).then(runRelayout);
+
+    &lt;/script&gt;
+    
+  &lt;/body&gt;
+&lt;/html&gt;
+</code></pre>
+<p>Note that the above structure can be seen as <a href="https://github.com/SciNim/nim-plotly/blob/35f634279f1f52bbadccf5d9bb9ad55a3c89ea53/src/plotly/tmpl_html.nim#L20">plotly.tmpl_html.defaultTmplString</a>.</p>
+<p>(there is also a <code>saveImage</code> that I will not bother with for the moment).</p>
+<p>The goal is now to create a <code>nbShow(p: plotly.Plot)</code> that will add the block and show it in the document.</p>
+<p>We will need to:</p>
+<ul>
+<li>add <code>plotly</code> library in head section (this will be a new <code>nbUsePlotly</code> template)</li>
+<li>add a partial with the above structure of <code>div</code> and <code>script</code>, th only variable elements are:
+<ul>
+<li>an id for every new plot (e.g. <code>plot0</code>), a new feature in nimib 0.3 has <code>nb.newId</code> that will give us increasing integers</li>
+<li>the serialized plot data and layout (lines that starts with <code>[{&quot;x&quot;:[1,2,3,4,5],&quot;y&quot;:[1,2,1,9,5],&quot;mode&quot;: ...</code>),</li>
+</ul>
+</li>
+</ul>
+<p>Note that the way plotly produces the serialized plot is by calling the <a href="https://github.com/SciNim/nim-plotly/blob/35f634279f1f52bbadccf5d9bb9ad55a3c89ea53/src/plotly/tmpl_html.nim#L12"><code>resizeScript</code></a>
+and the key line is:</p>
+<pre><code class="language-nim">Plotly.newPlot('plot0', $data, $layout).then(runRelayout);
+</code></pre>
+<p>(I did not even notice there were both data and layout in that line...)</p>
+<p><code>resizeScript</code> is called only once elsewhere in plotly codebase (thanks github search!) and I adapt below the relevant lines
+(again ignoring the <code>imageInject</code> stuff)</p>
+<pre><code class="language-nim">proc fillHtmlTemplate(htmlTemplate,
+                      data_string: string,
+                      p: SomePlot,
+                      filename = &quot;&quot;,
+                      autoResize = true): string =
+
+  var
+    slayout = &quot;{}&quot;
+    title = &quot;&quot;
+  if p.layout != nil:
+    when type(p) is Plot:
+      slayout = $(%p.layout)
+      title = p.layout.title
+    else:
+      slayout = $p.layout
+      title = p.layout{&quot;title&quot;}.getStr
+
+  ...
+
+  let scriptTag = if autoResize: resizeScript()
+                  else: staticScript()
+  let scriptFilled = scriptTag % [ &quot;data&quot;, data_string,
+                                   &quot;layout&quot;, slayout ]
+  
+  ...
+</code></pre>
+<p>and the last element we need is how <code>data_string</code> is generated. Again I github search <code>fillHtmlTemplate</code>
+and find only one usage in the same file where it is called by <a href="https://github.com/SciNim/nim-plotly/blob/a32c97bc705a7c02e3136c8f27a65341cde677d0/src/plotly/plotly_display.nim#L171"><code>save</code></a></p>
+<pre><code class="language-nim">when type(p) is Plot:
+  # convert traces to data suitable for plotly and fill Html template
+  let data_string = parseTraces(p.traces)
+else:
+  let data_string = $p.traces
+</code></pre>
+<p>it is also useful to have here an excerpt of plotly's type:</p>
+<pre><code class="language-nim">type
+  Plot*[T: SomeNumber] = ref object
+    traces* : seq[Trace[T]]
+    layout*: Layout
+
+  PlotJson* = ref object
+    traces* : JsonNode
+    layout*: JsonNode
+
+  SomePlot* = Plot | PlotJson
+</code></pre>
+<p>and I am guessing the imports needed to have <code>$</code> for <code>Trace</code>, <code>Layout</code> and to have <code>parseTraces</code>
+are included in:</p>
+<pre><code class="language-nim">import api, plotly_types, plotly_display
+</code></pre>
+<p>and now I have all I need to start coding:</p>
+<pre><code class="nim hljs"><span class="hljs-keyword">template</span> usePlotly(doc: <span class="hljs-keyword">var</span> <span class="hljs-type">NbDoc</span>) =
+  <span class="hljs-keyword">import</span> plotly / [api, plotly_types, plotly_display]
+  <span class="hljs-comment"># I should create a doc.addToHead proc for this:</span>
+  doc.partials[<span class="hljs-string">&quot;head&quot;</span>] &amp;= <span class="hljs-string">&quot;&quot;&quot;&lt;script src=&quot;https://cdn.plot.ly/plotly-latest.min.js&quot;&gt;&lt;/script&gt;&quot;&quot;&quot;</span>
+  doc.partials[<span class="hljs-string">&quot;nbPlotly&quot;</span>] = <span class="hljs-string">&quot;&quot;&quot;
+&lt;div id=&quot;{{plot_id}}&quot;&gt;&lt;/div&gt;
+&lt;script&gt;
+  Plotly.newPlot('{{plot_id}}', {{&amp;plot_data}}, {{&amp;plot_layout}});
+&lt;/script&gt;
+&quot;&quot;&quot;</span>
+nb.usePlotly
+
+<span class="hljs-keyword">template</span> nbPlotly(plot, body: <span class="hljs-built_in">untyped</span>) =
+  <span class="hljs-comment">## plot must be the identifier of Plotly's plot in body</span>
+  newNbCodeBlock(<span class="hljs-string">&quot;nbPlotly&quot;</span>, body):
+    body
+
+    nb.blk.context[<span class="hljs-string">&quot;plot_id&quot;</span>] = <span class="hljs-string">&quot;plot-&quot;</span> &amp; $nb.newid
+    nb.blk.context[<span class="hljs-string">&quot;plot_data&quot;</span>] = <span class="hljs-keyword">block</span>:
+      <span class="hljs-keyword">when</span> <span class="hljs-keyword">type</span>(p) <span class="hljs-keyword">is</span> <span class="hljs-type">Plot</span>:
+        parseTraces(p.traces)
+      <span class="hljs-keyword">else</span>:
+        $p.traces
+
+    nb.blk.context[<span class="hljs-string">&quot;plot_layout&quot;</span>] = <span class="hljs-keyword">block</span>:
+      <span class="hljs-keyword">if</span> plot.layout != <span class="hljs-literal">nil</span>:
+        <span class="hljs-keyword">when</span> <span class="hljs-keyword">type</span>(plot) <span class="hljs-keyword">is</span> <span class="hljs-type">Plot</span>:
+          $(%plot.layout)
+        <span class="hljs-keyword">else</span>:
+          $plot.layout
+      <span class="hljs-keyword">else</span>:
+        <span class="hljs-string">&quot;{}&quot;</span></code></pre>
+<p>Note that above I remove the call to relayout (I am fixing the width to be smaller than in original example)
+and I am not currently showing the code that produces the plot below (see source code).</p>
+<div id="plot-0"></div>
+<script>
+  Plotly.newPlot('plot-0', [{"x":[1,2,3,4,5],"y":[1,2,1,9,5],"mode":"lines+markers","type":"scatter","text":["hello","data-point","third","highest","<b>bold</b>"],"marker":{"size":16,"color":["#E56600","#E56633","#33E533","#19B219","#007F19"]}}], {"title":"plotly in nimib","width":800,"height":400,"xaxis":{"title":"my x-axis","autorange":true},"yaxis":{"title":"y-axis too","autorange":true},"hovermode":"closest"});
+</script>
+
+</main>
+<footer>
+<hr>
+<div class="nb-box">
+  <span><span class="nb-small">made with <a href="https://pietroppeter.github.io/nimib/">nimib 🐳</a></span></span>
+  <span></span>
+  <span><button class="nb-small" id="show" onclick="toggleSourceDisplay()">Show Source</button></span>
+</div>
+</footer>
+<section id="source">
+<pre><code class="nim hljs"><span class="hljs-keyword">import</span> nimib
+
+nbInit
+
+nbText: <span class="hljs-string">&quot;&quot;&quot;# Plotly in nimib
+I want to be able to show a plot by [plotly](https://github.com/SciNim/nim-plotly)
+in a nimib document. This will likely be integrated in nimib and is currently based on a 0.3 in dev version.
+&quot;&quot;&quot;</span>
+nbCode:
+  <span class="hljs-keyword">import</span> plotly
+  <span class="hljs-keyword">import</span> chroma
+nbCodeInBlock:
+  <span class="hljs-keyword">const</span> colors = @[<span class="hljs-type">Color</span>(r:<span class="hljs-number">0.9</span>, g:<span class="hljs-number">0.4</span>, b:<span class="hljs-number">0.0</span>, a: <span class="hljs-number">1.0</span>),
+                  <span class="hljs-type">Color</span>(r:<span class="hljs-number">0.9</span>, g:<span class="hljs-number">0.4</span>, b:<span class="hljs-number">0.2</span>, a: <span class="hljs-number">1.0</span>),
+                  <span class="hljs-type">Color</span>(r:<span class="hljs-number">0.2</span>, g:<span class="hljs-number">0.9</span>, b:<span class="hljs-number">0.2</span>, a: <span class="hljs-number">1.0</span>),
+                  <span class="hljs-type">Color</span>(r:<span class="hljs-number">0.1</span>, g:<span class="hljs-number">0.7</span>, b:<span class="hljs-number">0.1</span>, a: <span class="hljs-number">1.0</span>),
+                  <span class="hljs-type">Color</span>(r:<span class="hljs-number">0.0</span>, g:<span class="hljs-number">0.5</span>, b:<span class="hljs-number">0.1</span>, a: <span class="hljs-number">1.0</span>)]
+  <span class="hljs-keyword">let</span>
+    d = <span class="hljs-type">Trace</span>[<span class="hljs-built_in">int</span>](mode: <span class="hljs-type">PlotMode</span>.<span class="hljs-type">LinesMarkers</span>, `<span class="hljs-keyword">type</span>`: <span class="hljs-type">PlotType</span>.<span class="hljs-type">Scatter</span>)
+    size = @[<span class="hljs-number">16.</span><span class="hljs-built_in">int</span>]
+  d.marker = <span class="hljs-type">Marker</span>[<span class="hljs-built_in">int</span>](size: size, color: colors)
+  d.xs = @[<span class="hljs-number">1</span>, <span class="hljs-number">2</span>, <span class="hljs-number">3</span>, <span class="hljs-number">4</span>, <span class="hljs-number">5</span>]
+  d.ys = @[<span class="hljs-number">1</span>, <span class="hljs-number">2</span>, <span class="hljs-number">1</span>, <span class="hljs-number">9</span>, <span class="hljs-number">5</span>]
+  d.text = @[<span class="hljs-string">&quot;hello&quot;</span>, <span class="hljs-string">&quot;data-point&quot;</span>, <span class="hljs-string">&quot;third&quot;</span>, <span class="hljs-string">&quot;highest&quot;</span>, <span class="hljs-string">&quot;&lt;b&gt;bold&lt;/b&gt;&quot;</span>]
+
+  <span class="hljs-keyword">let</span>
+    layout = <span class="hljs-type">Layout</span>(title: <span class="hljs-string">&quot;testing&quot;</span>, width: <span class="hljs-number">1200</span>, height: <span class="hljs-number">400</span>,
+                    xaxis: <span class="hljs-type">Axis</span>(title:<span class="hljs-string">&quot;my x-axis&quot;</span>),
+                    yaxis: <span class="hljs-type">Axis</span>(title: <span class="hljs-string">&quot;y-axis too&quot;</span>),
+                    autosize: <span class="hljs-literal">false</span>)
+    p = <span class="hljs-type">Plot</span>[<span class="hljs-built_in">int</span>](layout: layout, traces: @[d])
+  <span class="hljs-keyword">echo</span> p.save()
+  p.show()
+nbText: <span class="hljs-string">&quot;&quot;&quot;
+the above creates a temporary html file and opens it in the browser.
+
+This is the source of the html file:
+```html
+&lt;!DOCTYPE html&gt;
+&lt;html&gt;
+  &lt;head&gt;
+    &lt;meta charset=&quot;utf-8&quot; /&gt;
+    &lt;title&gt;testing&lt;/title&gt;
+     &lt;script src=&quot;https://cdn.plot.ly/plotly-latest.min.js&quot;&gt;&lt;/script&gt;
+  &lt;/head&gt;
+  &lt;body&gt;
+    &lt;div id=&quot;plot0&quot;&gt;&lt;/div&gt;
+    &lt;script&gt;
+            runRelayout = function() {
+        var margin = 50; // if 0, would introduce scrolling
+        Plotly.relayout('plot0', {width: window.innerWidth - margin, height: window.innerHeight - margin } );
+      };
+      window.onresize = runRelayout;
+      Plotly.newPlot('plot0', [{&quot;x&quot;:[1,2,3,4,5],&quot;y&quot;:[1,2,1,9,5],&quot;mode&quot;:&quot;lines+markers&quot;,&quot;type&quot;:&quot;scatter&quot;,&quot;text&quot;:[&quot;hello&quot;,&quot;data-point&quot;,&quot;third&quot;,&quot;highest&quot;,&quot;&lt;b&gt;bold&lt;/b&gt;&quot;],&quot;marker&quot;:{&quot;size&quot;:16,&quot;color&quot;:[&quot;#E56600&quot;,&quot;#E56633&quot;,&quot;#33E533&quot;,&quot;#19B219&quot;,&quot;#007F19&quot;]}}], {&quot;title&quot;:&quot;testing&quot;,&quot;width&quot;:1200,&quot;height&quot;:400,&quot;xaxis&quot;:{&quot;title&quot;:&quot;my x-axis&quot;,&quot;autorange&quot;:true},&quot;yaxis&quot;:{&quot;title&quot;:&quot;y-axis too&quot;,&quot;autorange&quot;:true},&quot;hovermode&quot;:&quot;closest&quot;}).then(runRelayout);
+
+    &lt;/script&gt;
+    
+  &lt;/body&gt;
+&lt;/html&gt;
+```
+
+Note that the above structure can be seen as [plotly.tmpl_html.defaultTmplString](https://github.com/SciNim/nim-plotly/blob/35f634279f1f52bbadccf5d9bb9ad55a3c89ea53/src/plotly/tmpl_html.nim#L20).
+
+(there is also a `saveImage` that I will not bother with for the moment).
+
+The goal is now to create a `nbShow(p: plotly.Plot)` that will add the block and show it in the document.
+
+We will need to:
+  * add `plotly` library in head section (this will be a new `nbUsePlotly` template)
+  * add a partial with the above structure of `div` and `script`, th only variable elements are:
+    - an id for every new plot (e.g. `plot0`), a new feature in nimib 0.3 has `nb.newId` that will give us increasing integers
+    - the serialized plot data and layout (lines that starts with `[{&quot;x&quot;:[1,2,3,4,5],&quot;y&quot;:[1,2,1,9,5],&quot;mode&quot;: ...`),
+
+Note that the way plotly produces the serialized plot is by calling the [`resizeScript`](https://github.com/SciNim/nim-plotly/blob/35f634279f1f52bbadccf5d9bb9ad55a3c89ea53/src/plotly/tmpl_html.nim#L12)
+and the key line is:
+
+```nim
+Plotly.newPlot('plot0', $data, $layout).then(runRelayout);
+```
+
+(I did not even notice there were both data and layout in that line...)
+
+`resizeScript` is called only once elsewhere in plotly codebase (thanks github search!) and I adapt below the relevant lines
+(again ignoring the `imageInject` stuff)
+
+```nim
+proc fillHtmlTemplate(htmlTemplate,
+                      data_string: string,
+                      p: SomePlot,
+                      filename = &quot;&quot;,
+                      autoResize = true): string =
+
+  var
+    slayout = &quot;{}&quot;
+    title = &quot;&quot;
+  if p.layout != nil:
+    when type(p) is Plot:
+      slayout = $(%p.layout)
+      title = p.layout.title
+    else:
+      slayout = $p.layout
+      title = p.layout{&quot;title&quot;}.getStr
+
+  ...
+
+  let scriptTag = if autoResize: resizeScript()
+                  else: staticScript()
+  let scriptFilled = scriptTag % [ &quot;data&quot;, data_string,
+                                   &quot;layout&quot;, slayout ]
+  
+  ...
+```
+
+and the last element we need is how `data_string` is generated. Again I github search `fillHtmlTemplate`
+and find only one usage in the same file where it is called by [`save`](https://github.com/SciNim/nim-plotly/blob/a32c97bc705a7c02e3136c8f27a65341cde677d0/src/plotly/plotly_display.nim#L171)
+
+```nim
+when type(p) is Plot:
+  # convert traces to data suitable for plotly and fill Html template
+  let data_string = parseTraces(p.traces)
+else:
+  let data_string = $p.traces
+```
+
+it is also useful to have here an excerpt of plotly's type:
+```nim
+type
+  Plot*[T: SomeNumber] = ref object
+    traces* : seq[Trace[T]]
+    layout*: Layout
+
+  PlotJson* = ref object
+    traces* : JsonNode
+    layout*: JsonNode
+
+  SomePlot* = Plot | PlotJson
+```
+
+and I am guessing the imports needed to have `$` for `Trace`, `Layout` and to have `parseTraces`
+are included in:
+
+```nim
+import api, plotly_types, plotly_display
+```
+
+and now I have all I need to start coding:
+&quot;&quot;&quot;</span>  <span class="hljs-comment"># found potential bug in nim-markdown, when adding spaces after a final ```  the code block does not end.</span>
+nbCode:
+  <span class="hljs-keyword">template</span> usePlotly(doc: <span class="hljs-keyword">var</span> <span class="hljs-type">NbDoc</span>) =
+    <span class="hljs-keyword">import</span> plotly / [api, plotly_types, plotly_display]
+    <span class="hljs-comment"># I should create a doc.addToHead proc for this:</span>
+    doc.partials[<span class="hljs-string">&quot;head&quot;</span>] &amp;= <span class="hljs-string">&quot;&quot;&quot;&lt;script src=&quot;https://cdn.plot.ly/plotly-latest.min.js&quot;&gt;&lt;/script&gt;&quot;&quot;&quot;</span>
+    doc.partials[<span class="hljs-string">&quot;nbPlotly&quot;</span>] = <span class="hljs-string">&quot;&quot;&quot;
+&lt;div id=&quot;{{plot_id}}&quot;&gt;&lt;/div&gt;
+&lt;script&gt;
+  Plotly.newPlot('{{plot_id}}', {{&amp;plot_data}}, {{&amp;plot_layout}});
+&lt;/script&gt;
+&quot;&quot;&quot;</span>
+  nb.usePlotly
+
+  <span class="hljs-keyword">template</span> nbPlotly(plot, body: <span class="hljs-built_in">untyped</span>) =
+    <span class="hljs-comment">## plot must be the identifier of Plotly's plot in body</span>
+    newNbCodeBlock(<span class="hljs-string">&quot;nbPlotly&quot;</span>, body):
+      body
+
+      nb.blk.context[<span class="hljs-string">&quot;plot_id&quot;</span>] = <span class="hljs-string">&quot;plot-&quot;</span> &amp; $nb.newid
+      nb.blk.context[<span class="hljs-string">&quot;plot_data&quot;</span>] = <span class="hljs-keyword">block</span>:
+        <span class="hljs-keyword">when</span> <span class="hljs-keyword">type</span>(p) <span class="hljs-keyword">is</span> <span class="hljs-type">Plot</span>:
+          parseTraces(p.traces)
+        <span class="hljs-keyword">else</span>:
+          $p.traces
+
+      nb.blk.context[<span class="hljs-string">&quot;plot_layout&quot;</span>] = <span class="hljs-keyword">block</span>:
+        <span class="hljs-keyword">if</span> plot.layout != <span class="hljs-literal">nil</span>:
+          <span class="hljs-keyword">when</span> <span class="hljs-keyword">type</span>(plot) <span class="hljs-keyword">is</span> <span class="hljs-type">Plot</span>:
+            $(%plot.layout)
+          <span class="hljs-keyword">else</span>:
+            $plot.layout
+        <span class="hljs-keyword">else</span>:
+          <span class="hljs-string">&quot;{}&quot;</span>
+nbText: <span class="hljs-string">&quot;&quot;&quot;Note that above I remove the call to relayout (I am fixing the width to be smaller than in original example)
+and I am not currently showing the code that produces the plot below (see source code).
+&quot;&quot;&quot;</span>
+nbPlotly(p):
+  <span class="hljs-keyword">const</span> colors = @[<span class="hljs-type">Color</span>(r:<span class="hljs-number">0.9</span>, g:<span class="hljs-number">0.4</span>, b:<span class="hljs-number">0.0</span>, a: <span class="hljs-number">1.0</span>),
+                  <span class="hljs-type">Color</span>(r:<span class="hljs-number">0.9</span>, g:<span class="hljs-number">0.4</span>, b:<span class="hljs-number">0.2</span>, a: <span class="hljs-number">1.0</span>),
+                  <span class="hljs-type">Color</span>(r:<span class="hljs-number">0.2</span>, g:<span class="hljs-number">0.9</span>, b:<span class="hljs-number">0.2</span>, a: <span class="hljs-number">1.0</span>),
+                  <span class="hljs-type">Color</span>(r:<span class="hljs-number">0.1</span>, g:<span class="hljs-number">0.7</span>, b:<span class="hljs-number">0.1</span>, a: <span class="hljs-number">1.0</span>),
+                  <span class="hljs-type">Color</span>(r:<span class="hljs-number">0.0</span>, g:<span class="hljs-number">0.5</span>, b:<span class="hljs-number">0.1</span>, a: <span class="hljs-number">1.0</span>)]
+  <span class="hljs-keyword">let</span>
+    d = <span class="hljs-type">Trace</span>[<span class="hljs-built_in">int</span>](mode: <span class="hljs-type">PlotMode</span>.<span class="hljs-type">LinesMarkers</span>, `<span class="hljs-keyword">type</span>`: <span class="hljs-type">PlotType</span>.<span class="hljs-type">Scatter</span>)
+    size = @[<span class="hljs-number">16.</span><span class="hljs-built_in">int</span>]
+  d.marker = <span class="hljs-type">Marker</span>[<span class="hljs-built_in">int</span>](size: size, color: colors)
+  d.xs = @[<span class="hljs-number">1</span>, <span class="hljs-number">2</span>, <span class="hljs-number">3</span>, <span class="hljs-number">4</span>, <span class="hljs-number">5</span>]
+  d.ys = @[<span class="hljs-number">1</span>, <span class="hljs-number">2</span>, <span class="hljs-number">1</span>, <span class="hljs-number">9</span>, <span class="hljs-number">5</span>]
+  d.text = @[<span class="hljs-string">&quot;hello&quot;</span>, <span class="hljs-string">&quot;data-point&quot;</span>, <span class="hljs-string">&quot;third&quot;</span>, <span class="hljs-string">&quot;highest&quot;</span>, <span class="hljs-string">&quot;&lt;b&gt;bold&lt;/b&gt;&quot;</span>]
+
+  <span class="hljs-keyword">let</span>
+    layout = <span class="hljs-type">Layout</span>(title: <span class="hljs-string">&quot;plotly in nimib&quot;</span>, width: <span class="hljs-number">800</span>, height: <span class="hljs-number">400</span>,  <span class="hljs-comment"># changed width to 800</span>
+                    xaxis: <span class="hljs-type">Axis</span>(title:<span class="hljs-string">&quot;my x-axis&quot;</span>),
+                    yaxis: <span class="hljs-type">Axis</span>(title: <span class="hljs-string">&quot;y-axis too&quot;</span>),
+                    autosize: <span class="hljs-literal">true</span>)  <span class="hljs-comment"># changed to true but it does not seem to have a particular effect</span>
+    p = <span class="hljs-type">Plot</span>[<span class="hljs-built_in">int</span>](layout: layout, traces: @[d])
+<span class="hljs-keyword">echo</span> nb.blk.context[<span class="hljs-string">&quot;plot_id&quot;</span>]
+nbSave</code></pre>
+</section><script>
+function toggleSourceDisplay() {
+  var btn = document.getElementById("show")
+  var source = document.getElementById("source");
+  if (btn.innerHTML=="Show Source") {
+    btn.innerHTML = "Hide Source";
+    source.style.display = "block";
+  } else {
+    btn.innerHTML = "Show Source";
+    source.style.display = "none";
+  }
+}
+</script></body>
+</html>
