@@ -56,6 +56,7 @@ Some of those will be finished (waiting to be published) and some will really be
 <li><a href="drafts/toc_mustache.html">drafts/toc_mustache.html</a></li>
 <li><a href="drafts/bernoulli_and_beyond.html">drafts/bernoulli_and_beyond.html</a></li>
 <li><a href="drafts/pixie_chess_random_walk_knight.html">drafts/pixie_chess_random_walk_knight.html</a></li>
+<li><a href="drafts/show_plotly.html">drafts/show_plotly.html</a></li>
 </ul>
 </main>
 <footer>
@@ -78,6 +79,7 @@ nbInit
   <span class="hljs-keyword">if</span> <span class="hljs-keyword">not</span> file.endswith(<span class="hljs-string">&quot;.html&quot;</span>) <span class="hljs-keyword">or</span> file.name.startsWith(<span class="hljs-string">&quot;index&quot;</span>) <span class="hljs-keyword">or</span> (<span class="hljs-keyword">not</span> file.isGitTracked):
     <span class="hljs-keyword">continue</span>
   link = file.relPath.replace(<span class="hljs-string">r&quot;\&quot;</span>, <span class="hljs-string">&quot;/&quot;</span>) <span class="hljs-comment"># what an ugly hack.</span>
+  <span class="hljs-keyword">echo</span> <span class="hljs-string">&quot;adding link: &quot;</span>, link
   <span class="hljs-keyword">when</span> <span class="hljs-keyword">defined</span>(nblogRerun):
     <span class="hljs-keyword">let</span> cmd = <span class="hljs-string">&quot;nim r &quot;</span> &amp; link.replace(<span class="hljs-string">&quot;.html&quot;</span>, <span class="hljs-string">&quot;.nim&quot;</span>)
     <span class="hljs-keyword">echo</span> <span class="hljs-string">&quot;executing &quot;</span> &amp; cmd

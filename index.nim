@@ -9,6 +9,7 @@ for file in walkDirRec(nbHomeDir):
   if not file.endswith(".html") or file.name.startsWith("index") or (not file.isGitTracked):
     continue
   link = file.relPath.replace(r"\", "/") # what an ugly hack.
+  echo "adding link: ", link
   when defined(nblogRerun):
     let cmd = "nim r " & link.replace(".html", ".nim")
     echo "executing " & cmd
