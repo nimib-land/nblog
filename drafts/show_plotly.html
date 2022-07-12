@@ -64,7 +64,7 @@ d.text = @[<span class="hljs-string">&quot;hello&quot;</span>, <span class="hljs
                   autosize: <span class="hljs-literal">false</span>)
   p = <span class="hljs-type">Plot</span>[<span class="hljs-built_in">int</span>](layout: layout, traces: @[d])
 <span class="hljs-keyword">echo</span> p.save()
-p.show()</code></pre><pre><samp>/var/folders/90/gx6vt2cs24359rhsb7rwy1x40000gn/T/nim_plotly/nim_plotly_2022-07-05_22-28-09.011.html</samp></pre>
+p.show()</code></pre><pre><samp>/var/folders/90/gx6vt2cs24359rhsb7rwy1x40000gn/T/nim_plotly/nim_plotly_2022-07-12_08-24-49.778.html</samp></pre>
 <p>the above creates a temporary html file and opens it in the browser.</p>
 <p>This is the source of the html file:</p>
 <pre><code class="language-html">&lt;!DOCTYPE html&gt;
@@ -192,7 +192,7 @@ nb.usePlotly
           $plot.layout
       <span class="hljs-keyword">else</span>:
         <span class="hljs-string">&quot;{}&quot;</span></code></pre>
-<p>Note that above I remove the call to relayout (I am fixing the width to be smaller than in original example)
+<p>Note that above I removed the call to relayout (I am fixing the width to be smaller than in original example)
 and I am not currently showing the code that produces the plot below (see source code).</p>
 <div id="plot-0"></div>
 <script>
@@ -389,7 +389,7 @@ nbCode:
             $plot.layout
         <span class="hljs-keyword">else</span>:
           <span class="hljs-string">&quot;{}&quot;</span>
-nbText: <span class="hljs-string">&quot;&quot;&quot;Note that above I remove the call to relayout (I am fixing the width to be smaller than in original example)
+nbText: <span class="hljs-string">&quot;&quot;&quot;Note that above I removed the call to relayout (I am fixing the width to be smaller than in original example)
 and I am not currently showing the code that produces the plot below (see source code).
 &quot;&quot;&quot;</span>
 nbPlotly(p):

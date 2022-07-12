@@ -178,7 +178,7 @@ nbCode:
             $plot.layout
         else:
           "{}"
-nbText: """Note that above I remove the call to relayout (I am fixing the width to be smaller than in original example)
+nbText: """Note that above I removed the call to relayout (I am fixing the width to be smaller than in original example)
 and I am not currently showing the code that produces the plot below (see source code).
 """
 nbPlotly(p):
