@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html lang="en-us">
+<head>
+  <title>drafts/city_in_a_bottle.nim</title>
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2280%22>🐳</text></svg>">
+  <meta content="text/html; charset=utf-8" http-equiv="content-type">
+  <meta content="width=device-width, initial-scale=1" name="viewport">
+  <link rel='stylesheet' href='https://unpkg.com/normalize.css/'>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/kognise/water.css@latest/dist/light.min.css">
+  <link rel='stylesheet' href='https://cdn.jsdelivr.net/gh/pietroppeter/nimib/assets/atom-one-light.css'>
+  <style>
+.nb-box {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+.nb-small {
+  font-size: 0.8rem;
+}
+button.nb-small {
+  float: right;
+  padding: 2px;
+  padding-right: 5px;
+  padding-left: 5px;
+}
+section#source {
+  display:none
+}
+</style>
+  
+  <script async defer data-domain="pietroppeter.github.io/nblog" src="https://plausible.io/js/plausible.js"></script>
+</head>
+<body>
+<header>
+<div class="nb-box">
+  <span><a href="..">🏡</a></span>
+  <span><code>drafts/city_in_a_bottle.nim</code></span>
+  <span><a href="https://github.com/pietroppeter/nblog"><svg aria-hidden="true" width="1.2em" height="1.2em" style="vertical-align: middle;" preserveAspectRatio="xMidYMid meet" viewBox="0 0 16 16"><path fill-rule="evenodd" d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59c.4.07.55-.17.55-.38c0-.19-.01-.82-.01-1.49c-2.01.37-2.53-.49-2.69-.94c-.09-.23-.48-.94-.82-1.13c-.28-.15-.68-.52-.01-.53c.63-.01 1.08.58 1.23.82c.72 1.21 1.87.87 2.33.66c.07-.52.28-.87.51-1.07c-1.78-.2-3.64-.89-3.64-3.95c0-.87.31-1.59.82-2.15c-.08-.2-.36-1.02.08-2.12c0 0 .67-.21 2.2.82c.64-.18 1.32-.27 2-.27c.68 0 1.36.09 2 .27c1.53-1.04 2.2-.82 2.2-.82c.44 1.1.16 1.92.08 2.12c.51.56.82 1.27.82 2.15c0 3.07-1.87 3.75-3.65 3.95c.29.25.54.73.54 1.48c0 1.07-.01 1.93-.01 2.2c0 .21.15.46.55.38A8.013 8.013 0 0 0 16 8c0-4.42-3.58-8-8-8z" fill="#000"></path></svg></a></span>
+</div>
+<hr>
+</header><main>
+<h1>City in a bottle</h1>
+<blockquote>
+<p>example of usage of <code>nbRawOutput</code></p>
+</blockquote>
+<p>How do I embed a tweet like <a href="https://twitter.com/killedbyapixel/status/1517294627996545024">this great tweet</a> in nimib?</p>
+<p>Easy! Just go in the top right corner of the tweet (⋮), click on &quot;Embed Tweet&quot;, copy the code
+and use <code>nbRawOutput</code> (see source by clicking &quot;Show Source&quot; button below)</p>
+<blockquote class="twitter-tweet"><p lang="en" dir="ltr">A City in a Bottle 🌆<br><br>&lt;canvas style=width:99% id=c onclick=setInterval(&#39;for(c.width=w=99,++t,i=6e3;i--;c.getContext`2d`.fillRect(i%w,i/w|0,1-d*Z/w+s,1))for(a=i%w/50-1,s=b=1-i/4e3,X=t,Y=Z=d=1;++Z&lt;w&amp;(Y&lt;6-(32&lt;Z&amp;27&lt;X%w&amp;&amp;X/9^Z/8)*8%46||d|(s=(X&amp;Y&amp;Z)%3/Z,a=b=1,d=Z/w));Y-=b)X+=a&#39;,t=9)&gt; <a href="https://t.co/N3WElPqtMY">pic.twitter.com/N3WElPqtMY</a></p>&mdash; Frank Force 🌻 (@KilledByAPixel) <a href="https://twitter.com/KilledByAPixel/status/1517294627996545024?ref_src=twsrc%5Etfw">April 22, 2022</a></blockquote> <script async src="https://platform.twitter.com/widgets.js" charset="utf-8"></script>
+<p>And we can use <code>nbRawOutput</code> also to visualize the canvas code. The only adjustment I made is to add a solid border. Click inside to start the animation.</p>
+<canvas style="width:99%; border:1px solid #000000;" id=c onclick=setInterval('for(c.width=w=99,++t,i=6e3;i--;c.getContext`2d`.fillRect(i%w,i/w|0,1-d*Z/w+s,1))for(a=i%w/50-1,s=b=1-i/4e3,X=t,Y=Z=d=1;++Z<w&(Y<6-(32<Z&27<X%w&&X/9^Z/8)*8%46||d|(s=(X&Y&Z)%3/Z,a=b=1,d=Z/w));Y-=b)X+=a',t=9)></canvas>
+<p>Not sure why, but after you click a big white vertical area is created.</p>
+<p>Anyhoo, enjoy another tweet that links to a great Observable document that explains the code
+(I guess that now we should be able to reproduce that observable document in nimib...):</p>
+<blockquote class="twitter-tweet"><p lang="en" dir="ltr">If you&#39;d like to learn how the code works, I recommend checking out this amazing breakdown by <a href="https://twitter.com/DanielDarabos?ref_src=twsrc%5Etfw">@DanielDarabos</a> that reorganizes and comments the code and provides controls to play with it.<a href="https://t.co/SVtC0yF0gJ">https://t.co/SVtC0yF0gJ</a></p>&mdash; Frank Force 🌻 (@KilledByAPixel) <a href="https://twitter.com/KilledByAPixel/status/1529838360235220992?ref_src=twsrc%5Etfw">May 26, 2022</a></blockquote> <script async src="https://platform.twitter.com/widgets.js" charset="utf-8"></script>
+<p>And actually this content was inspired by the following tweet exchange that brought back in my timeline the amazing city in a bottle:</p>
+<blockquote class="twitter-tweet"><p lang="en" dir="ltr">It has its limits! I tried running <a href="https://twitter.com/KilledByAPixel?ref_src=twsrc%5Etfw">@KilledByAPixel</a>&#39;s amazing City in a Bottle tweet-length shader through it, and GPT-3 replied with the equivalent of a ¯\_(ツ)_/¯ <a href="https://t.co/n1c4oNEwNC">https://t.co/n1c4oNEwNC</a> <a href="https://t.co/FeYixu7JS6">pic.twitter.com/FeYixu7JS6</a></p>&mdash; Andy Baio (@waxpancake) <a href="https://twitter.com/waxpancake/status/1546634381183164416?ref_src=twsrc%5Etfw">July 11, 2022</a></blockquote> <script async src="https://platform.twitter.com/widgets.js" charset="utf-8"></script>
+<p>Do I like Twitter? Oh, boy...</p>
+<blockquote class="twitter-tweet"><p lang="en" dir="ltr">Oh, boy! West Coast, <a href="https://twitter.com/hashtag/YoungSheldon?src=hash&amp;ref_src=twsrc%5Etfw">#YoungSheldon</a> starts now! <a href="https://t.co/bpSn7NySME">pic.twitter.com/bpSn7NySME</a></p>&mdash; Young Sheldon (@YoungSheldon) <a href="https://twitter.com/YoungSheldon/status/1081045053798273024?ref_src=twsrc%5Etfw">January 4, 2019</a></blockquote> <script async src="https://platform.twitter.com/widgets.js" charset="utf-8"></script>
+</main>
+<footer>
+<hr>
+<div class="nb-box">
+  <span><span class="nb-small">made with <a href="https://pietroppeter.github.io/nimib/">nimib 🐳</a></span></span>
+  <span></span>
+  <span><button class="nb-small" id="show" onclick="toggleSourceDisplay()">Show Source</button></span>
+</div>
+</footer>
+<section id="source">
+<pre><code class="nim hljs"><span class="hljs-keyword">import</span> nimib
+
+nbInit
+
+nbText: <span class="hljs-string">&quot;&quot;&quot;# City in a bottle
+&gt; example of usage of `nbRawOutput`
+
+How do I embed a tweet like [this great tweet](https://twitter.com/killedbyapixel/status/1517294627996545024) in nimib?
+
+Easy! Just go in the top right corner of the tweet (⋮), click on &quot;Embed Tweet&quot;, copy the code
+and use `nbRawOutput` (see source by clicking &quot;Show Source&quot; button below)
+&quot;&quot;&quot;</span>
+nbRawOutput: <span class="hljs-string">&quot;&quot;&quot;&lt;blockquote class=&quot;twitter-tweet&quot;&gt;&lt;p lang=&quot;en&quot; dir=&quot;ltr&quot;&gt;A City in a Bottle 🌆&lt;br&gt;&lt;br&gt;&amp;lt;canvas style=width:99% id=c onclick=setInterval(&amp;#39;for(c.width=w=99,++t,i=6e3;i--;c.getContext`2d`.fillRect(i%w,i/w|0,1-d*Z/w+s,1))for(a=i%w/50-1,s=b=1-i/4e3,X=t,Y=Z=d=1;++Z&amp;lt;w&amp;amp;(Y&amp;lt;6-(32&amp;lt;Z&amp;amp;27&amp;lt;X%w&amp;amp;&amp;amp;X/9^Z/8)*8%46||d|(s=(X&amp;amp;Y&amp;amp;Z)%3/Z,a=b=1,d=Z/w));Y-=b)X+=a&amp;#39;,t=9)&amp;gt; &lt;a href=&quot;https://t.co/N3WElPqtMY&quot;&gt;pic.twitter.com/N3WElPqtMY&lt;/a&gt;&lt;/p&gt;&amp;mdash; Frank Force 🌻 (@KilledByAPixel) &lt;a href=&quot;https://twitter.com/KilledByAPixel/status/1517294627996545024?ref_src=twsrc%5Etfw&quot;&gt;April 22, 2022&lt;/a&gt;&lt;/blockquote&gt; &lt;script async src=&quot;https://platform.twitter.com/widgets.js&quot; charset=&quot;utf-8&quot;&gt;&lt;/script&gt;&quot;&quot;&quot;</span>
+
+nbText: <span class="hljs-string">&quot;And we can use `nbRawOutput` also to visualize the canvas code. The only adjustment I made is to add a solid border. Click inside to start the animation.&quot;</span>
+nbRawOutput: <span class="hljs-string">&quot;&quot;&quot;&lt;canvas style=&quot;width:99%; border:1px solid #000000;&quot; id=c onclick=setInterval('for(c.width=w=99,++t,i=6e3;i--;c.getContext`2d`.fillRect(i%w,i/w|0,1-d*Z/w+s,1))for(a=i%w/50-1,s=b=1-i/4e3,X=t,Y=Z=d=1;++Z&lt;w&amp;(Y&lt;6-(32&lt;Z&amp;27&lt;X%w&amp;&amp;X/9^Z/8)*8%46||d|(s=(X&amp;Y&amp;Z)%3/Z,a=b=1,d=Z/w));Y-=b)X+=a',t=9)&gt;&lt;/canvas&gt;&quot;&quot;&quot;</span>
+
+nbText: <span class="hljs-string">&quot;&quot;&quot;Not sure why, but after you click a big white vertical area is created.
+
+Anyhoo, enjoy another tweet that links to a great Observable document that explains the code
+(I guess that now we should be able to reproduce that observable document in nimib...):
+&quot;&quot;&quot;</span>
+nbRawOutput: <span class="hljs-string">&quot;&quot;&quot;&lt;blockquote class=&quot;twitter-tweet&quot;&gt;&lt;p lang=&quot;en&quot; dir=&quot;ltr&quot;&gt;If you&amp;#39;d like to learn how the code works, I recommend checking out this amazing breakdown by &lt;a href=&quot;https://twitter.com/DanielDarabos?ref_src=twsrc%5Etfw&quot;&gt;@DanielDarabos&lt;/a&gt; that reorganizes and comments the code and provides controls to play with it.&lt;a href=&quot;https://t.co/SVtC0yF0gJ&quot;&gt;https://t.co/SVtC0yF0gJ&lt;/a&gt;&lt;/p&gt;&amp;mdash; Frank Force 🌻 (@KilledByAPixel) &lt;a href=&quot;https://twitter.com/KilledByAPixel/status/1529838360235220992?ref_src=twsrc%5Etfw&quot;&gt;May 26, 2022&lt;/a&gt;&lt;/blockquote&gt; &lt;script async src=&quot;https://platform.twitter.com/widgets.js&quot; charset=&quot;utf-8&quot;&gt;&lt;/script&gt;&quot;&quot;&quot;</span>
+
+nbText: <span class="hljs-string">&quot;And actually this content was inspired by the following tweet exchange that brought back in my timeline the amazing city in a bottle:&quot;</span>
+nbRawOutput: <span class="hljs-string">&quot;&quot;&quot;&lt;blockquote class=&quot;twitter-tweet&quot;&gt;&lt;p lang=&quot;en&quot; dir=&quot;ltr&quot;&gt;It has its limits! I tried running &lt;a href=&quot;https://twitter.com/KilledByAPixel?ref_src=twsrc%5Etfw&quot;&gt;@KilledByAPixel&lt;/a&gt;&amp;#39;s amazing City in a Bottle tweet-length shader through it, and GPT-3 replied with the equivalent of a ¯\_(ツ)_/¯ &lt;a href=&quot;https://t.co/n1c4oNEwNC&quot;&gt;https://t.co/n1c4oNEwNC&lt;/a&gt; &lt;a href=&quot;https://t.co/FeYixu7JS6&quot;&gt;pic.twitter.com/FeYixu7JS6&lt;/a&gt;&lt;/p&gt;&amp;mdash; Andy Baio (@waxpancake) &lt;a href=&quot;https://twitter.com/waxpancake/status/1546634381183164416?ref_src=twsrc%5Etfw&quot;&gt;July 11, 2022&lt;/a&gt;&lt;/blockquote&gt; &lt;script async src=&quot;https://platform.twitter.com/widgets.js&quot; charset=&quot;utf-8&quot;&gt;&lt;/script&gt;&quot;&quot;&quot;</span>
+
+nbText: <span class="hljs-string">&quot;Do I like Twitter? Oh, boy...&quot;</span>
+nbRawOutput: <span class="hljs-string">&quot;&quot;&quot;&lt;blockquote class=&quot;twitter-tweet&quot;&gt;&lt;p lang=&quot;en&quot; dir=&quot;ltr&quot;&gt;Oh, boy! West Coast, &lt;a href=&quot;https://twitter.com/hashtag/YoungSheldon?src=hash&amp;amp;ref_src=twsrc%5Etfw&quot;&gt;#YoungSheldon&lt;/a&gt; starts now! &lt;a href=&quot;https://t.co/bpSn7NySME&quot;&gt;pic.twitter.com/bpSn7NySME&lt;/a&gt;&lt;/p&gt;&amp;mdash; Young Sheldon (@YoungSheldon) &lt;a href=&quot;https://twitter.com/YoungSheldon/status/1081045053798273024?ref_src=twsrc%5Etfw&quot;&gt;January 4, 2019&lt;/a&gt;&lt;/blockquote&gt; &lt;script async src=&quot;https://platform.twitter.com/widgets.js&quot; charset=&quot;utf-8&quot;&gt;&lt;/script&gt;&quot;&quot;&quot;</span>
+
+nbSave</code></pre>
+</section><script>
+function toggleSourceDisplay() {
+  var btn = document.getElementById("show")
+  var source = document.getElementById("source");
+  if (btn.innerHTML=="Show Source") {
+    btn.innerHTML = "Hide Source";
+    source.style.display = "block";
+  } else {
+    btn.innerHTML = "Show Source";
+    source.style.display = "none";
+  }
+}
+</script></body>
+</html>
