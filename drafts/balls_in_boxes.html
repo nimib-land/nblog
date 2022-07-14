@@ -1,0 +1,213 @@
+<!DOCTYPE html>
+<html lang="en-us">
+<head>
+  <title>drafts/balls_in_boxes.nim</title>
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2280%22>🐳</text></svg>">
+  <meta content="text/html; charset=utf-8" http-equiv="content-type">
+  <meta content="width=device-width, initial-scale=1" name="viewport">
+  <link rel='stylesheet' href='https://unpkg.com/normalize.css/'>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/kognise/water.css@latest/dist/light.min.css">
+  <link rel='stylesheet' href='https://cdn.jsdelivr.net/gh/pietroppeter/nimib/assets/atom-one-light.css'>
+  <style>
+.nb-box {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+.nb-small {
+  font-size: 0.8rem;
+}
+button.nb-small {
+  float: right;
+  padding: 2px;
+  padding-right: 5px;
+  padding-left: 5px;
+}
+section#source {
+  display:none
+}
+</style>
+  
+  <script async defer data-domain="pietroppeter.github.io/nblog" src="https://plausible.io/js/plausible.js"></script>
+</head>
+<body>
+<header>
+<div class="nb-box">
+  <span><a href="..">🏡</a></span>
+  <span><code>drafts/balls_in_boxes.nim</code></span>
+  <span><a href="https://github.com/pietroppeter/nblog"><svg aria-hidden="true" width="1.2em" height="1.2em" style="vertical-align: middle;" preserveAspectRatio="xMidYMid meet" viewBox="0 0 16 16"><path fill-rule="evenodd" d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59c.4.07.55-.17.55-.38c0-.19-.01-.82-.01-1.49c-2.01.37-2.53-.49-2.69-.94c-.09-.23-.48-.94-.82-1.13c-.28-.15-.68-.52-.01-.53c.63-.01 1.08.58 1.23.82c.72 1.21 1.87.87 2.33.66c.07-.52.28-.87.51-1.07c-1.78-.2-3.64-.89-3.64-3.95c0-.87.31-1.59.82-2.15c-.08-.2-.36-1.02.08-2.12c0 0 .67-.21 2.2.82c.64-.18 1.32-.27 2-.27c.68 0 1.36.09 2 .27c1.53-1.04 2.2-.82 2.2-.82c.44 1.1.16 1.92.08 2.12c.51.56.82 1.27.82 2.15c0 3.07-1.87 3.75-3.65 3.95c.29.25.54.73.54 1.48c0 1.07-.01 1.93-.01 2.2c0 .21.15.46.55.38A8.013 8.013 0 0 0 16 8c0-4.42-3.58-8-8-8z" fill="#000"></path></svg></a></span>
+</div>
+<hr>
+</header><main>
+<h1>Splitting the terminal aka balls in boxes</h1>
+<p>[@WillMcGugan] nerd sniped me and I had to take a fast lunch break to
+solve his terminal splitting problem:</p>
+<p>To solve it I need to implement a function like this:</p>
+<pre><code class="nim hljs"><span class="hljs-keyword">func</span> splitScreen(nChars, nSplits: <span class="hljs-built_in">int</span>): <span class="hljs-built_in">seq</span>[<span class="hljs-built_in">int</span>] =
+  <span class="hljs-comment">## Given a terminal of nChars that must be split in nSplits equal parts,</span>
+  <span class="hljs-comment">## return the size of the equal parts</span>
+  <span class="hljs-keyword">discard</span></code></pre>
+<p>The function proposed by Will, translated in Nim would be</p>
+<pre><code class="nim hljs"><span class="hljs-keyword">func</span> splitScreenNaive(nChars, nSplits: <span class="hljs-built_in">int</span>): <span class="hljs-built_in">seq</span>[<span class="hljs-built_in">int</span>] =
+  <span class="hljs-keyword">let</span> nTh = nChars <span class="hljs-keyword">div</span> nSplits
+  <span class="hljs-literal">result</span> = collect(newSeq): <span class="hljs-comment"># collect is nim equivalent of python list comprehension</span>
+    <span class="hljs-keyword">for</span> _ <span class="hljs-keyword">in</span> <span class="hljs-number">1</span> .. nSplits:  <span class="hljs-comment"># it does not bother to be a one liner, but it can do more than &lt;expr&gt; &lt;for_expr&gt; &lt;if_expr&gt;</span>
+      nTh</code></pre>
+<p>and I have decided to separate the rendering part of the problem</p>
+<pre><code class="nim hljs"><span class="hljs-keyword">type</span> <span class="hljs-type">SplitFunc</span> = (<span class="hljs-built_in">int</span>, <span class="hljs-built_in">int</span>) -&gt; <span class="hljs-built_in">seq</span>[<span class="hljs-built_in">int</span>]
+<span class="hljs-keyword">proc</span> render(f: <span class="hljs-type">SplitFunc</span>, nChars, nSplits: <span class="hljs-built_in">int</span>; palette=<span class="hljs-string">&quot;xyz&quot;</span>): <span class="hljs-built_in">string</span> =
+  <span class="hljs-keyword">var</span> i = <span class="hljs-number">0</span>
+  <span class="hljs-keyword">for</span> w <span class="hljs-keyword">in</span> f(nChars, nSplits):
+    <span class="hljs-keyword">for</span> _ <span class="hljs-keyword">in</span> <span class="hljs-number">1</span> .. w:
+      <span class="hljs-literal">result</span>.add palette[i <span class="hljs-keyword">mod</span> palette.len]
+    inc i
+
+<span class="hljs-keyword">echo</span> splitScreenNaive.render(<span class="hljs-number">80</span>, <span class="hljs-number">3</span>)
+<span class="hljs-keyword">echo</span> sum splitScreenNaive(<span class="hljs-number">80</span>, <span class="hljs-number">3</span>)</code></pre><pre><samp>xxxxxxxxxxxxxxxxxxxxxxxxxxyyyyyyyyyyyyyyyyyyyyyyyyyyzzzzzzzzzzzzzzzzzzzzzzzzzz
+78</samp></pre>
+<p>the problem is
+that <code>splitScreenNaive</code> does not sum to 80 (or <code>nChars</code>) unless <code>nSplits</code> divides <code>nChars</code>!</p>
+<p>I did run into a variation of this problem in my work that I call <strong>balls in boxes</strong>,
+but before telling you my solution, I want to create a interactive widget that will
+allow you to experiment with the solution.</p>
+<p>For this I am using latest nimib release (0.3) and nim's karax reactive framework.
+And I am not writting any Javascript. The code is as follows.</p>
+<pre><code class="nim hljs"><span class="hljs-keyword">template</span> splitWidget(splitFunc: <span class="hljs-type">SplitFunc</span>) =
+  nbKaraxCode:
+    <span class="hljs-keyword">var</span>
+      nChars, nSplits: <span class="hljs-built_in">int</span> 
+      palette = <span class="hljs-string">&quot;xyz&quot;</span>
+    
+    <span class="hljs-keyword">let</span>
+      idInputChars = <span class="hljs-string">&quot;idInputChars&quot;</span>
+      idInputSplits = <span class="hljs-string">&quot;idInputSplits&quot;</span>
+      idPalette = <span class="hljs-string">&quot;idPalette&quot;</span>
+      idButton = <span class="hljs-string">&quot;idButton&quot;</span>
+      idOutput = <span class="hljs-string">&quot;idOutput&quot;</span>
+
+    karaxHtml:
+      label:
+        text <span class="hljs-string">&quot;Number of characters&quot;</span>
+      input(`<span class="hljs-keyword">type</span>`=<span class="hljs-string">&quot;range&quot;</span>, min=<span class="hljs-string">&quot;20&quot;</span>, max=<span class="hljs-string">&quot;120&quot;</span>, value=<span class="hljs-string">&quot;80&quot;</span>, id=idInputChars):
+        <span class="hljs-keyword">proc</span> oninput() =
+          nChars = parseInt getVNodeById(idInputChars).getInputText
+      label:
+        text <span class="hljs-string">&quot;Number of splits&quot;</span>
+      input(`<span class="hljs-keyword">type</span>`=<span class="hljs-string">&quot;range&quot;</span>, min=<span class="hljs-string">&quot;2&quot;</span>, max=<span class="hljs-string">&quot;12&quot;</span>, value=<span class="hljs-string">&quot;3&quot;</span>, id=idInputSplits):
+        <span class="hljs-keyword">proc</span> oninput() =
+          nChars = parseInt getVNodeById(idInputSplits).getInputText
+      button(id=idButton):
+        text <span class="hljs-string">&quot;Split and render&quot;</span>
+        <span class="hljs-keyword">proc</span> onClick() =
+          getVNodeById(idOutput).setInputText splitFunc.render(nChars, nSplits, palette)
+      hr()
+      p(id=idOutput)</code></pre>
+</main>
+<footer>
+<hr>
+<div class="nb-box">
+  <span><span class="nb-small">made with <a href="https://pietroppeter.github.io/nimib/">nimib 🐳</a></span></span>
+  <span></span>
+  <span><button class="nb-small" id="show" onclick="toggleSourceDisplay()">Show Source</button></span>
+</div>
+</footer>
+<section id="source">
+<pre><code class="nim hljs"><span class="hljs-keyword">import</span> nimib
+<span class="hljs-keyword">import</span> sugar, math, strutils
+
+nbInit
+
+<span class="hljs-comment"># add image of xkcd nerd snipe</span>
+
+nbText: <span class="hljs-string">&quot;&quot;&quot;# Splitting the terminal aka balls in boxes
+
+[@WillMcGugan] nerd sniped me and I had to take a fast lunch break to
+solve his terminal splitting problem:
+&quot;&quot;&quot;</span>
+<span class="hljs-comment"># embed tweet</span>
+<span class="hljs-comment"># add nbPython with python code</span>
+nbText: <span class="hljs-string">&quot;&quot;&quot;
+To solve it I need to implement a function like this:
+&quot;&quot;&quot;</span>
+nbCodeInBlock:
+  <span class="hljs-keyword">func</span> splitScreen(nChars, nSplits: <span class="hljs-built_in">int</span>): <span class="hljs-built_in">seq</span>[<span class="hljs-built_in">int</span>] =
+    <span class="hljs-comment">## Given a terminal of nChars that must be split in nSplits equal parts,</span>
+    <span class="hljs-comment">## return the size of the equal parts</span>
+    <span class="hljs-keyword">discard</span>
+nbText: <span class="hljs-string">&quot;The function proposed by Will, translated in Nim would be&quot;</span>
+nbCode:
+  <span class="hljs-keyword">func</span> splitScreenNaive(nChars, nSplits: <span class="hljs-built_in">int</span>): <span class="hljs-built_in">seq</span>[<span class="hljs-built_in">int</span>] =
+    <span class="hljs-keyword">let</span> nTh = nChars <span class="hljs-keyword">div</span> nSplits
+    <span class="hljs-literal">result</span> = collect(newSeq): <span class="hljs-comment"># collect is nim equivalent of python list comprehension</span>
+      <span class="hljs-keyword">for</span> _ <span class="hljs-keyword">in</span> <span class="hljs-number">1</span> .. nSplits:  <span class="hljs-comment"># it does not bother to be a one liner, but it can do more than &lt;expr&gt; &lt;for_expr&gt; &lt;if_expr&gt;</span>
+        nTh
+
+nbText: <span class="hljs-string">&quot;and I have decided to separate the rendering part of the problem&quot;</span>
+nbCode:
+  <span class="hljs-keyword">type</span> <span class="hljs-type">SplitFunc</span> = (<span class="hljs-built_in">int</span>, <span class="hljs-built_in">int</span>) -&gt; <span class="hljs-built_in">seq</span>[<span class="hljs-built_in">int</span>]
+  <span class="hljs-keyword">proc</span> render(f: <span class="hljs-type">SplitFunc</span>, nChars, nSplits: <span class="hljs-built_in">int</span>; palette=<span class="hljs-string">&quot;xyz&quot;</span>): <span class="hljs-built_in">string</span> =
+    <span class="hljs-keyword">var</span> i = <span class="hljs-number">0</span>
+    <span class="hljs-keyword">for</span> w <span class="hljs-keyword">in</span> f(nChars, nSplits):
+      <span class="hljs-keyword">for</span> _ <span class="hljs-keyword">in</span> <span class="hljs-number">1</span> .. w:
+        <span class="hljs-literal">result</span>.add palette[i <span class="hljs-keyword">mod</span> palette.len]
+      inc i
+  
+  <span class="hljs-keyword">echo</span> splitScreenNaive.render(<span class="hljs-number">80</span>, <span class="hljs-number">3</span>)
+  <span class="hljs-keyword">echo</span> sum splitScreenNaive(<span class="hljs-number">80</span>, <span class="hljs-number">3</span>)
+nbText: <span class="hljs-string">&quot;&quot;&quot;the problem is
+that `splitScreenNaive` does not sum to 80 (or `nChars`) unless `nSplits` divides `nChars`!
+
+I did run into a variation of this problem in my work that I call **balls in boxes**,
+but before telling you my solution, I want to create a interactive widget that will
+allow you to experiment with the solution.
+
+For this I am using latest nimib release (0.3) and nim's karax reactive framework.
+And I am not writting any Javascript. The code is as follows.
+&quot;&quot;&quot;</span>
+nbCode:
+  <span class="hljs-keyword">template</span> splitWidget(splitFunc: <span class="hljs-type">SplitFunc</span>) =
+    nbKaraxCode:
+      <span class="hljs-keyword">var</span>
+        nChars, nSplits: <span class="hljs-built_in">int</span> 
+        palette = <span class="hljs-string">&quot;xyz&quot;</span>
+      
+      <span class="hljs-keyword">let</span>
+        idInputChars = <span class="hljs-string">&quot;idInputChars&quot;</span>
+        idInputSplits = <span class="hljs-string">&quot;idInputSplits&quot;</span>
+        idPalette = <span class="hljs-string">&quot;idPalette&quot;</span>
+        idButton = <span class="hljs-string">&quot;idButton&quot;</span>
+        idOutput = <span class="hljs-string">&quot;idOutput&quot;</span>
+
+      karaxHtml:
+        label:
+          text <span class="hljs-string">&quot;Number of characters&quot;</span>
+        input(`<span class="hljs-keyword">type</span>`=<span class="hljs-string">&quot;range&quot;</span>, min=<span class="hljs-string">&quot;20&quot;</span>, max=<span class="hljs-string">&quot;120&quot;</span>, value=<span class="hljs-string">&quot;80&quot;</span>, id=idInputChars):
+          <span class="hljs-keyword">proc</span> oninput() =
+            nChars = parseInt getVNodeById(idInputChars).getInputText
+        label:
+          text <span class="hljs-string">&quot;Number of splits&quot;</span>
+        input(`<span class="hljs-keyword">type</span>`=<span class="hljs-string">&quot;range&quot;</span>, min=<span class="hljs-string">&quot;2&quot;</span>, max=<span class="hljs-string">&quot;12&quot;</span>, value=<span class="hljs-string">&quot;3&quot;</span>, id=idInputSplits):
+          <span class="hljs-keyword">proc</span> oninput() =
+            nChars = parseInt getVNodeById(idInputSplits).getInputText
+        button(id=idButton):
+          text <span class="hljs-string">&quot;Split and render&quot;</span>
+          <span class="hljs-keyword">proc</span> onClick() =
+            getVNodeById(idOutput).setInputText splitFunc.render(nChars, nSplits, palette)
+        hr()
+        p(id=idOutput)
+
+nbSave</code></pre>
+</section><script>
+function toggleSourceDisplay() {
+  var btn = document.getElementById("show")
+  var source = document.getElementById("source");
+  if (btn.innerHTML=="Show Source") {
+    btn.innerHTML = "Hide Source";
+    source.style.display = "block";
+  } else {
+    btn.innerHTML = "Show Source";
+    source.style.display = "none";
+  }
+}
+</script></body>
+</html>
