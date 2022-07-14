@@ -51,16 +51,33 @@ For this I am using latest nimib release (0.3) and nim's karax reactive framewor
 And I am not writting any Javascript. The code is as follows.
 """
 nbCode:
-  template splitWidget(splitFunc: SplitFunc) =
+  template splitWidget =
     nbKaraxCode:
+      import sugar, math, strutils
+
+      func splitFunc(nChars, nSplits: int): seq[int] =
+        let nTh = nChars div nSplits
+        result = collect(newSeq): # collect is nim equivalent of python list comprehension
+          for x in 1 .. nSplits:  # it does not bother to be a one liner, but it can do more than <expr> <for_expr> <if_expr>
+            nTh
+
+      type SplitFunc = (int, int) -> seq[int]
+      proc render(f: SplitFunc, nChars, nSplits: int; palette="xyz"): string =
+        var i = 0
+        for w in f(nChars, nSplits):
+          for x in 1 .. w:
+            result.add palette[i mod palette.len]
+          inc i
+
       var
-        nChars, nSplits: int 
+        nChars = 80
+        nSplits = 3
+        splitOutput = "output here"
       
       let
         idInputChars = "idInputChars"
         idInputSplits = "idInputSplits"
         idButton = "idButton"
-        idOutput = "idOutput"
 
       karaxHtml:
         label:
@@ -68,18 +85,23 @@ nbCode:
         input(`type`="range", min="20", max="120", value="80", id=idInputChars):
           proc oninput() =
             nChars = parseInt getVNodeById(idInputChars).getInputText
+            dump nChars
         label:
           text "Number of splits"
         input(`type`="range", min="2", max="12", value="3", id=idInputSplits):
           proc oninput() =
-            nChars = parseInt getVNodeById(idInputSplits).getInputText
+            nSplits = parseInt getVNodeById(idInputSplits).getInputText
+            dump nSplits
         button(id=idButton):
           text "Split and render"
           proc onClick() =
-            getVNodeById(idOutput).setInputText splitFunc.render(nChars, nSplits)
+            dump splitOutput
+            splitOutput = splitFunc.render(nChars, nSplits)
+            dump splitOutput
         hr()
-        p(id=idOutput)
+        span:
+          text splitOutput
 
-splitWidget splitScreenNaive
+splitWidget
 
 nbSave
