@@ -55,12 +55,10 @@ nbCode:
     nbKaraxCode:
       var
         nChars, nSplits: int 
-        palette = "xyz"
       
       let
         idInputChars = "idInputChars"
         idInputSplits = "idInputSplits"
-        idPalette = "idPalette"
         idButton = "idButton"
         idOutput = "idOutput"
 
@@ -78,7 +76,7 @@ nbCode:
         button(id=idButton):
           text "Split and render"
           proc onClick() =
-            getVNodeById(idOutput).setInputText splitFunc.render(nChars, nSplits, palette)
+            getVNodeById(idOutput).setInputText splitFunc.render(nChars, nSplits)
         hr()
         p(id=idOutput)
 
