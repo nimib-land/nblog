@@ -1,10 +1,80 @@
 import nimib
 import sugar, math, strutils
 
+#[
+todo:
+  - implement the good splitFunc
+  - a way to show where we add stuff that breaks symmetry
+    - for letters we capitalize the letter
+    - for runes we change somehow the style? underline? change background color to a grey?
+  - allow use of emoji in palette (use Runes!)
+  - template for the inputs
+  - vnode func for the output
+  - move article to another draft (first post is just the app)
+]#
+
 nbInit
 
-# add image of xkcd nerd snipe
+nbKaraxCode:
+  import sugar, math, strutils, strformat
 
+  func splitFunc(nChars, nSplits: int): seq[int] =
+    let nTh = nChars div nSplits
+    result = collect(newSeq): # collect is nim equivalent of python list comprehension
+      for x in 1 .. nSplits:  # it does not bother to be a one liner
+        nTh
+
+  proc render(s: seq[int]; palette: kstring="xyz"): string =
+    var i = 0
+    for w in s:
+      for x in 1 .. w:
+        result.add palette[i mod palette.len]
+      inc i
+
+  var
+    nChars = 80
+    nSplits = 3
+    height = 10
+    palette: kstring = "xyz"
+    splitOutput: seq[int] = @[]
+
+  let
+    idInputChars = "idInputChars"
+    idInputSplits = "idInputSplits"
+    idHeight = "idHeight"
+    idPalette = "idPalette"
+
+  karaxHtml:
+    label:
+      text "Number of characters: " & $nChars
+    input(`type`="range", min="20", max="120", value="80", id=idInputChars):
+      proc oninput() =
+        nChars = parseInt getVNodeById(idInputChars).getInputText
+    label:
+      text "Number of splits: " & $nSplits
+    input(`type`="range", min="2", max="12", value="3", id=idInputSplits):
+      proc oninput() =
+        nSplits = parseInt getVNodeById(idInputSplits).getInputText
+    label:
+      text "Height: " & $height
+    input(`type`="range", min="1", max="20", value="10", id=idHeight):
+      proc oninput() =
+        height = parseInt getVNodeById(idHeight).getInputText
+    label:
+      text "Palette:"
+    input(id=idPalette, value="xyz"):
+      proc oninput() =
+        palette = getVNodeById(idPalette).getInputText
+
+    hr()
+    tdiv:
+      text fmt"{splitFunc(nChars, nSplits)} -> {sum(splitFunc(nChars, nSplits))}"
+    for h in 1 .. height:
+      tdiv:
+        text render(splitFunc(nChars, nSplits), palette=palette)
+    hr()
+
+# add image of xkcd nerd snipe
 nbText: """# Splitting the terminal aka balls in boxes
 
 [@WillMcGugan] nerd sniped me and I had to take a fast lunch break to
@@ -50,58 +120,5 @@ allow you to experiment with the solution.
 For this I am using latest nimib release (0.3) and nim's karax reactive framework.
 And I am not writting any Javascript. The code is as follows.
 """
-nbCode:
-  template splitWidget =
-    nbKaraxCode:
-      import sugar, math, strutils
-
-      func splitFunc(nChars, nSplits: int): seq[int] =
-        let nTh = nChars div nSplits
-        result = collect(newSeq): # collect is nim equivalent of python list comprehension
-          for x in 1 .. nSplits:  # it does not bother to be a one liner, but it can do more than <expr> <for_expr> <if_expr>
-            nTh
-
-      type SplitFunc = (int, int) -> seq[int]
-      proc render(f: SplitFunc, nChars, nSplits: int; palette="xyz"): string =
-        var i = 0
-        for w in f(nChars, nSplits):
-          for x in 1 .. w:
-            result.add palette[i mod palette.len]
-          inc i
-
-      var
-        nChars = 80
-        nSplits = 3
-        splitOutput = "output here"
-      
-      let
-        idInputChars = "idInputChars"
-        idInputSplits = "idInputSplits"
-        idButton = "idButton"
-
-      karaxHtml:
-        label:
-          text "Number of characters"
-        input(`type`="range", min="20", max="120", value="80", id=idInputChars):
-          proc oninput() =
-            nChars = parseInt getVNodeById(idInputChars).getInputText
-            dump nChars
-        label:
-          text "Number of splits"
-        input(`type`="range", min="2", max="12", value="3", id=idInputSplits):
-          proc oninput() =
-            nSplits = parseInt getVNodeById(idInputSplits).getInputText
-            dump nSplits
-        button(id=idButton):
-          text "Split and render"
-          proc onClick() =
-            dump splitOutput
-            splitOutput = splitFunc.render(nChars, nSplits)
-            dump splitOutput
-        hr()
-        span:
-          text splitOutput
-
-splitWidget
 
 nbSave
