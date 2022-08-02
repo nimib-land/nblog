@@ -1,4 +1,4 @@
-import nimib
+import nimib, strformat
 
 nbInit
 nbText: """# A plane curve that looks like a plant
@@ -10,7 +10,7 @@ nbCode:
     t = linspace(0.0, 39.0*Pi*0.5, 1000)
     x = t.map(t => t*cos(t)^3)
     y = t.map(t => 9.0*t*sqrt(abs(cos(t))) + t*sin(0.2*t)*cos(4.0*t))
-    df = toDf(x, y)
+    df = toDf(t, x, y)
   ggplot(df, aes("x", "y")) + geom_line(color="green") + theme_void() + ggsave("trigonometric_plant.png")
 nbClearOutput # to remove output from ggplotnim when saving the png
 nbImage("trigonometric_plant.png")
@@ -26,7 +26,20 @@ nbText: """Note that:
 - `color` goes in `geom_line` and not in `aes` call (oddly enough if I put `color="green"` in `aes` it will plot with a reddish color)
 - I am using `theme_void` to remove axis and grey grid (not sure how to remove just the grey grid without removing axis)
 - see below in source code comments addressing issues when running on windows
+
+It is nice also to see how `x` and `y` look like:
 """
+
+nbCode:
+  ggplot(df, aes("t", "x")) + xlab("t") + ylab("x") + geom_line() + ggsave("trigonometric_plant_x.png")
+nbClearOutput
+nbImage("trigonometric_plant_x.png")
+
+nbCode:
+  ggplot(df, aes("t", "y")) + xlab("t") + ylab("y") + geom_line() + ggsave("trigonometric_plant_y.png")
+nbClearOutput
+nbImage("trigonometric_plant_y.png")
+
 nbSave
 # for windows:
 #   - use -d:nolapack, see https://github.com/Vindaar/ggplotnim/issues/133

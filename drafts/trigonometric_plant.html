@@ -45,7 +45,7 @@ section#source {
   t = linspace(<span class="hljs-number">0.0</span>, <span class="hljs-number">39.0</span>*<span class="hljs-type">Pi</span>*<span class="hljs-number">0.5</span>, <span class="hljs-number">1000</span>)
   x = t.map(t =&gt; t*cos(t)^<span class="hljs-number">3</span>)
   y = t.map(t =&gt; <span class="hljs-number">9.0</span>*t*sqrt(abs(cos(t))) + t*sin(<span class="hljs-number">0.2</span>*t)*cos(<span class="hljs-number">4.0</span>*t))
-  df = toDf(x, y)
+  df = toDf(t, x, y)
 ggplot(df, aes(<span class="hljs-string">&quot;x&quot;</span>, <span class="hljs-string">&quot;y&quot;</span>)) + geom_line(color=<span class="hljs-string">&quot;green&quot;</span>) + theme_void() + ggsave(<span class="hljs-string">&quot;trigonometric_plant.png&quot;</span>)</code></pre>
 <figure>
 <img src="..\trigonometric_plant.png" alt="">
@@ -65,6 +65,17 @@ ggplot(df, aes(<span class="hljs-string">&quot;x&quot;</span>, <span class="hljs
 <li>I am using <code>theme_void</code> to remove axis and grey grid (not sure how to remove just the grey grid without removing axis)</li>
 <li>see below in source code comments addressing issues when running on windows</li>
 </ul>
+<p>It is nice also to see how <code>x</code> and <code>y</code> look like:</p>
+<pre><code class="nim hljs">ggplot(df, aes(<span class="hljs-string">&quot;t&quot;</span>, <span class="hljs-string">&quot;x&quot;</span>)) + xlab(<span class="hljs-string">&quot;t&quot;</span>) + ylab(<span class="hljs-string">&quot;x&quot;</span>) + geom_line() + ggsave(<span class="hljs-string">&quot;trigonometric_plant_x.png&quot;</span>)</code></pre>
+<figure>
+<img src="..\trigonometric_plant_x.png" alt="">
+<figcaption></figcaption>
+</figure>
+<pre><code class="nim hljs">ggplot(df, aes(<span class="hljs-string">&quot;t&quot;</span>, <span class="hljs-string">&quot;y&quot;</span>)) + xlab(<span class="hljs-string">&quot;t&quot;</span>) + ylab(<span class="hljs-string">&quot;y&quot;</span>) + geom_line() + ggsave(<span class="hljs-string">&quot;trigonometric_plant_y.png&quot;</span>)</code></pre>
+<figure>
+<img src="..\trigonometric_plant_y.png" alt="">
+<figcaption></figcaption>
+</figure>
 </main>
 <footer>
 <hr>
@@ -75,7 +86,7 @@ ggplot(df, aes(<span class="hljs-string">&quot;x&quot;</span>, <span class="hljs
 </div>
 </footer>
 <section id="source">
-<pre><code class="nim hljs"><span class="hljs-keyword">import</span> nimib
+<pre><code class="nim hljs"><span class="hljs-keyword">import</span> nimib, strformat
 
 nbInit
 nbText: <span class="hljs-string">&quot;&quot;&quot;# A plane curve that looks like a plant
@@ -87,7 +98,7 @@ nbCode:
     t = linspace(<span class="hljs-number">0.0</span>, <span class="hljs-number">39.0</span>*<span class="hljs-type">Pi</span>*<span class="hljs-number">0.5</span>, <span class="hljs-number">1000</span>)
     x = t.map(t =&gt; t*cos(t)^<span class="hljs-number">3</span>)
     y = t.map(t =&gt; <span class="hljs-number">9.0</span>*t*sqrt(abs(cos(t))) + t*sin(<span class="hljs-number">0.2</span>*t)*cos(<span class="hljs-number">4.0</span>*t))
-    df = toDf(x, y)
+    df = toDf(t, x, y)
   ggplot(df, aes(<span class="hljs-string">&quot;x&quot;</span>, <span class="hljs-string">&quot;y&quot;</span>)) + geom_line(color=<span class="hljs-string">&quot;green&quot;</span>) + theme_void() + ggsave(<span class="hljs-string">&quot;trigonometric_plant.png&quot;</span>)
 nbClearOutput <span class="hljs-comment"># to remove output from ggplotnim when saving the png</span>
 nbImage(<span class="hljs-string">&quot;trigonometric_plant.png&quot;</span>)
@@ -103,7 +114,20 @@ nbText: <span class="hljs-string">&quot;&quot;&quot;Note that:
 - `color` goes in `geom_line` and not in `aes` call (oddly enough if I put `color=&quot;green&quot;` in `aes` it will plot with a reddish color)
 - I am using `theme_void` to remove axis and grey grid (not sure how to remove just the grey grid without removing axis)
 - see below in source code comments addressing issues when running on windows
+
+It is nice also to see how `x` and `y` look like:
 &quot;&quot;&quot;</span>
+
+nbCode:
+  ggplot(df, aes(<span class="hljs-string">&quot;t&quot;</span>, <span class="hljs-string">&quot;x&quot;</span>)) + xlab(<span class="hljs-string">&quot;t&quot;</span>) + ylab(<span class="hljs-string">&quot;x&quot;</span>) + geom_line() + ggsave(<span class="hljs-string">&quot;trigonometric_plant_x.png&quot;</span>)
+nbClearOutput
+nbImage(<span class="hljs-string">&quot;trigonometric_plant_x.png&quot;</span>)
+
+nbCode:
+  ggplot(df, aes(<span class="hljs-string">&quot;t&quot;</span>, <span class="hljs-string">&quot;y&quot;</span>)) + xlab(<span class="hljs-string">&quot;t&quot;</span>) + ylab(<span class="hljs-string">&quot;y&quot;</span>) + geom_line() + ggsave(<span class="hljs-string">&quot;trigonometric_plant_y.png&quot;</span>)
+nbClearOutput
+nbImage(<span class="hljs-string">&quot;trigonometric_plant_y.png&quot;</span>)
+
 nbSave
 <span class="hljs-comment"># for windows:</span>
 <span class="hljs-comment">#   - use -d:nolapack, see https://github.com/Vindaar/ggplotnim/issues/133</span>
