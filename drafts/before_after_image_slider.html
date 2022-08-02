@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html lang="en-us">
+<head>
+  <title>drafts\before_after_image_slider.nim</title>
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2280%22>🐳</text></svg>">
+  <meta content="text/html; charset=utf-8" http-equiv="content-type">
+  <meta content="width=device-width, initial-scale=1" name="viewport">
+  <link rel='stylesheet' href='https://unpkg.com/normalize.css/'>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/kognise/water.css@latest/dist/light.min.css">
+  <link rel='stylesheet' href='https://cdn.jsdelivr.net/gh/pietroppeter/nimib/assets/atom-one-light.css'>
+  <style>
+.nb-box {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+.nb-small {
+  font-size: 0.8rem;
+}
+button.nb-small {
+  float: right;
+  padding: 2px;
+  padding-right: 5px;
+  padding-left: 5px;
+}
+section#source {
+  display:none
+}
+</style>
+  
+  <script async defer data-domain="pietroppeter.github.io/nblog" src="https://plausible.io/js/plausible.js"></script>
+</head>
+<link rel="stylesheet" href="https://cdn.knightlab.com/libs/juxtapose/latest/css/juxtapose.css">
+<body>
+<header>
+<div class="nb-box">
+  <span><a href="..">🏡</a></span>
+  <span><code>drafts\before_after_image_slider.nim</code></span>
+  <span><a href="https://github.com/pietroppeter/nblog"><svg aria-hidden="true" width="1.2em" height="1.2em" style="vertical-align: middle;" preserveAspectRatio="xMidYMid meet" viewBox="0 0 16 16"><path fill-rule="evenodd" d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59c.4.07.55-.17.55-.38c0-.19-.01-.82-.01-1.49c-2.01.37-2.53-.49-2.69-.94c-.09-.23-.48-.94-.82-1.13c-.28-.15-.68-.52-.01-.53c.63-.01 1.08.58 1.23.82c.72 1.21 1.87.87 2.33.66c.07-.52.28-.87.51-1.07c-1.78-.2-3.64-.89-3.64-3.95c0-.87.31-1.59.82-2.15c-.08-.2-.36-1.02.08-2.12c0 0 .67-.21 2.2.82c.64-.18 1.32-.27 2-.27c.68 0 1.36.09 2 .27c1.53-1.04 2.2-.82 2.2-.82c.44 1.1.16 1.92.08 2.12c.51.56.82 1.27.82 2.15c0 3.07-1.87 3.75-3.65 3.95c.29.25.54.73.54 1.48c0 1.07-.01 1.93-.01 2.2c0 .21.15.46.55.38A8.013 8.013 0 0 0 16 8c0-4.42-3.58-8-8-8z" fill="#000"></path></svg></a></span>
+</div>
+<hr>
+</header><main>
+<h1>Before After Image slider</h1>
+<p>July 2022 was for me the month of <em>before after image slider</em>.</p>
+<p>I saw <a href="https://github.com/pietroppeter/nblog/issues/9">a lot of examples</a>
+of it on twitter using jupyter, streamlit, and finally quarto yesterday.</p>
+<p>I think it is finally time to have a short example on how to add a before after image slider
+in nimib using <a href="https://github.com/NUKnightLab/juxtapose">juxtapose</a>:</p>
+<pre><code class="nim hljs"><span class="hljs-keyword">template</span> useJuxtapose(doc: <span class="hljs-keyword">var</span> <span class="hljs-type">NbDoc</span>) =
+  doc.partials[<span class="hljs-string">&quot;head&quot;</span>] &amp;= <span class="hljs-string">&quot;&quot;&quot;
+&lt;link rel=&quot;stylesheet&quot; href=&quot;https://cdn.knightlab.com/libs/juxtapose/latest/css/juxtapose.css&quot;&gt;
+&quot;&quot;&quot;</span>
+  doc.partials[<span class="hljs-string">&quot;main&quot;</span>] &amp;= <span class="hljs-string">&quot;&quot;&quot;
+&lt;script src=&quot;https://cdn.knightlab.com/libs/juxtapose/latest/js/juxtapose.min.js&quot;&gt;&lt;/script&gt;
+&quot;&quot;&quot;</span>
+  doc.partials[<span class="hljs-string">&quot;nbJuxtapose&quot;</span>] = <span class="hljs-string">&quot;&quot;&quot;
+&lt;div class=&quot;juxtapose&quot;&gt;
+    &lt;img src=&quot;{{img1Src}}&quot;&gt;
+    &lt;img src=&quot;{{img2Src}}&quot;&gt;
+&lt;/div&gt;
+&quot;&quot;&quot;</span>
+<span class="hljs-keyword">template</span> nbJuxtapose(img1Src, img2Src: <span class="hljs-built_in">string</span>) =
+  newNbSlimBlock(<span class="hljs-string">&quot;nbJuxtapose&quot;</span>):
+    nb.blk.context[<span class="hljs-string">&quot;img1Src&quot;</span>] = img1Src
+    nb.blk.context[<span class="hljs-string">&quot;img2Src&quot;</span>] = img2Src</code></pre>
+<div class="juxtapose">
+    <img src="rstudio.png">
+    <img src="posit.png">
+</div>
+
+<p>You might have heard indeed that <a href="https://www.rstudio.com/blog/rstudio-is-becoming-posit/">RStudio is becoming Posit</a>.</p>
+<p>I have been following RStudio for a while and I think it is really a great company. They recently (2020)
+incorporated as a Public Benefit Corporation and</p>
+<blockquote>
+<p>Our charter defines our mission as the creation of free and open source software for data science, scientific research, and technical communication.</p>
+</blockquote>
+<p>From the same blog post:</p>
+<blockquote>
+<p>You can expect to see more multilanguage experiments in the future.</p>
+</blockquote>
+<p>Maybe in the future also Nim might find a home in Posit, who knows!</p>
+</main>
+<script src="https://cdn.knightlab.com/libs/juxtapose/latest/js/juxtapose.min.js"></script>
+<footer>
+<hr>
+<div class="nb-box">
+  <span><span class="nb-small">made with <a href="https://pietroppeter.github.io/nimib/">nimib 🐳</a></span></span>
+  <span></span>
+  <span><button class="nb-small" id="show" onclick="toggleSourceDisplay()">Show Source</button></span>
+</div>
+</footer>
+<section id="source">
+<pre><code class="nim hljs"><span class="hljs-keyword">import</span> nimib
+
+nbInit
+nbText: <span class="hljs-string">&quot;&quot;&quot;
+# Before After Image slider
+
+July 2022 was for me the month of _before after image slider_.
+
+I saw [a lot of examples](https://github.com/pietroppeter/nblog/issues/9)
+of it on twitter using jupyter, streamlit, and finally quarto yesterday.
+
+I think it is finally time to have a short example on how to add a before after image slider
+in nimib using [juxtapose](https://github.com/NUKnightLab/juxtapose):
+&quot;&quot;&quot;</span>
+
+nbCode:
+  <span class="hljs-keyword">template</span> useJuxtapose(doc: <span class="hljs-keyword">var</span> <span class="hljs-type">NbDoc</span>) =
+    doc.partials[<span class="hljs-string">&quot;head&quot;</span>] &amp;= <span class="hljs-string">&quot;&quot;&quot;
+&lt;link rel=&quot;stylesheet&quot; href=&quot;https://cdn.knightlab.com/libs/juxtapose/latest/css/juxtapose.css&quot;&gt;
+&quot;&quot;&quot;</span>
+    doc.partials[<span class="hljs-string">&quot;main&quot;</span>] &amp;= <span class="hljs-string">&quot;&quot;&quot;
+&lt;script src=&quot;https://cdn.knightlab.com/libs/juxtapose/latest/js/juxtapose.min.js&quot;&gt;&lt;/script&gt;
+&quot;&quot;&quot;</span>
+    doc.partials[<span class="hljs-string">&quot;nbJuxtapose&quot;</span>] = <span class="hljs-string">&quot;&quot;&quot;
+&lt;div class=&quot;juxtapose&quot;&gt;
+    &lt;img src=&quot;{{img1Src}}&quot;&gt;
+    &lt;img src=&quot;{{img2Src}}&quot;&gt;
+&lt;/div&gt;
+&quot;&quot;&quot;</span>
+  <span class="hljs-keyword">template</span> nbJuxtapose(img1Src, img2Src: <span class="hljs-built_in">string</span>) =
+    newNbSlimBlock(<span class="hljs-string">&quot;nbJuxtapose&quot;</span>):
+      nb.blk.context[<span class="hljs-string">&quot;img1Src&quot;</span>] = img1Src
+      nb.blk.context[<span class="hljs-string">&quot;img2Src&quot;</span>] = img2Src
+
+nb.useJuxtapose
+nbJuxtapose(<span class="hljs-string">&quot;rstudio.png&quot;</span>, <span class="hljs-string">&quot;posit.png&quot;</span>)
+nbText: <span class="hljs-string">&quot;&quot;&quot;You might have heard indeed that [RStudio is becoming Posit](https://www.rstudio.com/blog/rstudio-is-becoming-posit/).
+
+I have been following RStudio for a while and I think it is really a great company. They recently (2020)
+incorporated as a Public Benefit Corporation and
+
+&gt; Our charter defines our mission as the creation of free and open source software for data science, scientific research, and technical communication.
+
+From the same blog post:
+
+&gt; You can expect to see more multilanguage experiments in the future.
+
+Maybe in the future also Nim might find a home in Posit, who knows!
+&quot;&quot;&quot;</span>
+nbSave</code></pre>
+</section><script>
+function toggleSourceDisplay() {
+  var btn = document.getElementById("show")
+  var source = document.getElementById("source");
+  if (btn.innerHTML=="Show Source") {
+    btn.innerHTML = "Hide Source";
+    source.style.display = "block";
+  } else {
+    btn.innerHTML = "Show Source";
+    source.style.display = "none";
+  }
+}
+</script></body>
+</html>
