@@ -17,7 +17,7 @@ I am using the [CDN version of p5js].
 I am wrapping the minimal stuff that I need
 to implement a [bouncing ball] example.
 
-[nimp5]: https://github.com/Foldover/nim-p5
+[nim-p5]: https://github.com/Foldover/nim-p5
 [p5js]: https://p5js.org
 [CDN version of p5js]: https://cdnjs.com/libraries/p5.js
 [bouncing ball]: https://editor.p5js.org/icm/sketches/BJKWv5Tn
@@ -66,4 +66,5 @@ proc draw() {. exportc .} =
     yspeed = -yspeed;
 """
 nbCodeToJsShowSource
+setCurrentDir nb.initDir
 nbSave
