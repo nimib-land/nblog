@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html lang="en-us">
+<head>
+  <title>drafts\trigonometric_plant.nim</title>
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2280%22>🐳</text></svg>">
+  <meta content="text/html; charset=utf-8" http-equiv="content-type">
+  <meta content="width=device-width, initial-scale=1" name="viewport">
+  <link rel='stylesheet' href='https://unpkg.com/normalize.css/'>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/kognise/water.css@latest/dist/light.min.css">
+  <link rel='stylesheet' href='https://cdn.jsdelivr.net/gh/pietroppeter/nimib/assets/atom-one-light.css'>
+  <style>
+.nb-box {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+.nb-small {
+  font-size: 0.8rem;
+}
+button.nb-small {
+  float: right;
+  padding: 2px;
+  padding-right: 5px;
+  padding-left: 5px;
+}
+section#source {
+  display:none
+}
+</style>
+  
+  <script async defer data-domain="pietroppeter.github.io/nblog" src="https://plausible.io/js/plausible.js"></script>
+</head>
+<body>
+<header>
+<div class="nb-box">
+  <span><a href="..">🏡</a></span>
+  <span><code>drafts\trigonometric_plant.nim</code></span>
+  <span><a href="https://github.com/pietroppeter/nblog"><svg aria-hidden="true" width="1.2em" height="1.2em" style="vertical-align: middle;" preserveAspectRatio="xMidYMid meet" viewBox="0 0 16 16"><path fill-rule="evenodd" d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59c.4.07.55-.17.55-.38c0-.19-.01-.82-.01-1.49c-2.01.37-2.53-.49-2.69-.94c-.09-.23-.48-.94-.82-1.13c-.28-.15-.68-.52-.01-.53c.63-.01 1.08.58 1.23.82c.72 1.21 1.87.87 2.33.66c.07-.52.28-.87.51-1.07c-1.78-.2-3.64-.89-3.64-3.95c0-.87.31-1.59.82-2.15c-.08-.2-.36-1.02.08-2.12c0 0 .67-.21 2.2.82c.64-.18 1.32-.27 2-.27c.68 0 1.36.09 2 .27c1.53-1.04 2.2-.82 2.2-.82c.44 1.1.16 1.92.08 2.12c.51.56.82 1.27.82 2.15c0 3.07-1.87 3.75-3.65 3.95c.29.25.54.73.54 1.48c0 1.07-.01 1.93-.01 2.2c0 .21.15.46.55.38A8.013 8.013 0 0 0 16 8c0-4.42-3.58-8-8-8z" fill="#000"></path></svg></a></span>
+</div>
+<hr>
+</header><main>
+<h1>A plane curve that looks like a plant</h1>
+<pre><code class="nim hljs"><span class="hljs-keyword">import</span> math, sugar, arraymancer, datamancer, ggplotnim
+<span class="hljs-keyword">let</span>
+  t = linspace(<span class="hljs-number">0.0</span>, <span class="hljs-number">39.0</span>*<span class="hljs-type">Pi</span>*<span class="hljs-number">0.5</span>, <span class="hljs-number">1000</span>)
+  x = t.map(t =&gt; t*cos(t)^<span class="hljs-number">3</span>)
+  y = t.map(t =&gt; <span class="hljs-number">9.0</span>*t*sqrt(abs(cos(t))) + t*sin(<span class="hljs-number">0.2</span>*t)*cos(<span class="hljs-number">4.0</span>*t))
+  df = toDf(x, y)
+ggplot(df, aes(<span class="hljs-string">&quot;x&quot;</span>, <span class="hljs-string">&quot;y&quot;</span>)) + geom_line(color=<span class="hljs-string">&quot;green&quot;</span>) + theme_void() + ggsave(<span class="hljs-string">&quot;trigonometric_plant.png&quot;</span>)</code></pre>
+<figure>
+<img src="..\trigonometric_plant.png" alt="">
+<figcaption></figcaption>
+</figure>
+<p>The above is a nim port of this python version:</p>
+<blockquote class="twitter-tweet"><p lang="en" dir="ltr">t = linspace(0, 39*pi/2, 1000)<br>x = t*cos(t)**3<br>y = 9*t*sqrt(abs(cos(t))) + t*sin(0.2*t)*cos(4*t)<br>plt.plot(x, y, c=&quot;green&quot;) <a href="https://t.co/8Dd0UfEArv">pic.twitter.com/8Dd0UfEArv</a></p>&mdash; Scientific Python (@SciPyTip) <a href="https://twitter.com/SciPyTip/status/1554290482263592960?ref_src=twsrc%5Etfw">August 2, 2022</a></blockquote> <script async src="https://platform.twitter.com/widgets.js" charset="utf-8"></script>
+<p>Note that:</p>
+<ul>
+<li><code>math</code> is needed for <code>Pi</code>, <code>cos</code>, <code>sin</code>, <code>sqrt</code>, <code>abs</code></li>
+<li><code>sugar</code> used for <code>=&gt;</code></li>
+<li><code>linspace</code> is from <code>arraymancer</code> and <code>t</code>, <code>x</code> and <code>y</code> are all Tensors (there is also a <code>linspace</code> in <code>numericalnim</code> which outputs <code>seq</code>s)</li>
+<li>I probably do not need to explicitly import <code>datamancer</code> to use <code>toDf</code> (I think it is included in ggplotnim)</li>
+<li>I have to carefully convert all integers into floats (I could have imported lenientops)</li>
+<li>I am using <code>map</code> (operations are not lifted to tensor, I guess they could be)</li>
+<li><code>color</code> goes in <code>geom_line</code> and not in <code>aes</code> call (oddly enough if I put <code>color=&quot;green&quot;</code> in <code>aes</code> it will plot with a reddish color)</li>
+<li>I am using <code>theme_void</code> to remove axis and grey grid (not sure how to remove just the grey grid without removing axis)</li>
+<li>see below in source code comments addressing issues when running on windows</li>
+</ul>
+</main>
+<footer>
+<hr>
+<div class="nb-box">
+  <span><span class="nb-small">made with <a href="https://pietroppeter.github.io/nimib/">nimib 🐳</a></span></span>
+  <span></span>
+  <span><button class="nb-small" id="show" onclick="toggleSourceDisplay()">Show Source</button></span>
+</div>
+</footer>
+<section id="source">
+<pre><code class="nim hljs"><span class="hljs-keyword">import</span> nimib
+
+nbInit
+nbText: <span class="hljs-string">&quot;&quot;&quot;# A plane curve that looks like a plant
+
+&quot;&quot;&quot;</span>
+nbCode:
+  <span class="hljs-keyword">import</span> math, sugar, arraymancer, datamancer, ggplotnim
+  <span class="hljs-keyword">let</span>
+    t = linspace(<span class="hljs-number">0.0</span>, <span class="hljs-number">39.0</span>*<span class="hljs-type">Pi</span>*<span class="hljs-number">0.5</span>, <span class="hljs-number">1000</span>)
+    x = t.map(t =&gt; t*cos(t)^<span class="hljs-number">3</span>)
+    y = t.map(t =&gt; <span class="hljs-number">9.0</span>*t*sqrt(abs(cos(t))) + t*sin(<span class="hljs-number">0.2</span>*t)*cos(<span class="hljs-number">4.0</span>*t))
+    df = toDf(x, y)
+  ggplot(df, aes(<span class="hljs-string">&quot;x&quot;</span>, <span class="hljs-string">&quot;y&quot;</span>)) + geom_line(color=<span class="hljs-string">&quot;green&quot;</span>) + theme_void() + ggsave(<span class="hljs-string">&quot;trigonometric_plant.png&quot;</span>)
+nbClearOutput <span class="hljs-comment"># to remove output from ggplotnim when saving the png</span>
+nbImage(<span class="hljs-string">&quot;trigonometric_plant.png&quot;</span>)
+nbText: <span class="hljs-string">&quot;The above is a nim port of this python version:&quot;</span>
+nbRawOutput: <span class="hljs-string">&quot;&quot;&quot;&lt;blockquote class=&quot;twitter-tweet&quot;&gt;&lt;p lang=&quot;en&quot; dir=&quot;ltr&quot;&gt;t = linspace(0, 39*pi/2, 1000)&lt;br&gt;x = t*cos(t)**3&lt;br&gt;y = 9*t*sqrt(abs(cos(t))) + t*sin(0.2*t)*cos(4*t)&lt;br&gt;plt.plot(x, y, c=&amp;quot;green&amp;quot;) &lt;a href=&quot;https://t.co/8Dd0UfEArv&quot;&gt;pic.twitter.com/8Dd0UfEArv&lt;/a&gt;&lt;/p&gt;&amp;mdash; Scientific Python (@SciPyTip) &lt;a href=&quot;https://twitter.com/SciPyTip/status/1554290482263592960?ref_src=twsrc%5Etfw&quot;&gt;August 2, 2022&lt;/a&gt;&lt;/blockquote&gt; &lt;script async src=&quot;https://platform.twitter.com/widgets.js&quot; charset=&quot;utf-8&quot;&gt;&lt;/script&gt;&quot;&quot;&quot;</span>
+nbText: <span class="hljs-string">&quot;&quot;&quot;Note that:
+- `math` is needed for `Pi`, `cos`, `sin`, `sqrt`, `abs`
+- `sugar` used for `=&gt;`
+- `linspace` is from `arraymancer` and `t`, `x` and `y` are all Tensors (there is also a `linspace` in `numericalnim` which outputs `seq`s)
+- I probably do not need to explicitly import `datamancer` to use `toDf` (I think it is included in ggplotnim)
+- I have to carefully convert all integers into floats (I could have imported lenientops)
+- I am using `map` (operations are not lifted to tensor, I guess they could be)
+- `color` goes in `geom_line` and not in `aes` call (oddly enough if I put `color=&quot;green&quot;` in `aes` it will plot with a reddish color)
+- I am using `theme_void` to remove axis and grey grid (not sure how to remove just the grey grid without removing axis)
+- see below in source code comments addressing issues when running on windows
+&quot;&quot;&quot;</span>
+nbSave
+<span class="hljs-comment"># for windows:</span>
+<span class="hljs-comment">#   - use -d:nolapack, see https://github.com/Vindaar/ggplotnim/issues/133</span>
+<span class="hljs-comment">#   - download the cairo-windows zip from https://github.com/preshing/cairo-windows/releases/</span>
+<span class="hljs-comment">#   - unzip, move cairo.dll in same folder from where I am running the file, rename to libcairo-2.dll</span>
+<span class="hljs-comment">#   - the final command I ran from nblog root folder (where I put the renamed dll) is:</span>
+<span class="hljs-comment">#     `nim r -d:nolapack .\drafts\trigonometric_plant.nim --nbShow`</span></code></pre>
+</section><script>
+function toggleSourceDisplay() {
+  var btn = document.getElementById("show")
+  var source = document.getElementById("source");
+  if (btn.innerHTML=="Show Source") {
+    btn.innerHTML = "Hide Source";
+    source.style.display = "block";
+  } else {
+    btn.innerHTML = "Show Source";
+    source.style.display = "none";
+  }
+}
+</script></body>
+</html>
