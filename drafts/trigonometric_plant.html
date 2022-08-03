@@ -5,7 +5,7 @@
   <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2280%22>🐳</text></svg>">
   <meta content="text/html; charset=utf-8" http-equiv="content-type">
   <meta content="width=device-width, initial-scale=1" name="viewport">
-  <link rel='stylesheet' href='https://unpkg.com/normalize.css/'>
+  <link rel='stylesheet' href='https://unpkg.com/normalize.css'>
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/kognise/water.css@latest/dist/light.min.css">
   <link rel='stylesheet' href='https://cdn.jsdelivr.net/gh/pietroppeter/nimib/assets/atom-one-light.css'>
   <style>
@@ -40,11 +40,12 @@ section#source {
 <hr>
 </header><main>
 <h1>A plane curve that looks like a plant</h1>
-<pre><code class="nim hljs"><span class="hljs-keyword">import</span> math, sugar, arraymancer, datamancer, ggplotnim
+<pre><code class="nim hljs"><span class="hljs-keyword">from</span> math <span class="hljs-keyword">import</span> <span class="hljs-type">Pi</span>
+<span class="hljs-keyword">import</span> arraymancer, datamancer, ggplotnim
 <span class="hljs-keyword">let</span>
   t = linspace(<span class="hljs-number">0.0</span>, <span class="hljs-number">39.0</span>*<span class="hljs-type">Pi</span>*<span class="hljs-number">0.5</span>, <span class="hljs-number">1000</span>)
-  x = t.map(t =&gt; t*cos(t)^<span class="hljs-number">3</span>)
-  y = t.map(t =&gt; <span class="hljs-number">9.0</span>*t*sqrt(abs(cos(t))) + t*sin(<span class="hljs-number">0.2</span>*t)*cos(<span class="hljs-number">4.0</span>*t))
+  x = t *. cos(t)^.<span class="hljs-number">3</span>
+  y = <span class="hljs-number">9.0</span> * t *. sqrt(abs(cos(t))) + t *. sin(<span class="hljs-number">0.2</span>*t) *. cos(<span class="hljs-number">4.0</span>*t)
   df = toDf(t, x, y)
 ggplot(df, aes(<span class="hljs-string">&quot;x&quot;</span>, <span class="hljs-string">&quot;y&quot;</span>)) + geom_line(color=<span class="hljs-string">&quot;green&quot;</span>) + theme_void() + ggsave(<span class="hljs-string">&quot;trigonometric_plant.png&quot;</span>)</code></pre>
 <figure>
@@ -55,12 +56,11 @@ ggplot(df, aes(<span class="hljs-string">&quot;x&quot;</span>, <span class="hljs
 <blockquote class="twitter-tweet"><p lang="en" dir="ltr">t = linspace(0, 39*pi/2, 1000)<br>x = t*cos(t)**3<br>y = 9*t*sqrt(abs(cos(t))) + t*sin(0.2*t)*cos(4*t)<br>plt.plot(x, y, c=&quot;green&quot;) <a href="https://t.co/8Dd0UfEArv">pic.twitter.com/8Dd0UfEArv</a></p>&mdash; Scientific Python (@SciPyTip) <a href="https://twitter.com/SciPyTip/status/1554290482263592960?ref_src=twsrc%5Etfw">August 2, 2022</a></blockquote> <script async src="https://platform.twitter.com/widgets.js" charset="utf-8"></script>
 <p>Note that:</p>
 <ul>
-<li><code>math</code> is needed for <code>Pi</code>, <code>cos</code>, <code>sin</code>, <code>sqrt</code>, <code>abs</code></li>
-<li><code>sugar</code> used for <code>=&gt;</code></li>
+<li><code>math</code> is needed for <code>Pi</code> (<code>cos</code>, <code>sin</code>, <code>sqrt</code>, <code>abs</code> are tensor operations that come from arraymancer)</li>
 <li><code>linspace</code> is from <code>arraymancer</code> and <code>t</code>, <code>x</code> and <code>y</code> are all Tensors (there is also a <code>linspace</code> in <code>numericalnim</code> which outputs <code>seq</code>s)</li>
 <li>I probably do not need to explicitly import <code>datamancer</code> to use <code>toDf</code> (I think it is included in ggplotnim)</li>
 <li>I have to carefully convert all integers into floats (I could have imported lenientops)</li>
-<li>I am using <code>map</code> (operations are not lifted to tensor, I guess they could be)</li>
+<li>I am using the dotted version of operators (<code>*.</code>, <code>^.</code>) that apply the operator to the tensor elementwise</li>
 <li><code>color</code> goes in <code>geom_line</code> and not in <code>aes</code> call (oddly enough if I put <code>color=&quot;green&quot;</code> in <code>aes</code> it will plot with a reddish color)</li>
 <li>I am using <code>theme_void</code> to remove axis and grey grid (not sure how to remove just the grey grid without removing axis)</li>
 <li>see below in source code comments addressing issues when running on windows</li>
@@ -93,11 +93,12 @@ nbText: <span class="hljs-string">&quot;&quot;&quot;# A plane curve that looks l
 
 &quot;&quot;&quot;</span>
 nbCode:
-  <span class="hljs-keyword">import</span> math, sugar, arraymancer, datamancer, ggplotnim
+  <span class="hljs-keyword">from</span> math <span class="hljs-keyword">import</span> <span class="hljs-type">Pi</span>
+  <span class="hljs-keyword">import</span> arraymancer, datamancer, ggplotnim
   <span class="hljs-keyword">let</span>
     t = linspace(<span class="hljs-number">0.0</span>, <span class="hljs-number">39.0</span>*<span class="hljs-type">Pi</span>*<span class="hljs-number">0.5</span>, <span class="hljs-number">1000</span>)
-    x = t.map(t =&gt; t*cos(t)^<span class="hljs-number">3</span>)
-    y = t.map(t =&gt; <span class="hljs-number">9.0</span>*t*sqrt(abs(cos(t))) + t*sin(<span class="hljs-number">0.2</span>*t)*cos(<span class="hljs-number">4.0</span>*t))
+    x = t *. cos(t)^.<span class="hljs-number">3</span>
+    y = <span class="hljs-number">9.0</span> * t *. sqrt(abs(cos(t))) + t *. sin(<span class="hljs-number">0.2</span>*t) *. cos(<span class="hljs-number">4.0</span>*t)
     df = toDf(t, x, y)
   ggplot(df, aes(<span class="hljs-string">&quot;x&quot;</span>, <span class="hljs-string">&quot;y&quot;</span>)) + geom_line(color=<span class="hljs-string">&quot;green&quot;</span>) + theme_void() + ggsave(<span class="hljs-string">&quot;trigonometric_plant.png&quot;</span>)
 nbClearOutput <span class="hljs-comment"># to remove output from ggplotnim when saving the png</span>
@@ -105,12 +106,11 @@ nbImage(<span class="hljs-string">&quot;trigonometric_plant.png&quot;</span>)
 nbText: <span class="hljs-string">&quot;The above is a nim port of this python version:&quot;</span>
 nbRawOutput: <span class="hljs-string">&quot;&quot;&quot;&lt;blockquote class=&quot;twitter-tweet&quot;&gt;&lt;p lang=&quot;en&quot; dir=&quot;ltr&quot;&gt;t = linspace(0, 39*pi/2, 1000)&lt;br&gt;x = t*cos(t)**3&lt;br&gt;y = 9*t*sqrt(abs(cos(t))) + t*sin(0.2*t)*cos(4*t)&lt;br&gt;plt.plot(x, y, c=&amp;quot;green&amp;quot;) &lt;a href=&quot;https://t.co/8Dd0UfEArv&quot;&gt;pic.twitter.com/8Dd0UfEArv&lt;/a&gt;&lt;/p&gt;&amp;mdash; Scientific Python (@SciPyTip) &lt;a href=&quot;https://twitter.com/SciPyTip/status/1554290482263592960?ref_src=twsrc%5Etfw&quot;&gt;August 2, 2022&lt;/a&gt;&lt;/blockquote&gt; &lt;script async src=&quot;https://platform.twitter.com/widgets.js&quot; charset=&quot;utf-8&quot;&gt;&lt;/script&gt;&quot;&quot;&quot;</span>
 nbText: <span class="hljs-string">&quot;&quot;&quot;Note that:
-- `math` is needed for `Pi`, `cos`, `sin`, `sqrt`, `abs`
-- `sugar` used for `=&gt;`
+- `math` is needed for `Pi` (`cos`, `sin`, `sqrt`, `abs` are tensor operations that come from arraymancer)
 - `linspace` is from `arraymancer` and `t`, `x` and `y` are all Tensors (there is also a `linspace` in `numericalnim` which outputs `seq`s)
 - I probably do not need to explicitly import `datamancer` to use `toDf` (I think it is included in ggplotnim)
 - I have to carefully convert all integers into floats (I could have imported lenientops)
-- I am using `map` (operations are not lifted to tensor, I guess they could be)
+- I am using the dotted version of operators (`*.`, `^.`) that apply the operator to the tensor elementwise
 - `color` goes in `geom_line` and not in `aes` call (oddly enough if I put `color=&quot;green&quot;` in `aes` it will plot with a reddish color)
 - I am using `theme_void` to remove axis and grey grid (not sure how to remove just the grey grid without removing axis)
 - see below in source code comments addressing issues when running on windows
