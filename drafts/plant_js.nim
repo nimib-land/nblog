@@ -30,7 +30,7 @@ proc linspace*(x1, x2: float, N: int): seq[float] =
     result.add(x1 + dx * i.toFloat)
   result.add(x2)
 
-proc plot*(x, y: seq[float], width = 480, height = 320, margin = 10, id="canvas") =
+proc plot*(x, y: seq[float], width = 300, height = 200, margin = 5, id="canvas") =
   var canvas = document.getElementById(id).CanvasElement
   canvas.width = width
   canvas.height = height

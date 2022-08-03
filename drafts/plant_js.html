@@ -63,7 +63,7 @@ proc linspace*(x1, x2: float, N: int): seq[float] =
     result.add(x1 + dx * i.toFloat)
   result.add(x2)
 
-proc plot*(x, y: seq[float], width = 480, height = 320, margin = 10, id=&quot;canvas&quot;) =
+proc plot*(x, y: seq[float], width = 300, height = 200, margin = 5, id=&quot;canvas&quot;) =
   var canvas = document.getElementById(id).CanvasElement
   canvas.width = width
   canvas.height = height
@@ -631,7 +631,7 @@ function HEX3Aanonymous_469762135(t_469762138) {
 var t_469762053 = linspace_654311429(0.0, 61.261056745000964, 1000);
 var x_469762134 = map_469762111(t_469762053, HEX3Aanonymous_469762072);
 var y_469762161 = map_469762111(t_469762053, HEX3Aanonymous_469762135);
-plot_654311455(x_469762134, y_469762161, 480, 320, 10, makeNimstrLit("canvas"));
+plot_654311455(x_469762134, y_469762161, 300, 200, 5, makeNimstrLit("canvas"));
 </script>
 </main>
 <footer>
@@ -674,7 +674,7 @@ proc linspace*(x1, x2: float, N: int): seq[float] =
     result.add(x1 + dx * i.toFloat)
   result.add(x2)
 
-proc plot*(x, y: seq[float], width = 480, height = 320, margin = 10, id=&quot;canvas&quot;) =
+proc plot*(x, y: seq[float], width = 300, height = 200, margin = 5, id=&quot;canvas&quot;) =
   var canvas = document.getElementById(id).CanvasElement
   canvas.width = width
   canvas.height = height
