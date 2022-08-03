@@ -29,6 +29,9 @@ nbKaraxCode:
     x, y = plant(leafiness, waviness)
   # how do I plot without input being changed?
   # can I avoid calling plot when each input is changed?
+  postRender:
+    let p = plant(leafiness, waviness)
+    plot(p.x, p.y)
 
   karaxHtml:
     canvas(id="canvas"):
@@ -39,16 +42,12 @@ nbKaraxCode:
       input(`type`="range", min= $leafinessMin, max= $leafinessMax, value= $leafinessDefault, id=idLeafinessInput):
         proc oninput() =
           leafiness = parseInt getVNodeById(idLeafinessInput).getInputText
-          let p = plant(leafiness, waviness)
-          plot(p.x, p.y)
     tdiv:
       label:
         text &"Waviness ({wavinessMin}-{wavinessMax}): {waviness}"
       input(`type`="range", min= $wavinessMin, max= $wavinessMax, value= $wavinessDefault, id=idWavinessInput):
         proc oninput() =
           waviness = parseInt getVNodeById(idWavinessInput).getInputText
-          let p = plant(leafiness, waviness)
-          plot(p.x, p.y)
 nbText:
   """
 ---
