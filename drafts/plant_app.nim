@@ -27,15 +27,14 @@ nbKaraxCode:
 
   var
     x, y = plant(leafiness, waviness)
-  # how do I plot without input being changed?
-  # can I avoid calling plot when each input is changed?
+
   postRender:
     let p = plant(leafiness, waviness)
     plot(p.x, p.y)
 
   karaxHtml:
     canvas(id="canvas"):
-      text "hi" # it seems I need to put something inside otherwise canvas element will not close
+      text "" # it seems I need to put something inside otherwise canvas element will not close
     tdiv: # if I do not put this then label gets centered
       label:
         text &"Leafiness ({leafinessMin}-{leafinessMax}): {leafiness}"
