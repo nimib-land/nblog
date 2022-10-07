@@ -4,7 +4,7 @@ nbInit
 
 nbText: """# Making Diagrams using [mermaid.js] 🧜‍♀️
 
-Github has started yesterday to support [creation of diagrams]
+Github has started yesterday (Feb 13th 2022) to support [creation of diagrams]
 in Markdown using [mermaid.js] and the [HN crowd] seemed to like it.
 So I asked myself, _how long does it take me to support
 diagrams in Nimib using Mermaid_?
@@ -58,18 +58,18 @@ nbCodeInBlock:
       B-->D(fa:fa-spinner);
 """
 
-nbText: "this is an implementation that depends on a [yet unmerged PR](https://github.com/pietroppeter/nimib/pull/78)"
+nbText: "an this is an implementation:"
 nbCode:
   proc useMermaid(doc: var NbDoc) =
     nb.partials["head"] &= """<script src="https://cdn.jsdelivr.net/npm/mermaid/dist/mermaid.min.js"></script>
 <link rel="stylesheet" href="https://cdn.bootcss.com/font-awesome/4.7.0/css/font-awesome.css">"""
-    nb.partials["right"] = """<script>mermaid.initialize({startOnLoad:true});</script>"""
+    nb.partials["main"] &= """<script>mermaid.initialize({startOnLoad:true});</script>"""
     doc.partials["nbDiagram"] = """<div class="mermaid">
 {{specs}}
 </div>"""
 
   template nbDiagram(specs: string) =
-    newNbBlock("nbDiagram", nb, nb.blk, body):
+    newNbSlimBlock("nbDiagram"):
       nb.blk.context["specs"] = specs
 
 nbText: "and here is an example of usage"
@@ -84,11 +84,7 @@ nbText: "_This took less than 30 minutes from conception to realization!_"
 nbText: """## notes
 
 * I should add html highlighting to nimib
-* find a way to add more stuff to `head` independently
-  (here `head_other` template is used by plausible through a mustache template and had to append to head)
-* I should add a `scripts` partial at the end of `body` in default template
-  to allow for adding js scripts inside body
 * to use font awesome you need to add them (not mentioned in documentation as reported above, see [this issue](https://github.com/mermaid-js/mermaid/issues/830))
-
+* **(2022-10-7 updated to work with 0.3)**
 """
 nbSave
