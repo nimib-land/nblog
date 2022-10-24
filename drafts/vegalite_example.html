@@ -1,0 +1,437 @@
+<!DOCTYPE html>
+<html lang="en-us">
+<head>
+  <title>drafts/vegalite_example.nim</title>
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2280%22>🐳</text></svg>">
+  <meta content="text/html; charset=utf-8" http-equiv="content-type">
+  <meta content="width=device-width, initial-scale=1" name="viewport">
+  <link rel='stylesheet' href='https://unpkg.com/normalize.css'>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/kognise/water.css@latest/dist/light.min.css">
+  <link rel='stylesheet' href='https://cdn.jsdelivr.net/gh/pietroppeter/nimib/assets/atom-one-light.css'>
+  <style>
+.nb-box {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+.nb-small {
+  font-size: 0.8rem;
+}
+button.nb-small {
+  float: right;
+  padding: 2px;
+  padding-right: 5px;
+  padding-left: 5px;
+}
+section#source {
+  display:none
+}
+
+.nb-output {
+  line-height: 1.15;
+}
+</style>
+  
+  <script async defer data-domain="pietroppeter.github.io/nblog" src="https://plausible.io/js/plausible.js"></script>
+</head>
+<script src="https://cdn.jsdelivr.net/npm/vega@5.22.1"></script>
+<script src="https://cdn.jsdelivr.net/npm/vega-lite@5.6.0"></script>
+<script src="https://cdn.jsdelivr.net/npm/vega-embed@6.21.0"></script><body>
+<header>
+<div class="nb-box">
+  <span><a href="..">🏡</a></span>
+  <span><code>drafts/vegalite_example.nim</code></span>
+  <span><a href="https://github.com/pietroppeter/nblog"><svg aria-hidden="true" width="1.2em" height="1.2em" style="vertical-align: middle;" preserveAspectRatio="xMidYMid meet" viewBox="0 0 16 16"><path fill-rule="evenodd" d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59c.4.07.55-.17.55-.38c0-.19-.01-.82-.01-1.49c-2.01.37-2.53-.49-2.69-.94c-.09-.23-.48-.94-.82-1.13c-.28-.15-.68-.52-.01-.53c.63-.01 1.08.58 1.23.82c.72 1.21 1.87.87 2.33.66c.07-.52.28-.87.51-1.07c-1.78-.2-3.64-.89-3.64-3.95c0-.87.31-1.59.82-2.15c-.08-.2-.36-1.02.08-2.12c0 0 .67-.21 2.2.82c.64-.18 1.32-.27 2-.27c.68 0 1.36.09 2 .27c1.53-1.04 2.2-.82 2.2-.82c.44 1.1.16 1.92.08 2.12c.51.56.82 1.27.82 2.15c0 3.07-1.87 3.75-3.65 3.95c.29.25.54.73.54 1.48c0 1.07-.01 1.93-.01 2.2c0 .21.15.46.55.38A8.013 8.013 0 0 0 16 8c0-4.42-3.58-8-8-8z" fill="#000"></path></svg></a></span>
+</div>
+<hr>
+</header><main>
+<h1><a href="https://vega.github.io/vega-lite/">vegalite</a> plot in nimib</h1>
+<p><a href="https://vega.github.io/vega-lite/">vegalite</a> is a js plotting library that has a declarative api
+and can plot interactive graphics.</p>
+<blockquote>
+<p>Why vega<strong>lite</strong>? because it is a grammar that compiles
+to vega library (where <strong>V</strong>e<strong>G</strong>a sort of stands for <strong>V</strong>isualization <strong>G</strong>rammar);
+the advantage of vegalite is it provides a simple grammar to produce fairly
+complex charts, while vega is more low level.</p>
+<p>Note that Vega itself is again <a href="https://vega.github.io/vega/about/vega-and-d3/">built on top of D3</a></p>
+</blockquote>
+<p>Since its grammar is completely defined by some specs that are available
+in <a href="https://json-schema.org">jsonschema</a> format, it means that we could in principle produce
+bindings using Nim metaprogramming capabilities.
+Indeed <a href="https://altair-viz.github.io">altair</a> is the Python binding and the library is build from specs
+using some manual &quot;meta-programming&quot; (writing python files).</p>
+<p>It was indeed the first thing I wanted to do in Nim, a library &quot;wrapping&quot; vegalite
+and call it <strong>deneb</strong>
+(vega, altair and deneb are the brightest star of summer sky,
+appearing in a formation known as the <a href="https://en.wikipedia.org/wiki/Summer_Triangle">summer triangle</a>).
+Then it was too hard for my nim skills at the time and I hashed out <a href="https://github.com/pietroppeter/nimoji">nimoji</a> in a weekend.</p>
+<p>Today I was remind about this project by <a href="https://github.com/jiro4989/nimjson/issues/30#issuecomment-1288968549">an issue in jsonim</a>.
+The tricky part is how to translate the rather complex <a href="https://github.com/vega/schema">vegalite's jsonschema</a>
+(latest version is 1.7 MB of json)
+in a reasonable hierarchy of nim types and possibly provide some syntactic sugar on top of it,
+along with possibility to serialize to json.</p>
+<p>What is rather easy instead, is to show a vegalite plot in nimib starting from a json spec.
+Which is what we are doing now.</p>
+<p>Vegalite's <a href="https://vega.github.io/vega-lite/usage/embed.html">usage</a> page is all we need to implement nimib's custom blocks:</p>
+<pre><code class="nim hljs"><span class="hljs-keyword">template</span> useVegalite(doc: <span class="hljs-keyword">var</span> <span class="hljs-type">NbDoc</span>) =
+  doc.partials[<span class="hljs-string">&quot;head&quot;</span>] &amp;= <span class="hljs-string">&quot;&quot;&quot;
+&lt;script src=&quot;https://cdn.jsdelivr.net/npm/vega@5.22.1&quot;&gt;&lt;/script&gt;
+&lt;script src=&quot;https://cdn.jsdelivr.net/npm/vega-lite@5.6.0&quot;&gt;&lt;/script&gt;
+&lt;script src=&quot;https://cdn.jsdelivr.net/npm/vega-embed@6.21.0&quot;&gt;&lt;/script&gt;&quot;&quot;&quot;</span>
+  doc.partials[<span class="hljs-string">&quot;nbVegalite&quot;</span>] = <span class="hljs-string">&quot;&quot;&quot;
+&lt;div id={{id}}&gt;&lt;/div&gt;
+&lt;script&gt;vegaEmbed('#{{id}}', {{&amp;spec}});&lt;/script&gt;
+&quot;&quot;&quot;</span>
+
+<span class="hljs-keyword">template</span> nbVegalite(jsonSpec: <span class="hljs-built_in">string</span>) =
+  newNbSlimBlock(<span class="hljs-string">&quot;nbVegalite&quot;</span>):
+    nb.blk.context[<span class="hljs-string">&quot;id&quot;</span>] = <span class="hljs-string">&quot;vis-&quot;</span> &amp; $(nb.newId)
+    nb.blk.context[<span class="hljs-string">&quot;spec&quot;</span>] = jsonSpec
+
+nb.useVegalite</code></pre>
+<p>Now it is just a matter of picking an example from <a href="https://vega.github.io/vega-lite/examples/#interactive-charts">examples gallery</a>.</p>
+<p>I picked a nice interactive one about <a href="https://vega.github.io/vega-lite/examples/interactive_seattle_weather.html">seattle weather</a>.</p>
+<pre><code class="nim hljs"><span class="hljs-keyword">let</span> seattleSpec = <span class="hljs-string">&quot;&quot;&quot;{
+  &quot;$schema&quot;: &quot;https://vega.github.io/schema/vega-lite/v5.json&quot;,
+  &quot;title&quot;: &quot;Seattle Weather, 2012-2015&quot;,
+  &quot;data&quot;: {
+    &quot;url&quot;: &quot;https://raw.githubusercontent.com/vega/vega/main/docs/data/seattle-weather.csv&quot;
+  },
+  &quot;vconcat&quot;: [
+    {
+      &quot;encoding&quot;: {
+        &quot;color&quot;: {
+          &quot;condition&quot;: {
+            &quot;param&quot;: &quot;brush&quot;,
+            &quot;title&quot;: &quot;Weather&quot;,
+            &quot;field&quot;: &quot;weather&quot;,
+            &quot;type&quot;: &quot;nominal&quot;,
+            &quot;scale&quot;: {
+              &quot;domain&quot;: [&quot;sun&quot;, &quot;fog&quot;, &quot;drizzle&quot;, &quot;rain&quot;, &quot;snow&quot;],
+              &quot;range&quot;: [&quot;#e7ba52&quot;, &quot;#a7a7a7&quot;, &quot;#aec7e8&quot;, &quot;#1f77b4&quot;, &quot;#9467bd&quot;]
+            }
+          },
+          &quot;value&quot;: &quot;lightgray&quot;
+        },
+        &quot;size&quot;: {
+          &quot;title&quot;: &quot;Precipitation&quot;,
+          &quot;field&quot;: &quot;precipitation&quot;,
+          &quot;scale&quot;: {&quot;domain&quot;: [-1, 50]},
+          &quot;type&quot;: &quot;quantitative&quot;
+        },
+        &quot;x&quot;: {
+          &quot;field&quot;: &quot;date&quot;,
+          &quot;timeUnit&quot;: &quot;monthdate&quot;,
+          &quot;title&quot;: &quot;Date&quot;,
+          &quot;axis&quot;: {&quot;format&quot;: &quot;%b&quot;}
+        },
+        &quot;y&quot;: {
+          &quot;title&quot;: &quot;Maximum Daily Temperature (C)&quot;,
+          &quot;field&quot;: &quot;temp_max&quot;,
+          &quot;scale&quot;: {&quot;domain&quot;: [-5, 40]},
+          &quot;type&quot;: &quot;quantitative&quot;
+        }
+      },
+      &quot;width&quot;: 600,
+      &quot;height&quot;: 300,
+      &quot;mark&quot;: &quot;point&quot;,
+      &quot;params&quot;: [{
+        &quot;name&quot;: &quot;brush&quot;,
+        &quot;select&quot;: {&quot;type&quot;: &quot;interval&quot;, &quot;encodings&quot;: [&quot;x&quot;]}
+      }],
+      &quot;transform&quot;: [{&quot;filter&quot;: {&quot;param&quot;: &quot;click&quot;}}]
+    },
+    {
+      &quot;encoding&quot;: {
+        &quot;color&quot;: {
+          &quot;condition&quot;: {
+            &quot;param&quot;: &quot;click&quot;,
+            &quot;field&quot;: &quot;weather&quot;,
+            &quot;scale&quot;: {
+              &quot;domain&quot;: [&quot;sun&quot;, &quot;fog&quot;, &quot;drizzle&quot;, &quot;rain&quot;, &quot;snow&quot;],
+              &quot;range&quot;: [&quot;#e7ba52&quot;, &quot;#a7a7a7&quot;, &quot;#aec7e8&quot;, &quot;#1f77b4&quot;, &quot;#9467bd&quot;]
+            }
+          },
+          &quot;value&quot;: &quot;lightgray&quot;
+        },
+        &quot;x&quot;: {&quot;aggregate&quot;: &quot;count&quot;},
+        &quot;y&quot;: {&quot;title&quot;: &quot;Weather&quot;, &quot;field&quot;: &quot;weather&quot;}
+      },
+      &quot;width&quot;: 600,
+      &quot;mark&quot;: &quot;bar&quot;,
+      &quot;params&quot;: [{
+        &quot;name&quot;: &quot;click&quot;,
+        &quot;select&quot;: {&quot;type&quot;: &quot;point&quot;, &quot;encodings&quot;: [&quot;color&quot;]}
+      }],
+      &quot;transform&quot;: [{&quot;filter&quot;: {&quot;param&quot;: &quot;brush&quot;}}]
+    }
+  ]
+}
+&quot;&quot;&quot;</span></code></pre>
+<p>and now I call <code>nbVegalite(seattleSpec)</code></p>
+<div id=vis-0></div>
+<script>vegaEmbed('#vis-0', {
+  "$schema": "https://vega.github.io/schema/vega-lite/v5.json",
+  "title": "Seattle Weather, 2012-2015",
+  "data": {
+    "url": "https://raw.githubusercontent.com/vega/vega/main/docs/data/seattle-weather.csv"
+  },
+  "vconcat": [
+    {
+      "encoding": {
+        "color": {
+          "condition": {
+            "param": "brush",
+            "title": "Weather",
+            "field": "weather",
+            "type": "nominal",
+            "scale": {
+              "domain": ["sun", "fog", "drizzle", "rain", "snow"],
+              "range": ["#e7ba52", "#a7a7a7", "#aec7e8", "#1f77b4", "#9467bd"]
+            }
+          },
+          "value": "lightgray"
+        },
+        "size": {
+          "title": "Precipitation",
+          "field": "precipitation",
+          "scale": {"domain": [-1, 50]},
+          "type": "quantitative"
+        },
+        "x": {
+          "field": "date",
+          "timeUnit": "monthdate",
+          "title": "Date",
+          "axis": {"format": "%b"}
+        },
+        "y": {
+          "title": "Maximum Daily Temperature (C)",
+          "field": "temp_max",
+          "scale": {"domain": [-5, 40]},
+          "type": "quantitative"
+        }
+      },
+      "width": 600,
+      "height": 300,
+      "mark": "point",
+      "params": [{
+        "name": "brush",
+        "select": {"type": "interval", "encodings": ["x"]}
+      }],
+      "transform": [{"filter": {"param": "click"}}]
+    },
+    {
+      "encoding": {
+        "color": {
+          "condition": {
+            "param": "click",
+            "field": "weather",
+            "scale": {
+              "domain": ["sun", "fog", "drizzle", "rain", "snow"],
+              "range": ["#e7ba52", "#a7a7a7", "#aec7e8", "#1f77b4", "#9467bd"]
+            }
+          },
+          "value": "lightgray"
+        },
+        "x": {"aggregate": "count"},
+        "y": {"title": "Weather", "field": "weather"}
+      },
+      "width": 600,
+      "mark": "bar",
+      "params": [{
+        "name": "click",
+        "select": {"type": "point", "encodings": ["color"]}
+      }],
+      "transform": [{"filter": {"param": "brush"}}]
+    }
+  ]
+}
+);</script>
+
+<p>Some notes:</p>
+<ul>
+<li>I had to change the url from the relative one used by vegalite example to an absolute one</li>
+<li><strong>interactivity</strong>: you can select a span of time in top chart or pick a type of weather from bottom chart</li>
+<li>to undo a selection click on the empty part of the grid in the chart</li>
+</ul>
+</main>
+<footer>
+<hr>
+<div class="nb-box">
+  <span><span class="nb-small">made with <a href="https://pietroppeter.github.io/nimib/">nimib 🐳</a></span></span>
+  <span></span>
+  <span><button class="nb-small" id="show" onclick="toggleSourceDisplay()">Show Source</button></span>
+</div>
+</footer>
+<section id="source">
+<pre><code class="nim hljs"><span class="hljs-keyword">import</span> nimib
+
+nbInit
+nbText: <span class="hljs-string">&quot;&quot;&quot;# [vegalite] plot in nimib
+
+[vegalite] is a js plotting library that has a declarative api
+and can plot interactive graphics.
+
+&gt; Why vega**lite**? because it is a grammar that compiles
+&gt; to vega library (where **V**e**G**a sort of stands for **V**isualization **G**rammar);
+&gt; the advantage of vegalite is it provides a simple grammar to produce fairly
+&gt; complex charts, while vega is more low level.
+&gt;
+&gt; Note that Vega itself is again [built on top of D3](https://vega.github.io/vega/about/vega-and-d3/)
+
+Since its grammar is completely defined by some specs that are available
+in [jsonschema] format, it means that we could in principle produce
+bindings using Nim metaprogramming capabilities.
+Indeed [altair] is the Python binding and the library is build from specs
+using some manual &quot;meta-programming&quot; (writing python files).
+
+It was indeed the first thing I wanted to do in Nim, a library &quot;wrapping&quot; vegalite
+and call it **deneb**
+(vega, altair and deneb are the brightest star of summer sky,
+appearing in a formation known as the [summer triangle]).
+Then it was too hard for my nim skills at the time and I hashed out [nimoji] in a weekend.
+
+Today I was remind about this project by [an issue in jsonim](https://github.com/jiro4989/nimjson/issues/30#issuecomment-1288968549).
+The tricky part is how to translate the rather complex [vegalite's jsonschema](https://github.com/vega/schema)
+(latest version is 1.7 MB of json)
+in a reasonable hierarchy of nim types and possibly provide some syntactic sugar on top of it,
+along with possibility to serialize to json.
+
+What is rather easy instead, is to show a vegalite plot in nimib starting from a json spec.
+Which is what we are doing now.
+
+Vegalite's [usage] page is all we need to implement nimib's custom blocks:
+
+[vegalite]: https://vega.github.io/vega-lite/
+[jsonschema]: https://json-schema.org
+[altair]: https://altair-viz.github.io
+[summer triangle]: https://en.wikipedia.org/wiki/Summer_Triangle
+[usage]: https://vega.github.io/vega-lite/usage/embed.html
+[nimoji]: https://github.com/pietroppeter/nimoji
+&quot;&quot;&quot;</span>
+nbCode:
+  <span class="hljs-keyword">template</span> useVegalite(doc: <span class="hljs-keyword">var</span> <span class="hljs-type">NbDoc</span>) =
+    doc.partials[<span class="hljs-string">&quot;head&quot;</span>] &amp;= <span class="hljs-string">&quot;&quot;&quot;
+&lt;script src=&quot;https://cdn.jsdelivr.net/npm/vega@5.22.1&quot;&gt;&lt;/script&gt;
+&lt;script src=&quot;https://cdn.jsdelivr.net/npm/vega-lite@5.6.0&quot;&gt;&lt;/script&gt;
+&lt;script src=&quot;https://cdn.jsdelivr.net/npm/vega-embed@6.21.0&quot;&gt;&lt;/script&gt;&quot;&quot;&quot;</span>
+    doc.partials[<span class="hljs-string">&quot;nbVegalite&quot;</span>] = <span class="hljs-string">&quot;&quot;&quot;
+&lt;div id={{id}}&gt;&lt;/div&gt;
+&lt;script&gt;vegaEmbed('#{{id}}', {{&amp;spec}});&lt;/script&gt;
+&quot;&quot;&quot;</span>
+
+  <span class="hljs-keyword">template</span> nbVegalite(jsonSpec: <span class="hljs-built_in">string</span>) =
+    newNbSlimBlock(<span class="hljs-string">&quot;nbVegalite&quot;</span>):
+      nb.blk.context[<span class="hljs-string">&quot;id&quot;</span>] = <span class="hljs-string">&quot;vis-&quot;</span> &amp; $(nb.newId)
+      nb.blk.context[<span class="hljs-string">&quot;spec&quot;</span>] = jsonSpec
+  
+  nb.useVegalite
+
+nbText: <span class="hljs-string">&quot;&quot;&quot;
+Now it is just a matter of picking an example from [examples gallery](https://vega.github.io/vega-lite/examples/#interactive-charts).
+
+I picked a nice interactive one about [seattle weather](https://vega.github.io/vega-lite/examples/interactive_seattle_weather.html).
+&quot;&quot;&quot;</span>
+
+nbCode:
+  <span class="hljs-keyword">let</span> seattleSpec = <span class="hljs-string">&quot;&quot;&quot;{
+  &quot;$schema&quot;: &quot;https://vega.github.io/schema/vega-lite/v5.json&quot;,
+  &quot;title&quot;: &quot;Seattle Weather, 2012-2015&quot;,
+  &quot;data&quot;: {
+    &quot;url&quot;: &quot;https://raw.githubusercontent.com/vega/vega/main/docs/data/seattle-weather.csv&quot;
+  },
+  &quot;vconcat&quot;: [
+    {
+      &quot;encoding&quot;: {
+        &quot;color&quot;: {
+          &quot;condition&quot;: {
+            &quot;param&quot;: &quot;brush&quot;,
+            &quot;title&quot;: &quot;Weather&quot;,
+            &quot;field&quot;: &quot;weather&quot;,
+            &quot;type&quot;: &quot;nominal&quot;,
+            &quot;scale&quot;: {
+              &quot;domain&quot;: [&quot;sun&quot;, &quot;fog&quot;, &quot;drizzle&quot;, &quot;rain&quot;, &quot;snow&quot;],
+              &quot;range&quot;: [&quot;#e7ba52&quot;, &quot;#a7a7a7&quot;, &quot;#aec7e8&quot;, &quot;#1f77b4&quot;, &quot;#9467bd&quot;]
+            }
+          },
+          &quot;value&quot;: &quot;lightgray&quot;
+        },
+        &quot;size&quot;: {
+          &quot;title&quot;: &quot;Precipitation&quot;,
+          &quot;field&quot;: &quot;precipitation&quot;,
+          &quot;scale&quot;: {&quot;domain&quot;: [-1, 50]},
+          &quot;type&quot;: &quot;quantitative&quot;
+        },
+        &quot;x&quot;: {
+          &quot;field&quot;: &quot;date&quot;,
+          &quot;timeUnit&quot;: &quot;monthdate&quot;,
+          &quot;title&quot;: &quot;Date&quot;,
+          &quot;axis&quot;: {&quot;format&quot;: &quot;%b&quot;}
+        },
+        &quot;y&quot;: {
+          &quot;title&quot;: &quot;Maximum Daily Temperature (C)&quot;,
+          &quot;field&quot;: &quot;temp_max&quot;,
+          &quot;scale&quot;: {&quot;domain&quot;: [-5, 40]},
+          &quot;type&quot;: &quot;quantitative&quot;
+        }
+      },
+      &quot;width&quot;: 600,
+      &quot;height&quot;: 300,
+      &quot;mark&quot;: &quot;point&quot;,
+      &quot;params&quot;: [{
+        &quot;name&quot;: &quot;brush&quot;,
+        &quot;select&quot;: {&quot;type&quot;: &quot;interval&quot;, &quot;encodings&quot;: [&quot;x&quot;]}
+      }],
+      &quot;transform&quot;: [{&quot;filter&quot;: {&quot;param&quot;: &quot;click&quot;}}]
+    },
+    {
+      &quot;encoding&quot;: {
+        &quot;color&quot;: {
+          &quot;condition&quot;: {
+            &quot;param&quot;: &quot;click&quot;,
+            &quot;field&quot;: &quot;weather&quot;,
+            &quot;scale&quot;: {
+              &quot;domain&quot;: [&quot;sun&quot;, &quot;fog&quot;, &quot;drizzle&quot;, &quot;rain&quot;, &quot;snow&quot;],
+              &quot;range&quot;: [&quot;#e7ba52&quot;, &quot;#a7a7a7&quot;, &quot;#aec7e8&quot;, &quot;#1f77b4&quot;, &quot;#9467bd&quot;]
+            }
+          },
+          &quot;value&quot;: &quot;lightgray&quot;
+        },
+        &quot;x&quot;: {&quot;aggregate&quot;: &quot;count&quot;},
+        &quot;y&quot;: {&quot;title&quot;: &quot;Weather&quot;, &quot;field&quot;: &quot;weather&quot;}
+      },
+      &quot;width&quot;: 600,
+      &quot;mark&quot;: &quot;bar&quot;,
+      &quot;params&quot;: [{
+        &quot;name&quot;: &quot;click&quot;,
+        &quot;select&quot;: {&quot;type&quot;: &quot;point&quot;, &quot;encodings&quot;: [&quot;color&quot;]}
+      }],
+      &quot;transform&quot;: [{&quot;filter&quot;: {&quot;param&quot;: &quot;brush&quot;}}]
+    }
+  ]
+}
+&quot;&quot;&quot;</span>
+nbText: <span class="hljs-string">&quot;and now I call `nbVegalite(seattleSpec)`&quot;</span>
+nbVegalite(seattleSpec)
+nbText: <span class="hljs-string">&quot;&quot;&quot;
+Some notes:
+
+* I had to change the url from the relative one used by vegalite example to an absolute one
+* **interactivity**: you can select a span of time in top chart or pick a type of weather from bottom chart
+* to undo a selection click on the empty part of the grid in the chart
+&quot;&quot;&quot;</span>
+nbSave</code></pre>
+</section><script>
+function toggleSourceDisplay() {
+  var btn = document.getElementById("show")
+  var source = document.getElementById("source");
+  if (btn.innerHTML=="Show Source") {
+    btn.innerHTML = "Hide Source";
+    source.style.display = "block";
+  } else {
+    btn.innerHTML = "Show Source";
+    source.style.display = "none";
+  }
+}
+</script></body>
+</html>
