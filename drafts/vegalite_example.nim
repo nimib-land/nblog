@@ -153,5 +153,94 @@ Some notes:
 * I had to change the url from the relative one used by vegalite example to an absolute one
 * **interactivity**: you can select a span of time in top chart or pick a type of weather from bottom chart
 * to undo a selection click on the empty part of the grid in the chart
+
+We can add also a `JsonNode` version
+"""
+nbCode:
+  import json
+
+  template nbVegalite(json: JsonNode) =
+    nbVegalite($json)
+nbText: "And this is an example using it:"
+nbCode:
+  let jsonExample = %*
+    {
+    "$schema": "https://vega.github.io/schema/vega-lite/v5.json",
+    "description": "A bar chart with highlighting on hover and selecting on click. (Inspired by Tableau's interaction style.)",
+    "data": {
+      "values": [
+        {"a": "A", "b": 28}, {"a": "B", "b": 55}, {"a": "C", "b": 43},
+        {"a": "D", "b": 91}, {"a": "E", "b": 81}, {"a": "F", "b": 53},
+        {"a": "G", "b": 19}, {"a": "H", "b": 87}, {"a": "I", "b": 52}
+        ]
+      },
+    "params": [
+        {
+          "name": "highlight",
+          "select": {"type": "point", "on": "mouseover"}
+        },
+        {"name": "select", "select": "point"}
+      ],
+    "mark": {
+      "type": "bar",
+      "fill": "#4C78A8",
+      "stroke": "black",
+      "cursor": "pointer"
+    },
+    "encoding": {
+      "x": {"field": "a", "type": "ordinal"},
+      "y": {"field": "b", "type": "quantitative"},
+      "fillOpacity": {
+        "condition": {"param": "select", "value": 1},
+        "value": 0.3
+      },
+      "strokeWidth": {
+        "condition": [
+          {
+            "param": "select",
+            "empty": false,
+            "value": 2
+          },
+          {
+            "param": "highlight",
+            "empty": false,
+            "value": 1
+          }
+        ],
+        "value": 0
+      }
+    },
+    "config": {
+      "scale": {
+        "bandPaddingInner": 0.2
+      }
+    }
+  }
+nbVegalite(jsonExample)
+nbText: "Did you know that ggplotnim has an (experimental) [vegalite backend](https://github.com/Vindaar/ggplotnim#experimental-vega-lite-backend)? Let's use that know!"
+nbCode:
+  import ggplotnim
+  import ggplotnim / ggplot_vega
+  import options
+
+  let mpg = toDf(readCsv("https://raw.githubusercontent.com/Vindaar/ggplotnim/master/data/mpg.csv"))
+  let plot = ggplot(mpg, aes(x = "displ", y = "cty", color = "class")) +
+    geom_point() +
+    ggtitle("ggplotnim in Vega-Lite!")
+
+  proc toVegalite(plot: GgPlot): JsonNode =
+     let d = VegaDraw(fname: "", width: some(640.0), height: some(480.0), asPrettyJson: false)
+     result = ggvegaCreate(plot, d) 
+
+  let plotJson = plot.toVegalite
+
+nbVegalite(plotJson)
+nbText: """
+Notes:
+  - some variation of `toVegalite` could be added to `ggplotnim`
+  - the `fname` field of `VegaDraw` is not used in our context
+  - `ggVegaCreate` does not work if `width` or `height` are set to `none(float)` (although specifying no wdith or height is valid in vegalite)
+  - (windows specific) had to remember to use `-d:nolapack`, see [ggplotnim/issues/133](https://github.com/Vindaar/ggplotnim/issues/133#issuecomment-1044284796)
+  - (windows specific?) had also to add `-d:ssl` (could ggplotnim use `treeform/puppy` to fecth from url?)
 """
 nbSave
