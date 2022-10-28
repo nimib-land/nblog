@@ -27,18 +27,27 @@ nbCode:
       var
         hello = "welcome to the hello program"
         name = ""
+        exited = false
       karaxHtml:
-        p(id=helloId):
-          text hello
-        label:
-          text "enter a name or the word 'exit':"
-        input(id = inputId, `type` = "text"):
-          text name
-        button:
-          text "Enter"
-          proc onClick() =
-            name = $getVNodeById(inputId).getInputText
-            hello = "Hello, " & name
+        if exited:
+          p:
+            text "Thanks for playing!"
+        else:
+          p(id=helloId):
+            text hello
+          label:
+            text "enter a name or the word 'exit':"
+          input(id = inputId, `type` = "text"):
+            text name
+          button:
+            text "Enter"
+            proc onClick() =
+              name = $getVNodeById(inputId).getInputText
+              if name == "exit":
+                echo "exiting"
+                exited = true
+              else:
+                hello = "Hello, " & name
 nbText: "Did I end up with \"a very different looking program that has to handle state\"?"
 nbText: "---"
 mySolution
