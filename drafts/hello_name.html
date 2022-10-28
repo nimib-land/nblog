@@ -65,12 +65,9 @@ section#source {
     <span class="hljs-keyword">var</span>
       hello = <span class="hljs-string">&quot;welcome to the hello program&quot;</span>
       name = <span class="hljs-string">&quot;&quot;</span>
-      exited = <span class="hljs-literal">false</span>
+      playing = <span class="hljs-literal">true</span>
     karaxHtml:
-      <span class="hljs-keyword">if</span> exited:
-        p:
-          text <span class="hljs-string">&quot;Thanks for playing!&quot;</span>
-      <span class="hljs-keyword">else</span>:
+      <span class="hljs-keyword">if</span> playing:
         p(id=helloId):
           text hello
         label:
@@ -82,10 +79,12 @@ section#source {
           <span class="hljs-keyword">proc</span> onClick() =
             name = $getVNodeById(inputId).getInputText
             <span class="hljs-keyword">if</span> name == <span class="hljs-string">&quot;exit&quot;</span>:
-              <span class="hljs-keyword">echo</span> <span class="hljs-string">&quot;exiting&quot;</span>
-              exited = <span class="hljs-literal">true</span>
+              playing = <span class="hljs-literal">false</span>
             <span class="hljs-keyword">else</span>:
-              hello = <span class="hljs-string">&quot;Hello, &quot;</span> &amp; name</code></pre>
+              hello = <span class="hljs-string">&quot;Hello, &quot;</span> &amp; name
+      <span class="hljs-keyword">else</span>:
+        p:
+          text <span class="hljs-string">&quot;Thanks for playing!&quot;</span></code></pre>
 <p>Did I end up with &quot;a very different looking program that has to handle state&quot;?</p>
 <hr />
 <div id="karax-0"></div>
@@ -1525,17 +1524,6 @@ function genericReset(x_33557171, ti_33557172) {
 var ConstSet26 = setConstr(5);
       var toTag_1174405469 = ["#text", "#int", "#bool", "#vthunk", "#dthunk", "#component", "#verbatim", "HTML", "HEAD", "TITLE", "BASE", "LINK", "META", "STYLE", "SCRIPT", "NOSCRIPT", "BODY", "SECTION", "NAV", "ARTICLE", "ASIDE", "H1", "H2", "H3", "H4", "H5", "H6", "HGROUP", "HEADER", "FOOTER", "ADDRESS", "MAIN", "P", "HR", "PRE", "BLOCKQUOTE", "OL", "UL", "LI", "DL", "DT", "DD", "FIGURE", "FIGCAPTION", "DIV", "A", "EM", "STRONG", "SMALL", "S", "CITE", "QUOTE", "DFN", "ABBR", "DATA", "TIME", "CODE", "VAR", "SAMP", "KDB", "SUB", "SUP", "I", "B", "U", "MARK", "RUBY", "RT", "RP", "BDI", "DBO", "SPAN", "BR", "WBR", "INS", "DEL", "IMG", "IFRAME", "EMBED", "OBJECT", "PARAM", "VIDEO", "AUDIO", "SOURCE", "TRACK", "CANVAS", "MAP", "AREA", "ANIMATE", "ANIMATEMOTION", "ANIMATETRANSFORM", "CIRCLE", "CLIPPATH", "DEFS", "DESC", "DISCARD", "ELLIPSE", "FEBLEND", "FECOLORMATRIX", "FECOMPONENTTRANSFER", "FECOMPOSITE", "FECONVOLVEMATRIX", "FEDIFFUSELIGHTING", "FEDISPLACEMENTMAP", "FEDISTANTLIGHT", "FEDROPSHADOW", "FEFLOOD", "FEFUNCA", "FEFUNCB", "FEFUNCG", "FEFUNCR", "FEGAUSSIANBLUR", "FEIMAGE", "FEMERGE", "FEMERGENODE", "FEMORPHOLOGY", "FEOFFSET", "FEPOINTLIGHT", "FESPECULARLIGHTING", "FESPOTLIGHT", "FETILE", "FETURBULENCE", "FILTER", "FOREIGNOBJECT", "G", "IMAGE", "LINE", "LINEARGRADIENT", "MARKER", "MASK", "METADATA", "MPATH", "PATH", "PATTERN", "POLYGON", "POLYLINE", "RADIALGRADIENT", "RECT", "SET", "STOP", "SVG", "SWITCH", "SYMBOL", "TEXT", "TEXTPATH", "TSPAN", "UNKNOWN", "USE", "VIEW", "MACTION", "MATH", "MENCLOSE", "MERROR", "MFENCED", "MFRAC", "MGLYPH", "MI", "MLABELEDTR", "MMULTISCRIPTS", "MN", "MO", "MOVER", "MPADDED", "MPHANTOM", "MROOT", "MROW", "MS", "MSPACE", "MSQRT", "MSTYLE", "MSUB", "MSUBSUP", "MSUP", "MTABLE", "MTD", "MTEXT", "MTR", "MUNDER", "MUNDEROVER", "SEMANTICS", "TABLE", "CAPTION", "COLGROUP", "COL", "TBODY", "THEAD", "TFOOT", "TR", "TD", "TH", "FORM", "FIELDSET", "LEGEND", "LABEL", "INPUT", "BUTTON", "SELECT", "DATALIST", "OPTGROUP", "OPTION", "TEXTAREA", "KEYGEN", "OUTPUT", "PROGRESS", "METER", "DETAILS", "SUMMARY", "COMMAND", "MENU"];
       var toEventName_1174405470 = ["click", "contextmenu", "dblclick", "keyup", "keydown", "keypressed", "focus", "blur", "change", "scroll", "mousedown", "mouseenter", "mouseleave", "mousemove", "mouseout", "mouseover", "mouseup", "drag", "dragend", "dragenter", "dragleave", "dragover", "dragstart", "drop", "submit", "input", "animationstart", "animationend", "animationiteration", "keyupenter", "keyuplater", "load", "transitioncancel", "transitionend", "transitionrun", "transitionstart", "wheel"];
-
-function rawEcho() {
-          var buf = "";
-      for (var i = 0; i < arguments.length; ++i) {
-        buf += toJSStr(arguments[i]);
-      }
-      console.log(buf);
-    
-
-  
-}
 if (!Math.trunc) {
   Math.trunc = function(v) {
     v = +v;
@@ -4466,45 +4454,44 @@ function getVNodeById_1140850954(id_1140850955, kxi_1140850956) {
 }
 
 function createdom_452985194_469762123() {
-      
+    
 function HEX3Aanonymous_469762166() {
-          name_452985219_469762121[0] = nimCopy(null, cstrToNimstr(getInputText_1140851917(getVNodeById_1140850954("inputId", kxi__nimib_kxi_2))), NTI33554439);
-          if (eqStrings(name_452985219_469762121[0], makeNimstrLit("exit"))) {
-          rawEcho(makeNimstrLit("exiting"));
-          exited_452985220_469762122[0] = true;
-          }
-          else {
-            hello_452985218_469762120[0] = nimCopy(null, (makeNimstrLit("Hello, ") || []).concat(name_452985219_469762121[0] || []), NTI33554439);
-          }
-          
-
+        name_452985219_469762121[0] = nimCopy(null, cstrToNimstr(getInputText_1140851917(getVNodeById_1140850954("inputId", kxi__nimib_kxi_2))), NTI33554439);
+        if (eqStrings(name_452985219_469762121[0], makeNimstrLit("exit"))) {
+        playing_452985220_469762122[0] = false;
+        }
+        else {
+          hello_452985218_469762120[0] = nimCopy(null, (makeNimstrLit("Hello, ") || []).concat(name_452985219_469762121[0] || []), NTI33554439);
+        }
         
-      }
+
+      
+    }
 
   var result_469762124 = null;
 
     var tmp_469762155 = tree_1174405894(44, []);
-    if (exited_452985220_469762122[0]) {
+    if (playing_452985220_469762122[0]) {
     var tmp_469762156 = tree_1174405894(32, []);
-    add_1174405831(tmp_469762156, text_1174405946(makeNimstrLit("Thanks for playing!")));
+    tmp_469762156.id = "helloId";
+    add_1174405831(tmp_469762156, text_1174405946(hello_452985218_469762120[0]));
     add_1174405831(tmp_469762155, tmp_469762156);
+    var tmp_469762162 = tree_1174405894(193, []);
+    add_1174405831(tmp_469762162, text_1174405946(makeNimstrLit("enter a name or the word \'exit\':")));
+    add_1174405831(tmp_469762155, tmp_469762162);
+    var tmp_469762163 = tree_1174405894(194, []);
+    tmp_469762163.id = "inputId";
+    setAttr_1174405757(tmp_469762163, "type", "text");
+    add_1174405831(tmp_469762163, text_1174405946(name_452985219_469762121[0]));
+    add_1174405831(tmp_469762155, tmp_469762163);
+    var tmp_469762164 = tree_1174405894(195, []);
+    add_1174405831(tmp_469762164, text_1174405946(makeNimstrLit("Enter")));
+    addEventHandler_1140851853(tmp_469762164, 0, HEX3Aanonymous_469762166, kxi__nimib_kxi_2);
+    add_1174405831(tmp_469762155, tmp_469762164);
     }
     else {
-      var tmp_469762161 = tree_1174405894(32, []);
-      tmp_469762161.id = "helloId";
-      add_1174405831(tmp_469762161, text_1174405946(hello_452985218_469762120[0]));
-      add_1174405831(tmp_469762155, tmp_469762161);
-      var tmp_469762163 = tree_1174405894(193, []);
-      add_1174405831(tmp_469762163, text_1174405946(makeNimstrLit("enter a name or the word \'exit\':")));
-      add_1174405831(tmp_469762155, tmp_469762163);
-      var tmp_469762164 = tree_1174405894(194, []);
-      tmp_469762164.id = "inputId";
-      setAttr_1174405757(tmp_469762164, "type", "text");
-      add_1174405831(tmp_469762164, text_1174405946(name_452985219_469762121[0]));
-      add_1174405831(tmp_469762155, tmp_469762164);
-      var tmp_469762165 = tree_1174405894(195, []);
-      add_1174405831(tmp_469762165, text_1174405946(makeNimstrLit("Enter")));
-      addEventHandler_1140851853(tmp_469762165, 0, HEX3Aanonymous_469762166, kxi__nimib_kxi_2);
+      var tmp_469762165 = tree_1174405894(32, []);
+      add_1174405831(tmp_469762165, text_1174405946(makeNimstrLit("Thanks for playing!")));
       add_1174405831(tmp_469762155, tmp_469762165);
     }
     
@@ -4515,7 +4502,7 @@ function HEX3Aanonymous_469762166() {
 }
 var hello_452985218_469762120 = [makeNimstrLit("welcome to the hello program")];
 var name_452985219_469762121 = [[]];
-var exited_452985220_469762122 = [false];
+var playing_452985220_469762122 = [true];
 setRenderer_1140851796(createdom_452985194_469762123, toJSStr(rootid_452985213_469762057), postrendercallback_452985214_469762113[0]);
 </script>
 </main>
@@ -4557,12 +4544,9 @@ nbCode:
       <span class="hljs-keyword">var</span>
         hello = <span class="hljs-string">&quot;welcome to the hello program&quot;</span>
         name = <span class="hljs-string">&quot;&quot;</span>
-        exited = <span class="hljs-literal">false</span>
+        playing = <span class="hljs-literal">true</span>
       karaxHtml:
-        <span class="hljs-keyword">if</span> exited:
-          p:
-            text <span class="hljs-string">&quot;Thanks for playing!&quot;</span>
-        <span class="hljs-keyword">else</span>:
+        <span class="hljs-keyword">if</span> playing:
           p(id=helloId):
             text hello
           label:
@@ -4574,10 +4558,12 @@ nbCode:
             <span class="hljs-keyword">proc</span> onClick() =
               name = $getVNodeById(inputId).getInputText
               <span class="hljs-keyword">if</span> name == <span class="hljs-string">&quot;exit&quot;</span>:
-                <span class="hljs-keyword">echo</span> <span class="hljs-string">&quot;exiting&quot;</span>
-                exited = <span class="hljs-literal">true</span>
+                playing = <span class="hljs-literal">false</span>
               <span class="hljs-keyword">else</span>:
                 hello = <span class="hljs-string">&quot;Hello, &quot;</span> &amp; name
+        <span class="hljs-keyword">else</span>:
+          p:
+            text <span class="hljs-string">&quot;Thanks for playing!&quot;</span>
 nbText: <span class="hljs-string">&quot;Did I end up with </span><span class="hljs-meta">\&quot;</span><span class="hljs-string">a very different looking program that has to handle state</span><span class="hljs-meta">\&quot;</span><span class="hljs-string">?&quot;</span>
 nbText: <span class="hljs-string">&quot;---&quot;</span>
 mySolution

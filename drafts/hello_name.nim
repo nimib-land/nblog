@@ -27,12 +27,9 @@ nbCode:
       var
         hello = "welcome to the hello program"
         name = ""
-        exited = false
+        playing = true
       karaxHtml:
-        if exited:
-          p:
-            text "Thanks for playing!"
-        else:
+        if playing:
           p(id=helloId):
             text hello
           label:
@@ -44,10 +41,12 @@ nbCode:
             proc onClick() =
               name = $getVNodeById(inputId).getInputText
               if name == "exit":
-                echo "exiting"
-                exited = true
+                playing = false
               else:
                 hello = "Hello, " & name
+        else:
+          p:
+            text "Thanks for playing!"
 nbText: "Did I end up with \"a very different looking program that has to handle state\"?"
 nbText: "---"
 mySolution
