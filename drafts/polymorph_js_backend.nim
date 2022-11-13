@@ -22,18 +22,6 @@ template nbJsAndCode(body: untyped) =
     body
 ]#
 nbCode:
-  import p5
-
-  let r = 25
-
-  var
-    x = 320
-    y = 180
-    xspeed = 5
-    yspeed = 2
-
-  echo x
-
   import polymorph
 
   # Parse some types as components.
@@ -84,18 +72,6 @@ nbCode:
 
 
 nbJsFromCode:
-  import p5
-
-  let r = 25
-
-  var
-    x = 320
-    y = 180
-    xspeed = 5
-    yspeed = 2
-
-  echo x
-
   import polymorph
 
   # Parse some types as components.
