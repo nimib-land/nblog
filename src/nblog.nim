@@ -2,12 +2,13 @@ import nimib / themes
 import nimib
 import mustachepkg / values
 import std / strformat
+import std / times
 
 type
   Date* = object
     year*: int
-    month*: int
-    day*: int
+    month*: range[1..12]
+    day*: range[1..31]
 
 proc useNblog*(nb: var NbDoc) =
   nb.useDefault
@@ -37,8 +38,11 @@ proc castDate*(value: Value): Date =
   assert value.vTable["day"].kind == vkInt
   result.day = int(value.vTable["day"].vInt)
 
+proc toMon(month: range[1..12]): string =
+  ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"][month - 1]
+
 proc pubDate*(nb: var NbDoc; year, month, day: int) =
   nb.context["pub_date"] = Date(year: year, month: month, day: day)
-  let datetime = "2023-01-06"
-  let date = "Jan 06, 2023"
+  let datetime = &"{year}-{month}-{day}"
+  let date = &"{toMon(month)} {day:02}, {year}"
   nbRawHtml: &"""<p><time datetime="{datetime}">{date}</time></p>"""
