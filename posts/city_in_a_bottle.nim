@@ -1,6 +1,7 @@
 import nimib
+import nblog
 
-nbInit
+nbInit(theme = useNblog)
 
 nbText: """# City in a bottle
 > example of usage of `nbRawHtml`

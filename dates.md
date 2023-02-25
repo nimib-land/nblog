@@ -6,7 +6,7 @@ noting here for convenience publication dates (taken from git commits, will add 
 - Mar 18: display_multidim_arrays
 - Mar 24: pixie_chessboard
 - Mar 24: random_palette
-- Apr 13: bernulli_and_beyond
+- Apr 13: bernoulli_and_beyond
 - May 7: mustache_specs
 - May 15: toc_mustache
 
