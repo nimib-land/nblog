@@ -5,6 +5,8 @@
 
 *.exe
 
+docs/*
+!docs/.gitkeep
 # file prefixed by x_ are ignored
 x_*
 
