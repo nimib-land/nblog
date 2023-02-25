@@ -2,7 +2,6 @@ import nimib / themes
 import nimib
 import mustachepkg / values
 import std / strformat
-import std / times
 
 type
   Date* = object
@@ -46,3 +45,4 @@ proc pubDate*(nb: var NbDoc; year, month, day: int) =
   let datetime = &"{year}-{month}-{day}"
   let date = &"{toMon(month)} {day:02}, {year}"
   nbRawHtml: &"""<p><time datetime="{datetime}">{date}</time></p>"""
+
