@@ -31,4 +31,4 @@ nbRawHtml: """<blockquote class="twitter-tweet"><p lang="en" dir="ltr">It has it
 nbText: "Do I like Twitter? Oh, boy..."
 nbRawHtml: """<blockquote class="twitter-tweet"><p lang="en" dir="ltr">Oh, boy! West Coast, <a href="https://twitter.com/hashtag/YoungSheldon?src=hash&amp;ref_src=twsrc%5Etfw">#YoungSheldon</a> starts now! <a href="https://t.co/bpSn7NySME">pic.twitter.com/bpSn7NySME</a></p>&mdash; Young Sheldon (@YoungSheldon) <a href="https://twitter.com/YoungSheldon/status/1081045053798273024?ref_src=twsrc%5Etfw">January 4, 2019</a></blockquote> <script async src="https://platform.twitter.com/widgets.js" charset="utf-8"></script>"""
 
-nbSave
+nbSaveJson

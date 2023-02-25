@@ -1,7 +1,9 @@
 import nimib / themes
-import nimib
+import nimib except toJson
 import mustachepkg / values
 import std / strformat
+import std / strutils
+import jsony
 
 type
   Date* = object
@@ -45,4 +47,30 @@ proc pubDate*(nb: var NbDoc; year, month, day: int) =
   let datetime = &"{year}-{month}-{day}"
   let date = &"{toMon(month)} {day:02}, {year}"
   nbRawHtml: &"""<p><time datetime="{datetime}">{date}</time></p>"""
+
+proc dumpHook*(s: var string, v: Value)
+
+proc dumpHook*(s: var string, v: Value) =
+  case v.kind:
+  of vkInt: s.add $(v.vInt)
+  of vkFloat32: s.add $(v.vFloat32)
+  of vkFloat64: s.add $(v.vFloat64)
+  of vkString: s.add jsony.toJson(v.vString)
+  of vkBool: s.add jsony.toJson(v.vBool)
+  of vkProc: discard
+  of vkSeq: s.add jsony.toJson(v.vSeq)
+  of vkTable: s.add jsony.toJson(v.vTable[])
+
+proc dumpHook*(s: var string, context: Context) =
+  s.add jsony.toJson(context.values)
+
+proc dumpHook*(s: var string, nb: NbDoc) =
+  s.add "{\n"
+  s.add "  \"data\": " & jsony.toJson(nb.context) & ",\n"
+  s.add "  \"blocks\": " & jsony.toJson(nb.blocks) & "\n"
+  s.add "}"
+
+template nbSaveJson* =
+  nb.nbCollectAllNbJs()
+  writeFile(nb.filename.replace(".html", ".json"), jsony.toJson(nb))
 
