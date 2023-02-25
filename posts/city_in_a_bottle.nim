@@ -2,16 +2,18 @@ import nimib
 import nblog
 
 nbInit(theme = useNblog)
+nb.title "City in a bottle"
+nb.subtitle "How to embed a tweet in a nimib document"
+nb.pubDate 2022, 7, 12
 
-nbText: """# City in a bottle
-> example of usage of `nbRawHtml`
-
+nbText: """
 How do I embed a tweet like [this great tweet](https://twitter.com/killedbyapixel/status/1517294627996545024) in nimib?
 
 Easy! Just go in the top right corner of the tweet (⋮), click on "Embed Tweet", copy the code
-and use `nbRawHtml` (see source by clicking "Show Source" button below)
+and use `nbRawHtml`:
 """
-nbRawHtml: """<blockquote class="twitter-tweet"><p lang="en" dir="ltr">A City in a Bottle 🌆<br><br>&lt;canvas style=width:99% id=c onclick=setInterval(&#39;for(c.width=w=99,++t,i=6e3;i--;c.getContext`2d`.fillRect(i%w,i/w|0,1-d*Z/w+s,1))for(a=i%w/50-1,s=b=1-i/4e3,X=t,Y=Z=d=1;++Z&lt;w&amp;(Y&lt;6-(32&lt;Z&amp;27&lt;X%w&amp;&amp;X/9^Z/8)*8%46||d|(s=(X&amp;Y&amp;Z)%3/Z,a=b=1,d=Z/w));Y-=b)X+=a&#39;,t=9)&gt; <a href="https://t.co/N3WElPqtMY">pic.twitter.com/N3WElPqtMY</a></p>&mdash; Frank Force 🌻 (@KilledByAPixel) <a href="https://twitter.com/KilledByAPixel/status/1517294627996545024?ref_src=twsrc%5Etfw">April 22, 2022</a></blockquote> <script async src="https://platform.twitter.com/widgets.js" charset="utf-8"></script>"""
+nimibCode:
+  nbRawHtml: """<blockquote class="twitter-tweet"><p lang="en" dir="ltr">A City in a Bottle 🌆<br><br>&lt;canvas style=width:99% id=c onclick=setInterval(&#39;for(c.width=w=99,++t,i=6e3;i--;c.getContext`2d`.fillRect(i%w,i/w|0,1-d*Z/w+s,1))for(a=i%w/50-1,s=b=1-i/4e3,X=t,Y=Z=d=1;++Z&lt;w&amp;(Y&lt;6-(32&lt;Z&amp;27&lt;X%w&amp;&amp;X/9^Z/8)*8%46||d|(s=(X&amp;Y&amp;Z)%3/Z,a=b=1,d=Z/w));Y-=b)X+=a&#39;,t=9)&gt; <a href="https://t.co/N3WElPqtMY">pic.twitter.com/N3WElPqtMY</a></p>&mdash; Frank Force 🌻 (@KilledByAPixel) <a href="https://twitter.com/KilledByAPixel/status/1517294627996545024?ref_src=twsrc%5Etfw">April 22, 2022</a></blockquote> <script async src="https://platform.twitter.com/widgets.js" charset="utf-8"></script>"""
 
 nbText: "And we can use `nbRawHtml` also to visualize the canvas code. The only adjustment I made is to add a solid border. Click inside to start the animation."
 nbRawHtml: """<canvas style="width:99%; border:1px solid #000000;" id=c onclick=setInterval('for(c.width=w=99,++t,i=6e3;i--;c.getContext`2d`.fillRect(i%w,i/w|0,1-d*Z/w+s,1))for(a=i%w/50-1,s=b=1-i/4e3,X=t,Y=Z=d=1;++Z<w&(Y<6-(32<Z&27<X%w&&X/9^Z/8)*8%46||d|(s=(X&Y&Z)%3/Z,a=b=1,d=Z/w));Y-=b)X+=a',t=9)></canvas>"""
