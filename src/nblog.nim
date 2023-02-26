@@ -4,6 +4,7 @@ import mustachepkg / values
 import std / strformat
 import std / strutils
 import jsony
+import json
 
 type
   Date* = object
@@ -73,4 +74,29 @@ proc dumpHook*(s: var string, nb: NbDoc) =
 template nbSaveJson* =
   nb.nbCollectAllNbJs()
   writeFile(nb.filename.replace(".html", ".json"), jsony.toJson(nb))
+
+proc parseHook*(s: string, i: var int, v: var Context) =
+  var data: JsonNode
+  parseHook(s, i, data)
+  v = newContext(values = data.toValues)
+
+type
+  SimplifiedNbDoc = object
+    data: Context
+    blocks: seq[NbBlock]
+
+proc parseHook*(s: string, i: var int, v: var NbDoc) =
+  var simpleNb: SimplifiedNbDoc
+  parseHook(s, i, simpleNb)
+  v.context = simpleNb.data
+  v.blocks = simpleNb.blocks
+
+when isMainModule:
+  nbInit(theme=useNblog)
+  let nbJson = readFile("city_in_a_bottle.json")
+  let nb2 = jsony.fromJson(nbJson, NbDoc)
+  nb.context = nb2.context
+  nb.blocks = nb2.blocks
+  nb.filename = "city_in_a_bottle.html"
+  nbSave
 
