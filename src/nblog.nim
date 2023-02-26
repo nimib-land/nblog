@@ -91,12 +91,15 @@ proc parseHook*(s: string, i: var int, v: var NbDoc) =
   v.context = simpleNb.data
   v.blocks = simpleNb.blocks
 
-when isMainModule:
+proc nbJsonToHtml*(filename: string) =
   nbInit(theme=useNblog)
-  let nbJson = readFile("city_in_a_bottle.json")
+  let nbJson = readFile(filename)
   let nb2 = jsony.fromJson(nbJson, NbDoc)
   nb.context = nb2.context
   nb.blocks = nb2.blocks
-  nb.filename = "city_in_a_bottle.html"
+  nb.filename = filename.replace(".json", ".html") #todo: replace with a proper changeExt
   nbSave
 
+
+when isMainModule:
+  nbJsonToHtml("city_in_a_bottle.json")
