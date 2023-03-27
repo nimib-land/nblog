@@ -1,3 +1,4 @@
+import std / [os, osproc]
 import nimib / themes
 import nimib except toJson
 import mustachepkg / values
@@ -100,6 +101,41 @@ proc nbJsonToHtml*(filename: string) =
   nb.filename = filename.replace(".json", ".html") #todo: replace with a proper changeExt
   nbSave
 
+proc build*(post: string): bool =
+  # todo: do not hardcode all folders (and do not assume we are in docs)
+  echo "[nblog] building " & post
+  let postJson = post & ".json"
+  if not postJson.fileExists:
+    echo "[nblog] creating " & postJson
+    let postSrc = "../posts/" & post & ".nim"
+    if not postSrc.fileExists:
+      echo "[nblog.error] source not found: " & postSrc
+      return
+    let runCmd = "nim r " & postSrc
+    let exitCode = execCmd runCmd
+    if exitCode != 0:
+      echo "[nblog.error] error while running source: " & runCmd
+      return
+    if not postJson.fileExists:
+      echo "[nblog.error] json not created: " & postJson
+  nbJsonToHtml(postJson)
+  return true
 
 when isMainModule:
-  nbJsonToHtml("city_in_a_bottle.json")
+  import climate
+  nbInit # this puts me in docs folder
+  # todo: better mechanism to list all posts
+  let allPosts = [
+    "city_in_a_bottle",
+    "arraymancer_tutorial"
+  ]
+  proc buildCmd(context: climate.Context): int =    
+    for post in allPosts:
+      if not build(post):
+        inc result
+  
+  quit parseCommands(
+    {
+      "build": buildCmd
+    }
+  )
