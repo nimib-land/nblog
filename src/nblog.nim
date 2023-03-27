@@ -159,8 +159,10 @@ when isMainModule:
 
   proc helpCmd(context: climate.Context): int =
     echo """
-build [args]    build all posts or the posts in args
-init [args]     init a nblog project or specific files
+build               build all posts
+build this that     build only posts "this" and "that"
+build this --json   force creation of json when building (in case it was already created)
+init new_post       init a new blogpost "new_post"
 """
 
   proc buildCmd(context: climate.Context): int = 
