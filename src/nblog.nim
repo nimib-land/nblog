@@ -1,4 +1,4 @@
-import std / [os, osproc]
+import std / [os, osproc, times]
 import nimib / themes
 import nimib except toJson
 import mustachepkg / values
@@ -101,11 +101,14 @@ proc nbJsonToHtml*(filename: string) =
   nb.filename = filename.replace(".json", ".html") #todo: replace with a proper changeExt
   nbSave
 
-proc build*(post: string): bool =
+proc build*(post: string, createJson = false): bool =
   # todo: do not hardcode all folders (and do not assume we are in docs)
+  # I should split the build command in first building json
+  # later building html (after reading all json)
+  # although for nblog I need it only for index
   echo "[nblog] building " & post
   let postJson = post & ".json"
-  if not postJson.fileExists:
+  if not postJson.fileExists or createJson:
     echo "[nblog] creating " & postJson
     let postSrc = "../posts/" & post & ".nim"
     if not postSrc.fileExists:
@@ -121,21 +124,71 @@ proc build*(post: string): bool =
   nbJsonToHtml(postJson)
   return true
 
+proc init*(post: string): bool =
+  let postSrc = "../posts/" & post & ".nim"
+  if postSrc.fileExists:
+    echo "[nblog.error] files already exists: " & postSrc
+    return
+  let today = times.now()
+  postSrc.writeFile(fmt"""
+import nimib
+import nblog
+
+nbInit(theme = useNblog)
+nb.title "{post}"
+nb.subtitle "tell me more about {post}"
+nb.pubDate {today.year}, {ord(today.month)}, {today.monthday}
+
+nbText:
+  "say something"
+
+nbCode:
+  echo "code something"
+
+nbSaveJson
+""")
+
 when isMainModule:
   import climate
   nbInit # this puts me in docs folder
   # todo: better mechanism to list all posts
-  let allPosts = [
+  let allPosts = @[
     "city_in_a_bottle",
     "arraymancer_tutorial"
   ]
-  proc buildCmd(context: climate.Context): int =    
-    for post in allPosts:
-      if not build(post):
+
+  proc helpCmd(context: climate.Context): int =
+    echo """
+build [args]    build all posts or the posts in args
+init [args]     init a nblog project or specific files
+"""
+
+  proc buildCmd(context: climate.Context): int = 
+    let posts = block:
+      if context.cmdArguments.len == 0:
+        allPosts
+      else:
+        context.cmdArguments
+    let createJson = "createJson" in context.cmdOptions or "json" in context.cmdOptions 
+    for post in posts:
+      if not build(post, createJson = createJson):
         inc result
   
+  proc initCmd(context: climate.Context): int =
+    let posts = block:
+      if context.cmdArguments.len == 0:
+        echo "todo: init a nblog"
+        @[]
+      else:
+        context.cmdArguments
+    for post in posts:
+      if not init(post):
+        inc result
+
+
   quit parseCommands(
     {
-      "build": buildCmd
-    }
-  )
+      "build": buildCmd,
+      "init": initCmd,
+    },
+  defaultHandler=helpCmd)
