@@ -1,12 +1,13 @@
 import nimib
-# I want to use this notebook also to show how one can customzie the nbCode block output
-# (to have output shown as comments) and also possibly to stitch together subsequent code samples
-# (I should use a render change in nbDoc). Probably I should do this after rendering refactoring.
-nbInit
-nbText: """
-# Arraymancer Tutorial - First steps
+import nblog
 
-> A remake of the original tutorial using nimib: <https://mratsim.github.io/Arraymancer/tuto.first_steps.html>
+nbInit(theme = useNblog)
+nb.title "Arraymancer Tutorial - First steps"
+nb.subtitle "A remake of the original tutorial using nimib"
+nb.pubDate 2021, 3, 12
+
+nbText: """
+> original tutorial: <https://mratsim.github.io/Arraymancer/tuto.first_steps.html>
 >
 > I will note differences with the original in quoted sections.
 
@@ -135,4 +136,5 @@ This behaviour is the same as Numpy and Julia,
 reasons can be found in the following
 [under the hood article](https://mratsim.github.io/Arraymancer/uth.copy_semantics.html).
 """
-nbShow
+
+nbSaveJson
