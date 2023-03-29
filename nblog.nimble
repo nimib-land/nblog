@@ -11,3 +11,4 @@ bin         = @["nblog"]
 
 requires "nim >= 1.4.0"
 requires "nimib >= 1.3.0"
+requires "climate >= 1.0.2"
