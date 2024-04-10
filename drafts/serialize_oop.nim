@@ -113,6 +113,123 @@ This will make Nim do the dynamic dispatch by looking for a suitible `method` th
 carbon copies of each other, they just have to be defined for us to get the correct type information.
 One more trick we use is the fact that our types are `ref object`s. This means we can avoid infinite recursion by serializing
 the dereferenced object `c[]` and still get the same JSON.
+
+Now we can turn our object into JSON, but how do we turn the JSON back to object again?
+
+## [Parse-hooks](https://github.com/treeform/jsony#proc-parsehook-can-be-used-to-do-anything)
+As you might have guessed, parse-hooks are functions that allows us to customize how types are parsed from JSON to that type.
+And in our case, we want to take the JSON of `Controller`, `DpadController` or `JoyStickController` and return the correct object type. How can we determine which of the types the JSON object has though? This is where the `kind` field comes in. As you saw in `customDump` above, we set this field to the string representation of the type name. So if we read this field from the JSON, we can figure out which type it is! Brilliant! Now how do we do that? Let's start off with reading the `kind` field:
 """
+
+nbCodeInBlock:
+  proc parseHook(s: string, i: var int, v: var Controller) =
+    var c = Controller()
+    parseHook(s, i, c[])
+    let kind = c.kind
+
+nbText: hlMd"""
+Here we use the same trick as before, we exploit that `Controller` is a `ref object`
+so we can use the `parseHook` of the dereferenced type instead.
+Here we parsed the object as if it was of the base type `Controller`,
+but that is okay as `kind` can be accessed there.
+
+The idea now is to use the `kind` as a key to a `Table` of parsing functions.
+In there, we define a parsing function for each subtype of `Controller`.
+And the key here is that inside these functions, we will know the exact type of
+the object. So then we can just let jsony do its thing.
+"""
+
+nbCode:
+  var parseFuncs: Table[string, proc (s: string, i: var int): Controller]
+
+  proc parseDpad(s: string, i: var int): Controller =
+    var v: DpadController
+    new v
+    parseHook(s, i, v[])
+    return v
+
+  parseFuncs[nimIdentNormalize($DpadController)] = parseDpad
+
+nbText: hlMd"""
+As you can imagine, the only part we have to change for the different types is `var v: DpadController`.
+So this could be easily done in a template instead to reduce boilerplate: 
+"""
+
+nbCode:
+  template addControlParser(typeName: untyped) =
+    parseFuncs[nimIdentNormalize($typeName)] =
+      proc (s: string, i: var int): Controller =
+        var v: typename
+        new v
+        parseHook(s, i, v[])
+        return v
+
+  addControlParser(Controller)
+  addControlParser(DpadController)
+  addControlParser(JoyStickController)
+
+nbText: hlMd"""
+With all the parse-functions defined, we can update our parse-hook
+to take the changes into account:
+"""
+
+nbCode:
+  # Updated parseHook
+  proc parseHook(s: string, i: var int, v: var Controller) =
+    var c = Controller()
+    # parseHook modifies `i`, so store it so we can re-parse this object below
+    let current_i = i
+    parseHook(s, i, c[])
+    i = current_i # reset i
+    let kind = c.kind
+    v = parseFuncs[kind](s, i)
+
+nbText: hlMd"""
+Now let's try it out!
+"""
+
+nbCodeInBlock:
+  let jsonText = """{"x":1,"y":-1,"a":false,"b":false,"kind":"Dpadcontroller"}"""
+  echo jsonText.fromJson(Controller).DpadController[]
+
+nbText: hlMd"""
+Yippie! It worked! Even though we loaded it as a `Controller`,
+it has the correct value for the `x` and `y` fields!
+
+
+## Template-ize everything!
+So, now that we have solved this problem, can we also make it easier to use?
+Having to define a lot of function for each type get tedious quite quickly.
+The good news is that we can boil everything down into a single template call.
+Look at this:
+"""
+
+nbCode:
+  template registerController(typeName: untyped) =
+    parseFuncs[nimIdentNormalize($typeName)] =
+      proc (s: string, i: var int): Controller =
+        var v: typename
+        new v
+        parseHook(s, i, v[])
+        return v
+
+    method customDump(c: typeName): string =
+      if c.isNil:
+        "null"
+      else:
+        echo "kind: ", nimIdentNormalize($type(c)), type(c)
+        c.kind = nimIdentNormalize($type(c))
+        c[].toJson()
+    
+nbText: """
+Now we can simply define a new subtype and with a single call to this template,
+we will be able to serialize and deserialize it correctly! 
+"""
+
+nbCode:
+  type DpadControllerWithPress = ref object of DpadController
+      isDpadPressed: bool
+
+  registerController(DpadControllerWithPress)
 
 nbSave
