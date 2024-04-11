@@ -8,6 +8,9 @@ nbText: hlMd"""
 In the process of refactoring Nimib we decided that we wanted to use inheritance to represent the different blocks.
 We would have one base block that all other nimib blocks (i.e. image, code, etc) would inherit from.
 The reason we want them to be of the same base is that we want to be able to store them in a single `seq`.
+A central part of this refactoring is a JSON-backend where we can take all of the nimib blocks,
+serialize them to JSON, and then later deserialize those blocks and render them. 
+
 The problem then arises: how do we serialize and deserialize this `seq` now that we don't have the static type information anymore? (Putting them all in the same `seq` makes them all appear to be of the base type)
 We somehow have to use the dynamic type information instead.  
 In this document we will show one way of solving this problem that might turn out to be useful for nimib, but might be more generally interersting if you have
