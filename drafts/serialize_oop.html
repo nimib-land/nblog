@@ -1,0 +1,482 @@
+<!DOCTYPE html>
+<html lang="en-us">
+<head>
+  <title>drafts/serialize_oop.nim</title>
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2280%22>🐳</text></svg>">
+  <meta content="text/html; charset=utf-8" http-equiv="content-type">
+  <meta content="width=device-width, initial-scale=1" name="viewport">
+  <meta content="nimib 0.3.9" name="generator">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/water.css@2/out/light.min.css">
+  <link rel='stylesheet' href='https://cdn.jsdelivr.net/gh/pietroppeter/nimib/assets/atom-one-light.css'>
+    <script src="https://cdn.jsdelivr.net/gh/pietroppeter/nimib@main/assets/highlight.min.js"></script>
+<script>hljs.highlightAll();</script>
+
+  <style>
+.nb-box {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+.nb-small {
+  font-size: 0.8rem;
+}
+button.nb-small {
+  float: right;
+  padding: 2px;
+  padding-right: 5px;
+  padding-left: 5px;
+}
+section#source {
+  display:none
+}
+pre > code {
+  font-size: 1.2em;
+}
+.nb-output {
+  line-height: 1.15;
+}
+</style>
+  
+  <script async defer data-domain="pietroppeter.github.io/nblog" src="https://plausible.io/js/plausible.js"></script>
+</head>
+<body>
+<header>
+<div class="nb-box">
+  <span><a href="..">🏡</a></span>
+  <span><code>drafts/serialize_oop.nim</code></span>
+  <span><a href="https://github.com/nimib-land/nblog"><svg aria-hidden="true" width="1.2em" height="1.2em" style="vertical-align: middle;" preserveAspectRatio="xMidYMid meet" viewBox="0 0 16 16"><path fill-rule="evenodd" d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59c.4.07.55-.17.55-.38c0-.19-.01-.82-.01-1.49c-2.01.37-2.53-.49-2.69-.94c-.09-.23-.48-.94-.82-1.13c-.28-.15-.68-.52-.01-.53c.63-.01 1.08.58 1.23.82c.72 1.21 1.87.87 2.33.66c.07-.52.28-.87.51-1.07c-1.78-.2-3.64-.89-3.64-3.95c0-.87.31-1.59.82-2.15c-.08-.2-.36-1.02.08-2.12c0 0 .67-.21 2.2.82c.64-.18 1.32-.27 2-.27c.68 0 1.36.09 2 .27c1.53-1.04 2.2-.82 2.2-.82c.44 1.1.16 1.92.08 2.12c.51.56.82 1.27.82 2.15c0 3.07-1.87 3.75-3.65 3.95c.29.25.54.73.54 1.48c0 1.07-.01 1.93-.01 2.2c0 .21.15.46.55.38A8.013 8.013 0 0 0 16 8c0-4.42-3.58-8-8-8z" fill="#000"></path></svg></a></span>
+</div>
+<hr>
+</header><main>
+<h1>Serialization of object oriented types using <a href="https://github.com/treeform/jsony">jsony</a></h1>
+<h2>Background</h2>
+<p>In the process of refactoring Nimib we decided that we wanted to use inheritance to represent the different blocks.
+We would have one base block that all other nimib blocks (i.e. image, code, etc) would inherit from.
+The reason we want them to be of the same base is that we want to be able to store them in a single <code>seq</code>.
+The problem then arises: how do we serialize and deserialize this <code>seq</code> now that we don't have the static type information anymore? (Putting them all in the same <code>seq</code> makes them all appear to be of the base type)
+We somehow have to use the dynamic type information instead.<br />
+In this document we will show one way of solving this problem that might turn out to be useful for nimib, but might be more generally interersting if you have
+an hierarchy of types that you want to serialize and deserialize.</p>
+<h2>OOP Type Hierarchy</h2>
+<p>Let's start off with defining the types we will be using in this document.
+The scenario is that we have a <code>Controller</code> type that represents a generic game controller with at least an A and B button.</p>
+<pre><code class="nohighlight hljs nim"><span class="hljs-keyword">type</span> <span class="hljs-type">Controller</span> = <span class="hljs-keyword">ref</span> <span class="hljs-keyword">object</span> <span class="hljs-keyword">of</span> <span class="hljs-type">RootObj</span>
+  a, b: <span class="hljs-built_in">bool</span>
+  kind: <span class="hljs-built_in">string</span></code></pre>
+<p>The fields <code>a</code> and <code>b</code> stores whether the buttons A and B are pushed.
+The <code>kind</code> field does not have anything to do with the controller but it is metadata we will need later on.
+Let's define two specialized controllers, D-pad and Joy-stick:</p>
+<pre><code class="nohighlight hljs nim"><span class="hljs-keyword">type</span>
+  <span class="hljs-type">DpadController</span> = <span class="hljs-keyword">ref</span> <span class="hljs-keyword">object</span> <span class="hljs-keyword">of</span> <span class="hljs-type">Controller</span>
+    x, y: <span class="hljs-built_in">int</span>
+  <span class="hljs-type">JoyStickController</span> = <span class="hljs-keyword">ref</span> <span class="hljs-keyword">object</span> <span class="hljs-keyword">of</span> <span class="hljs-type">Controller</span>
+    angle, radius: <span class="hljs-built_in">float</span></code></pre>
+<p><code>x</code> and <code>y</code> represents the directions of the D-pad in both the x- and y-directions. For the joystick the <code>angle</code> and <code>radius</code> specifies the current position of the joystick. The details doesn't really matter in this example. What matters is that these two types have different fields and inherits from the same base type.</p>
+<h2>The problem</h2>
+<p>Let's create an instance of each type and echo them along with their serialized JSON-strings:</p>
+<pre><code class="nohighlight hljs nim"><span class="hljs-keyword">import</span> jsony
+<span class="hljs-keyword">let</span> dpad = <span class="hljs-type">DpadController</span>()
+<span class="hljs-keyword">let</span> joystick = <span class="hljs-type">JoyStickController</span>()
+<span class="hljs-keyword">echo</span> dpad[]
+<span class="hljs-keyword">echo</span> dpad.toJson()
+<span class="hljs-keyword">echo</span> joystick[]
+<span class="hljs-keyword">echo</span> joystick.toJson()</code></pre><pre class="nb-output">(x: 0, y: 0, a: false, b: false, kind: &quot;&quot;)
+{&quot;x&quot;:0,&quot;y&quot;:0,&quot;a&quot;:false,&quot;b&quot;:false,&quot;kind&quot;:&quot;&quot;}
+(angle: 0.0, radius: 0.0, a: false, b: false, kind: &quot;&quot;)
+{&quot;angle&quot;:0.0,&quot;radius&quot;:0.0,&quot;a&quot;:false,&quot;b&quot;:false,&quot;kind&quot;:&quot;&quot;}</pre>
+<p>As we can see, both types serialize just fine to JSON. SO what is the problem then?
+The problem arises when we put them both inside an homogenous data structure like a <code>seq[Controller]</code>:</p>
+<pre><code class="nohighlight hljs nim"><span class="hljs-keyword">let</span> list = @[dpad, joystick]
+<span class="hljs-keyword">echo</span> typeof(list)
+<span class="hljs-keyword">echo</span> list[<span class="hljs-number">0</span>].toJson()</code></pre><pre class="nb-output">seq[ref Controller:ObjectType]
+{&quot;a&quot;:false,&quot;b&quot;:false,&quot;kind&quot;:&quot;&quot;}</pre>
+<p>Now all the specialized fields are gone! This is because <code>list</code> is a list of <code>Controller</code> objects for all the compiler knows.
+So jsony will in good faith treat them as such and only include the fields from the base type. How irritating!</p>
+<h2><a href="https://github.com/treeform/jsony#proc-dumphook-can-be-used-to-serialize-into-custom-representation">Dump-hooks</a></h2>
+<p>Of course, we know that the type information is there somewhere.
+We just have to show the compiler and jsony that.
+The type information is stored dynamically so we want to utilize dynamic dispatch to extract the type information somehow.
+Let's start off with what jsony's dump-hooks are. They are functions we can define for a type to customize how it is serialized.
+And that is exactly what we want to do! We want to hijack the serialization of the base type and do some dynamic dispatch to figure out exactly
+which subtype the object is. What exactly do I mean by this dynamic dispatch? Basically we have to define a <code>method</code> for each type that returns the
+serialized string of the object. This way, the compiler and jsony will know exactly which subtype it is dealing with:</p>
+<pre><code class="nohighlight hljs nim"><span class="hljs-keyword">import</span> strutils
+
+<span class="hljs-keyword">method</span> customDump(c: <span class="hljs-type">Controller</span>): <span class="hljs-built_in">string</span> {.base.} =
+  <span class="hljs-keyword">if</span> c.isNil:
+    <span class="hljs-string">&quot;null&quot;</span>
+  <span class="hljs-keyword">else</span>:
+    c.kind = nimIdentNormalize($<span class="hljs-keyword">type</span>(c))
+    c[].toJson()
+
+<span class="hljs-keyword">method</span> customDump(c: <span class="hljs-type">DpadController</span>): <span class="hljs-built_in">string</span> =
+  <span class="hljs-keyword">if</span> c.isNil:
+    <span class="hljs-string">&quot;null&quot;</span>
+  <span class="hljs-keyword">else</span>:
+    c.kind = nimIdentNormalize($<span class="hljs-keyword">type</span>(c))
+    c[].toJson()
+
+<span class="hljs-keyword">method</span> customDump(c: <span class="hljs-type">JoyStickController</span>): <span class="hljs-built_in">string</span> =
+  <span class="hljs-keyword">if</span> c.isNil:
+    <span class="hljs-string">&quot;null&quot;</span>
+  <span class="hljs-keyword">else</span>:
+    c.kind = nimIdentNormalize($<span class="hljs-keyword">type</span>(c))
+    c[].toJson()
+
+<span class="hljs-keyword">proc</span> dumpHook(s: <span class="hljs-keyword">var</span> <span class="hljs-built_in">string</span>, v: <span class="hljs-type">Controller</span>) =
+  s.add v.customDump()
+
+<span class="hljs-keyword">let</span> list = @[dpad, joystick]
+<span class="hljs-keyword">echo</span> list.toJson()</code></pre><pre class="nb-output">[{&quot;x&quot;:0,&quot;y&quot;:0,&quot;a&quot;:false,&quot;b&quot;:false,&quot;kind&quot;:&quot;Dpadcontroller&quot;},{&quot;angle&quot;:0.0,&quot;radius&quot;:0.0,&quot;a&quot;:false,&quot;b&quot;:false,&quot;kind&quot;:&quot;Joystickcontroller&quot;}]</pre>
+<p>Wow it was able to serialize the object correctly now! Let's go through the code a bit more in detail.
+We define the dump-hook for the <code>Controller</code> base type and call the <code>method</code> (and this is important) <code>customDump</code> on it.
+This will make Nim do the dynamic dispatch by looking for a suitible <code>method</code> that matches the type. The 3 <code>method</code>s are
+carbon copies of each other, they just have to be defined for us to get the correct type information.
+One more trick we use is the fact that our types are <code>ref object</code>s. This means we can avoid infinite recursion by serializing
+the dereferenced object <code>c[]</code> and still get the same JSON.</p>
+<p>Now we can turn our object into JSON, but how do we turn the JSON back to object again?</p>
+<h2><a href="https://github.com/treeform/jsony#proc-parsehook-can-be-used-to-do-anything">Parse-hooks</a></h2>
+<p>As you might have guessed, parse-hooks are functions that allows us to customize how types are parsed from JSON to that type.
+And in our case, we want to take the JSON of <code>Controller</code>, <code>DpadController</code> or <code>JoyStickController</code> and return the correct object type. How can we determine which of the types the JSON object has though? This is where the <code>kind</code> field comes in. As you saw in <code>customDump</code> above, we set this field to the string representation of the type name. So if we read this field from the JSON, we can figure out which type it is! Brilliant! Now how do we do that? Let's start off with reading the <code>kind</code> field:</p>
+<pre><code class="nohighlight hljs nim"><span class="hljs-keyword">proc</span> parseHook(s: <span class="hljs-built_in">string</span>, i: <span class="hljs-keyword">var</span> <span class="hljs-built_in">int</span>, v: <span class="hljs-keyword">var</span> <span class="hljs-type">Controller</span>) =
+  <span class="hljs-keyword">var</span> c = <span class="hljs-type">Controller</span>()
+  parseHook(s, i, c[])
+  <span class="hljs-keyword">let</span> kind = c.kind</code></pre>
+<p>Here we use the same trick as before, we exploit that <code>Controller</code> is a <code>ref object</code>
+so we can use the <code>parseHook</code> of the dereferenced type instead.
+Here we parsed the object as if it was of the base type <code>Controller</code>,
+but that is okay as <code>kind</code> can be accessed there.</p>
+<p>The idea now is to use the <code>kind</code> as a key to a <code>Table</code> of parsing functions.
+In there, we define a parsing function for each subtype of <code>Controller</code>.
+And the key here is that inside these functions, we will know the exact type of
+the object. So then we can just let jsony do its thing.</p>
+<pre><code class="nohighlight hljs nim"><span class="hljs-keyword">var</span> parseFuncs: <span class="hljs-type">Table</span>[<span class="hljs-built_in">string</span>, <span class="hljs-keyword">proc</span> (s: <span class="hljs-built_in">string</span>, i: <span class="hljs-keyword">var</span> <span class="hljs-built_in">int</span>): <span class="hljs-type">Controller</span>]
+
+<span class="hljs-keyword">proc</span> parseDpad(s: <span class="hljs-built_in">string</span>, i: <span class="hljs-keyword">var</span> <span class="hljs-built_in">int</span>): <span class="hljs-type">Controller</span> =
+  <span class="hljs-keyword">var</span> v: <span class="hljs-type">DpadController</span>
+  <span class="hljs-keyword">new</span> v
+  parseHook(s, i, v[])
+  <span class="hljs-keyword">return</span> v
+
+parseFuncs[nimIdentNormalize($<span class="hljs-type">DpadController</span>)] = parseDpad</code></pre>
+<p>As you can imagine, the only part we have to change for the different types is <code>var v: DpadController</code>.
+So this could be easily done in a template instead to reduce boilerplate:</p>
+<pre><code class="nohighlight hljs nim"><span class="hljs-keyword">template</span> addControlParser(typeName: <span class="hljs-built_in">untyped</span>) =
+  parseFuncs[nimIdentNormalize($typeName)] =
+    <span class="hljs-keyword">proc</span> (s: <span class="hljs-built_in">string</span>, i: <span class="hljs-keyword">var</span> <span class="hljs-built_in">int</span>): <span class="hljs-type">Controller</span> =
+      <span class="hljs-keyword">var</span> v: typename
+      <span class="hljs-keyword">new</span> v
+      parseHook(s, i, v[])
+      <span class="hljs-keyword">return</span> v
+
+addControlParser(<span class="hljs-type">Controller</span>)
+addControlParser(<span class="hljs-type">DpadController</span>)
+addControlParser(<span class="hljs-type">JoyStickController</span>)</code></pre>
+<p>With all the parse-functions defined, we can update our parse-hook
+to take the changes into account:</p>
+<pre><code class="nohighlight hljs nim"><span class="hljs-comment"># Updated parseHook</span>
+<span class="hljs-keyword">proc</span> parseHook(s: <span class="hljs-built_in">string</span>, i: <span class="hljs-keyword">var</span> <span class="hljs-built_in">int</span>, v: <span class="hljs-keyword">var</span> <span class="hljs-type">Controller</span>) =
+  <span class="hljs-keyword">var</span> c = <span class="hljs-type">Controller</span>()
+  <span class="hljs-comment"># parseHook modifies `i`, so store it so we can re-parse this object below</span>
+  <span class="hljs-keyword">let</span> current_i = i
+  parseHook(s, i, c[])
+  i = current_i <span class="hljs-comment"># reset i</span>
+  <span class="hljs-keyword">let</span> kind = c.kind
+  v = parseFuncs[kind](s, i)</code></pre>
+<p>Now let's try it out!</p>
+<pre><code class="nohighlight hljs nim"><span class="hljs-keyword">let</span> jsonText = <span class="hljs-string">&quot;&quot;&quot;{&quot;x&quot;:1,&quot;y&quot;:-1,&quot;a&quot;:false,&quot;b&quot;:false,&quot;kind&quot;:&quot;Dpadcontroller&quot;}&quot;&quot;&quot;</span>
+<span class="hljs-keyword">echo</span> jsonText.fromJson(<span class="hljs-type">Controller</span>).<span class="hljs-type">DpadController</span>[]</code></pre><pre class="nb-output">(x: 1, y: -1, a: false, b: false, kind: &quot;Dpadcontroller&quot;)</pre>
+<p>Yippie! It worked! Even though we loaded it as a <code>Controller</code>,
+it has the correct value for the <code>x</code> and <code>y</code> fields!</p>
+<h2>Template-ize everything!</h2>
+<p>So, now that we have solved this problem, can we also make it easier to use?
+Having to define a lot of function for each type get tedious quite quickly.
+The good news is that we can boil everything down into a single template call.
+Look at this:</p>
+<pre><code class="nohighlight hljs nim"><span class="hljs-keyword">template</span> registerController(typeName: <span class="hljs-built_in">untyped</span>) =
+  parseFuncs[nimIdentNormalize($typeName)] =
+    <span class="hljs-keyword">proc</span> (s: <span class="hljs-built_in">string</span>, i: <span class="hljs-keyword">var</span> <span class="hljs-built_in">int</span>): <span class="hljs-type">Controller</span> =
+      <span class="hljs-keyword">var</span> v: typename
+      <span class="hljs-keyword">new</span> v
+      parseHook(s, i, v[])
+      <span class="hljs-keyword">return</span> v
+
+  <span class="hljs-keyword">method</span> customDump(c: typeName): <span class="hljs-built_in">string</span> =
+    <span class="hljs-keyword">if</span> c.isNil:
+      <span class="hljs-string">&quot;null&quot;</span>
+    <span class="hljs-keyword">else</span>:
+      <span class="hljs-keyword">echo</span> <span class="hljs-string">&quot;kind: &quot;</span>, nimIdentNormalize($<span class="hljs-keyword">type</span>(c)), <span class="hljs-keyword">type</span>(c)
+      c.kind = nimIdentNormalize($<span class="hljs-keyword">type</span>(c))
+      c[].toJson()</code></pre>
+<p>Now we can simply define a new subtype and with a single call to this template,
+we will be able to serialize and deserialize it correctly!</p>
+<pre><code class="nohighlight hljs nim"><span class="hljs-keyword">type</span> <span class="hljs-type">DpadControllerWithPress</span> = <span class="hljs-keyword">ref</span> <span class="hljs-keyword">object</span> <span class="hljs-keyword">of</span> <span class="hljs-type">DpadController</span>
+    isDpadPressed: <span class="hljs-built_in">bool</span>
+
+registerController(<span class="hljs-type">DpadControllerWithPress</span>)
+
+<span class="hljs-keyword">let</span> jsonText = <span class="hljs-type">DpadControllerWithPress</span>(x: -<span class="hljs-number">1</span>, y: <span class="hljs-number">1</span>, isDpadPressed: <span class="hljs-literal">true</span>).toJson()
+<span class="hljs-keyword">echo</span> <span class="hljs-string">&quot;JSON: &quot;</span>, jsonText
+<span class="hljs-comment">#echo &quot;Parsed object: &quot;, jsonText.fromJson(Controller)[]</span></code></pre><pre class="nb-output">JSON: {&quot;isDpadPressed&quot;:true,&quot;x&quot;:-1,&quot;y&quot;:1,&quot;a&quot;:false,&quot;b&quot;:false,&quot;kind&quot;:&quot;&quot;}</pre>
+</main>
+<footer>
+<div class="nb-box">
+  <span><span class="nb-small">made with <a href="https://pietroppeter.github.io/nimib/">nimib 🐳</a></span></span>
+  <span></span>
+  <span><button class="nb-small" id="show" onclick="toggleSourceDisplay()">Show Source</button></span>
+</div>
+</footer>
+<section id="source">
+<pre><code class="nohighlight nim hljs"><span class="hljs-keyword">import</span> nimib <span class="hljs-keyword">except</span> toJson
+
+nbInit
+
+nbText: <span class="hljs-string">hlMd&quot;&quot;&quot;
+# Serialization of object oriented types using [jsony](https://github.com/treeform/jsony)
+## Background
+In the process of refactoring Nimib we decided that we wanted to use inheritance to represent the different blocks.
+We would have one base block that all other nimib blocks (i.e. image, code, etc) would inherit from.
+The reason we want them to be of the same base is that we want to be able to store them in a single `seq`.
+The problem then arises: how do we serialize and deserialize this `seq` now that we don't have the static type information anymore? (Putting them all in the same `seq` makes them all appear to be of the base type)
+We somehow have to use the dynamic type information instead.  
+In this document we will show one way of solving this problem that might turn out to be useful for nimib, but might be more generally interersting if you have
+an hierarchy of types that you want to serialize and deserialize.
+
+## OOP Type Hierarchy
+Let's start off with defining the types we will be using in this document.
+The scenario is that we have a `Controller` type that represents a generic game controller with at least an A and B button.
+&quot;&quot;&quot;</span>
+
+nbCode:
+  <span class="hljs-keyword">type</span> <span class="hljs-type">Controller</span> = <span class="hljs-keyword">ref</span> <span class="hljs-keyword">object</span> <span class="hljs-keyword">of</span> <span class="hljs-type">RootObj</span>
+    a, b: <span class="hljs-built_in">bool</span>
+    kind: <span class="hljs-built_in">string</span>
+
+nbText: <span class="hljs-string">hlMd&quot;&quot;&quot;
+The fields `a` and `b` stores whether the buttons A and B are pushed.
+The `kind` field does not have anything to do with the controller but it is metadata we will need later on.
+Let's define two specialized controllers, D-pad and Joy-stick:
+&quot;&quot;&quot;</span>
+
+nbCode:
+  <span class="hljs-keyword">type</span>
+    <span class="hljs-type">DpadController</span> = <span class="hljs-keyword">ref</span> <span class="hljs-keyword">object</span> <span class="hljs-keyword">of</span> <span class="hljs-type">Controller</span>
+      x, y: <span class="hljs-built_in">int</span>
+    <span class="hljs-type">JoyStickController</span> = <span class="hljs-keyword">ref</span> <span class="hljs-keyword">object</span> <span class="hljs-keyword">of</span> <span class="hljs-type">Controller</span>
+      angle, radius: <span class="hljs-built_in">float</span>
+
+nbText: <span class="hljs-string">hlMd&quot;&quot;&quot;
+`x` and `y` represents the directions of the D-pad in both the x- and y-directions. For the joystick the `angle` and `radius` specifies the current position of the joystick. The details doesn't really matter in this example. What matters is that these two types have different fields and inherits from the same base type. 
+
+## The problem
+Let's create an instance of each type and echo them along with their serialized JSON-strings:  
+&quot;&quot;&quot;</span>
+
+nbCode:
+  <span class="hljs-keyword">import</span> jsony
+  <span class="hljs-keyword">let</span> dpad = <span class="hljs-type">DpadController</span>()
+  <span class="hljs-keyword">let</span> joystick = <span class="hljs-type">JoyStickController</span>()
+  <span class="hljs-keyword">echo</span> dpad[]
+  <span class="hljs-keyword">echo</span> dpad.toJson()
+  <span class="hljs-keyword">echo</span> joystick[]
+  <span class="hljs-keyword">echo</span> joystick.toJson()
+
+nbText: <span class="hljs-string">hlMd&quot;&quot;&quot;
+As we can see, both types serialize just fine to JSON. SO what is the problem then? 
+The problem arises when we put them both inside an homogenous data structure like a `seq[Controller]`:
+&quot;&quot;&quot;</span>
+
+nbCodeInBlock:
+  <span class="hljs-keyword">let</span> list = @[dpad, joystick]
+  <span class="hljs-keyword">echo</span> typeof(list)
+  <span class="hljs-keyword">echo</span> list[<span class="hljs-number">0</span>].toJson()
+
+nbText: <span class="hljs-string">hlMd&quot;&quot;&quot;
+Now all the specialized fields are gone! This is because `list` is a list of `Controller` objects for all the compiler knows.
+So jsony will in good faith treat them as such and only include the fields from the base type. How irritating!
+
+## [Dump-hooks](https://github.com/treeform/jsony#proc-dumphook-can-be-used-to-serialize-into-custom-representation)
+Of course, we know that the type information is there somewhere. 
+We just have to show the compiler and jsony that.
+The type information is stored dynamically so we want to utilize dynamic dispatch to extract the type information somehow.
+Let's start off with what jsony's dump-hooks are. They are functions we can define for a type to customize how it is serialized.
+And that is exactly what we want to do! We want to hijack the serialization of the base type and do some dynamic dispatch to figure out exactly
+which subtype the object is. What exactly do I mean by this dynamic dispatch? Basically we have to define a `method` for each type that returns the
+serialized string of the object. This way, the compiler and jsony will know exactly which subtype it is dealing with:  
+&quot;&quot;&quot;</span>
+
+nbCode:
+  <span class="hljs-keyword">import</span> strutils
+
+  <span class="hljs-keyword">method</span> customDump(c: <span class="hljs-type">Controller</span>): <span class="hljs-built_in">string</span> {.base.} =
+    <span class="hljs-keyword">if</span> c.isNil:
+      <span class="hljs-string">&quot;null&quot;</span>
+    <span class="hljs-keyword">else</span>:
+      c.kind = nimIdentNormalize($<span class="hljs-keyword">type</span>(c))
+      c[].toJson()
+
+  <span class="hljs-keyword">method</span> customDump(c: <span class="hljs-type">DpadController</span>): <span class="hljs-built_in">string</span> =
+    <span class="hljs-keyword">if</span> c.isNil:
+      <span class="hljs-string">&quot;null&quot;</span>
+    <span class="hljs-keyword">else</span>:
+      c.kind = nimIdentNormalize($<span class="hljs-keyword">type</span>(c))
+      c[].toJson()
+
+  <span class="hljs-keyword">method</span> customDump(c: <span class="hljs-type">JoyStickController</span>): <span class="hljs-built_in">string</span> =
+    <span class="hljs-keyword">if</span> c.isNil:
+      <span class="hljs-string">&quot;null&quot;</span>
+    <span class="hljs-keyword">else</span>:
+      c.kind = nimIdentNormalize($<span class="hljs-keyword">type</span>(c))
+      c[].toJson()
+
+  <span class="hljs-keyword">proc</span> dumpHook(s: <span class="hljs-keyword">var</span> <span class="hljs-built_in">string</span>, v: <span class="hljs-type">Controller</span>) =
+    s.add v.customDump()
+
+  <span class="hljs-keyword">let</span> list = @[dpad, joystick]
+  <span class="hljs-keyword">echo</span> list.toJson()
+
+nbText: <span class="hljs-string">hlMd&quot;&quot;&quot;
+Wow it was able to serialize the object correctly now! Let's go through the code a bit more in detail.
+We define the dump-hook for the `Controller` base type and call the `method` (and this is important) `customDump` on it. 
+This will make Nim do the dynamic dispatch by looking for a suitible `method` that matches the type. The 3 `method`s are
+carbon copies of each other, they just have to be defined for us to get the correct type information.
+One more trick we use is the fact that our types are `ref object`s. This means we can avoid infinite recursion by serializing
+the dereferenced object `c[]` and still get the same JSON.
+
+Now we can turn our object into JSON, but how do we turn the JSON back to object again?
+
+## [Parse-hooks](https://github.com/treeform/jsony#proc-parsehook-can-be-used-to-do-anything)
+As you might have guessed, parse-hooks are functions that allows us to customize how types are parsed from JSON to that type.
+And in our case, we want to take the JSON of `Controller`, `DpadController` or `JoyStickController` and return the correct object type. How can we determine which of the types the JSON object has though? This is where the `kind` field comes in. As you saw in `customDump` above, we set this field to the string representation of the type name. So if we read this field from the JSON, we can figure out which type it is! Brilliant! Now how do we do that? Let's start off with reading the `kind` field:
+&quot;&quot;&quot;</span>
+
+nbCodeInBlock:
+  <span class="hljs-keyword">proc</span> parseHook(s: <span class="hljs-built_in">string</span>, i: <span class="hljs-keyword">var</span> <span class="hljs-built_in">int</span>, v: <span class="hljs-keyword">var</span> <span class="hljs-type">Controller</span>) =
+    <span class="hljs-keyword">var</span> c = <span class="hljs-type">Controller</span>()
+    parseHook(s, i, c[])
+    <span class="hljs-keyword">let</span> kind = c.kind
+
+nbText: <span class="hljs-string">hlMd&quot;&quot;&quot;
+Here we use the same trick as before, we exploit that `Controller` is a `ref object`
+so we can use the `parseHook` of the dereferenced type instead.
+Here we parsed the object as if it was of the base type `Controller`,
+but that is okay as `kind` can be accessed there.
+
+The idea now is to use the `kind` as a key to a `Table` of parsing functions.
+In there, we define a parsing function for each subtype of `Controller`.
+And the key here is that inside these functions, we will know the exact type of
+the object. So then we can just let jsony do its thing.
+&quot;&quot;&quot;</span>
+
+nbCode:
+  <span class="hljs-keyword">var</span> parseFuncs: <span class="hljs-type">Table</span>[<span class="hljs-built_in">string</span>, <span class="hljs-keyword">proc</span> (s: <span class="hljs-built_in">string</span>, i: <span class="hljs-keyword">var</span> <span class="hljs-built_in">int</span>): <span class="hljs-type">Controller</span>]
+
+  <span class="hljs-keyword">proc</span> parseDpad(s: <span class="hljs-built_in">string</span>, i: <span class="hljs-keyword">var</span> <span class="hljs-built_in">int</span>): <span class="hljs-type">Controller</span> =
+    <span class="hljs-keyword">var</span> v: <span class="hljs-type">DpadController</span>
+    <span class="hljs-keyword">new</span> v
+    parseHook(s, i, v[])
+    <span class="hljs-keyword">return</span> v
+
+  parseFuncs[nimIdentNormalize($<span class="hljs-type">DpadController</span>)] = parseDpad
+
+nbText: <span class="hljs-string">hlMd&quot;&quot;&quot;
+As you can imagine, the only part we have to change for the different types is `var v: DpadController`.
+So this could be easily done in a template instead to reduce boilerplate: 
+&quot;&quot;&quot;</span>
+
+nbCode:
+  <span class="hljs-keyword">template</span> addControlParser(typeName: <span class="hljs-built_in">untyped</span>) =
+    parseFuncs[nimIdentNormalize($typeName)] =
+      <span class="hljs-keyword">proc</span> (s: <span class="hljs-built_in">string</span>, i: <span class="hljs-keyword">var</span> <span class="hljs-built_in">int</span>): <span class="hljs-type">Controller</span> =
+        <span class="hljs-keyword">var</span> v: typename
+        <span class="hljs-keyword">new</span> v
+        parseHook(s, i, v[])
+        <span class="hljs-keyword">return</span> v
+
+  addControlParser(<span class="hljs-type">Controller</span>)
+  addControlParser(<span class="hljs-type">DpadController</span>)
+  addControlParser(<span class="hljs-type">JoyStickController</span>)
+
+nbText: <span class="hljs-string">hlMd&quot;&quot;&quot;
+With all the parse-functions defined, we can update our parse-hook
+to take the changes into account:
+&quot;&quot;&quot;</span>
+
+nbCode:
+  <span class="hljs-comment"># Updated parseHook</span>
+  <span class="hljs-keyword">proc</span> parseHook(s: <span class="hljs-built_in">string</span>, i: <span class="hljs-keyword">var</span> <span class="hljs-built_in">int</span>, v: <span class="hljs-keyword">var</span> <span class="hljs-type">Controller</span>) =
+    <span class="hljs-keyword">var</span> c = <span class="hljs-type">Controller</span>()
+    <span class="hljs-comment"># parseHook modifies `i`, so store it so we can re-parse this object below</span>
+    <span class="hljs-keyword">let</span> current_i = i
+    parseHook(s, i, c[])
+    i = current_i <span class="hljs-comment"># reset i</span>
+    <span class="hljs-keyword">let</span> kind = c.kind
+    v = parseFuncs[kind](s, i)
+
+nbText: <span class="hljs-string">hlMd&quot;&quot;&quot;
+Now let's try it out!
+&quot;&quot;&quot;</span>
+
+nbCodeInBlock:
+  <span class="hljs-keyword">let</span> jsonText = <span class="hljs-string">&quot;&quot;&quot;{&quot;x&quot;:1,&quot;y&quot;:-1,&quot;a&quot;:false,&quot;b&quot;:false,&quot;kind&quot;:&quot;Dpadcontroller&quot;}&quot;&quot;&quot;</span>
+  <span class="hljs-keyword">echo</span> jsonText.fromJson(<span class="hljs-type">Controller</span>).<span class="hljs-type">DpadController</span>[]
+
+nbText: <span class="hljs-string">hlMd&quot;&quot;&quot;
+Yippie! It worked! Even though we loaded it as a `Controller`,
+it has the correct value for the `x` and `y` fields!
+
+
+## Template-ize everything!
+So, now that we have solved this problem, can we also make it easier to use?
+Having to define a lot of function for each type get tedious quite quickly.
+The good news is that we can boil everything down into a single template call.
+Look at this:
+&quot;&quot;&quot;</span>
+
+nbCode:
+  <span class="hljs-keyword">template</span> registerController(typeName: <span class="hljs-built_in">untyped</span>) =
+    parseFuncs[nimIdentNormalize($typeName)] =
+      <span class="hljs-keyword">proc</span> (s: <span class="hljs-built_in">string</span>, i: <span class="hljs-keyword">var</span> <span class="hljs-built_in">int</span>): <span class="hljs-type">Controller</span> =
+        <span class="hljs-keyword">var</span> v: typename
+        <span class="hljs-keyword">new</span> v
+        parseHook(s, i, v[])
+        <span class="hljs-keyword">return</span> v
+
+    <span class="hljs-keyword">method</span> customDump(c: typeName): <span class="hljs-built_in">string</span> =
+      <span class="hljs-keyword">if</span> c.isNil:
+        <span class="hljs-string">&quot;null&quot;</span>
+      <span class="hljs-keyword">else</span>:
+        <span class="hljs-keyword">echo</span> <span class="hljs-string">&quot;kind: &quot;</span>, nimIdentNormalize($<span class="hljs-keyword">type</span>(c)), <span class="hljs-keyword">type</span>(c)
+        c.kind = nimIdentNormalize($<span class="hljs-keyword">type</span>(c))
+        c[].toJson()
+    
+nbText: <span class="hljs-string">&quot;&quot;&quot;
+Now we can simply define a new subtype and with a single call to this template,
+we will be able to serialize and deserialize it correctly! 
+&quot;&quot;&quot;</span>
+
+nbCode:
+  <span class="hljs-keyword">type</span> <span class="hljs-type">DpadControllerWithPress</span> = <span class="hljs-keyword">ref</span> <span class="hljs-keyword">object</span> <span class="hljs-keyword">of</span> <span class="hljs-type">DpadController</span>
+      isDpadPressed: <span class="hljs-built_in">bool</span>
+
+  registerController(<span class="hljs-type">DpadControllerWithPress</span>)
+
+  <span class="hljs-keyword">let</span> jsonText = <span class="hljs-type">DpadControllerWithPress</span>(x: -<span class="hljs-number">1</span>, y: <span class="hljs-number">1</span>, isDpadPressed: <span class="hljs-literal">true</span>).toJson()
+  <span class="hljs-keyword">echo</span> <span class="hljs-string">&quot;JSON: &quot;</span>, jsonText
+  <span class="hljs-comment">#echo &quot;Parsed object: &quot;, jsonText.fromJson(Controller)[]</span>
+
+nbSave</code></pre>
+</section><script>
+function toggleSourceDisplay() {
+  var btn = document.getElementById("show")
+  var source = document.getElementById("source");
+  if (btn.innerHTML=="Show Source") {
+    btn.innerHTML = "Hide Source";
+    source.style.display = "block";
+  } else {
+    btn.innerHTML = "Show Source";
+    source.style.display = "none";
+  }
+}
+</script></body>
+</html>
