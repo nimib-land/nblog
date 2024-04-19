@@ -53,7 +53,9 @@ pre > code {
 <p>In the process of refactoring Nimib we decided that we wanted to use inheritance to represent the different blocks.
 We would have one base block that all other nimib blocks (i.e. image, code, etc) would inherit from.
 The reason we want them to be of the same base is that we want to be able to store them in a single <code>seq</code>.
-The problem then arises: how do we serialize and deserialize this <code>seq</code> now that we don't have the static type information anymore? (Putting them all in the same <code>seq</code> makes them all appear to be of the base type)
+A central part of this refactoring is a JSON-backend where we can take all of the nimib blocks,
+serialize them to JSON, and then later deserialize those blocks and render them.</p>
+<p>The problem then arises: how do we serialize and deserialize this <code>seq</code> now that we don't have the static type information anymore? (Putting them all in the same <code>seq</code> makes them all appear to be of the base type)
 We somehow have to use the dynamic type information instead.<br />
 In this document we will show one way of solving this problem that might turn out to be useful for nimib, but might be more generally interersting if you have
 an hierarchy of types that you want to serialize and deserialize.</p>
@@ -213,11 +215,7 @@ we will be able to serialize and deserialize it correctly!</p>
 <pre><code class="nohighlight hljs nim"><span class="hljs-keyword">type</span> <span class="hljs-type">DpadControllerWithPress</span> = <span class="hljs-keyword">ref</span> <span class="hljs-keyword">object</span> <span class="hljs-keyword">of</span> <span class="hljs-type">DpadController</span>
     isDpadPressed: <span class="hljs-built_in">bool</span>
 
-registerController(<span class="hljs-type">DpadControllerWithPress</span>)
-
-<span class="hljs-keyword">let</span> jsonText = <span class="hljs-type">DpadControllerWithPress</span>(x: -<span class="hljs-number">1</span>, y: <span class="hljs-number">1</span>, isDpadPressed: <span class="hljs-literal">true</span>).toJson()
-<span class="hljs-keyword">echo</span> <span class="hljs-string">&quot;JSON: &quot;</span>, jsonText
-<span class="hljs-comment">#echo &quot;Parsed object: &quot;, jsonText.fromJson(Controller)[]</span></code></pre><pre class="nb-output">JSON: {&quot;isDpadPressed&quot;:true,&quot;x&quot;:-1,&quot;y&quot;:1,&quot;a&quot;:false,&quot;b&quot;:false,&quot;kind&quot;:&quot;&quot;}</pre>
+registerController(<span class="hljs-type">DpadControllerWithPress</span>)</code></pre>
 </main>
 <footer>
 <div class="nb-box">
@@ -237,6 +235,9 @@ nbText: <span class="hljs-string">hlMd&quot;&quot;&quot;
 In the process of refactoring Nimib we decided that we wanted to use inheritance to represent the different blocks.
 We would have one base block that all other nimib blocks (i.e. image, code, etc) would inherit from.
 The reason we want them to be of the same base is that we want to be able to store them in a single `seq`.
+A central part of this refactoring is a JSON-backend where we can take all of the nimib blocks,
+serialize them to JSON, and then later deserialize those blocks and render them.
+
 The problem then arises: how do we serialize and deserialize this `seq` now that we don't have the static type information anymore? (Putting them all in the same `seq` makes them all appear to be of the base type)
 We somehow have to use the dynamic type information instead.  
 In this document we will show one way of solving this problem that might turn out to be useful for nimib, but might be more generally interersting if you have
@@ -460,10 +461,6 @@ nbCode:
       isDpadPressed: <span class="hljs-built_in">bool</span>
 
   registerController(<span class="hljs-type">DpadControllerWithPress</span>)
-
-  <span class="hljs-keyword">let</span> jsonText = <span class="hljs-type">DpadControllerWithPress</span>(x: -<span class="hljs-number">1</span>, y: <span class="hljs-number">1</span>, isDpadPressed: <span class="hljs-literal">true</span>).toJson()
-  <span class="hljs-keyword">echo</span> <span class="hljs-string">&quot;JSON: &quot;</span>, jsonText
-  <span class="hljs-comment">#echo &quot;Parsed object: &quot;, jsonText.fromJson(Controller)[]</span>
 
 nbSave</code></pre>
 </section><script>
