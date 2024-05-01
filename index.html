@@ -5,7 +5,7 @@
   <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2280%22>🐳</text></svg>">
   <meta content="text/html; charset=utf-8" http-equiv="content-type">
   <meta content="width=device-width, initial-scale=1" name="viewport">
-  <meta content="nimib 0.3.9" name="generator">
+  <meta content="nimib 0.3.12" name="generator">
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/water.css@2/out/light.min.css">
   <link rel='stylesheet' href='https://cdn.jsdelivr.net/gh/pietroppeter/nimib/assets/atom-one-light.css'>
     <script src="https://cdn.jsdelivr.net/gh/pietroppeter/nimib@main/assets/highlight.min.js"></script>
@@ -35,6 +35,13 @@ pre > code {
 .nb-output {
   line-height: 1.15;
 }
+figure {
+  margin: 2rem 0;
+}
+figcaption {
+  text-align: center;
+}
+  
 </style>
   
   <script async defer data-domain="pietroppeter.github.io/nblog" src="https://plausible.io/js/plausible.js"></script>
@@ -44,7 +51,7 @@ pre > code {
 <div class="nb-box">
   <span><a href=".">🏡</a></span>
   <span><code>index.nim</code></span>
-  <span><a href="https://github.com/nimib-land/nblog"><svg aria-hidden="true" width="1.2em" height="1.2em" style="vertical-align: middle;" preserveAspectRatio="xMidYMid meet" viewBox="0 0 16 16"><path fill-rule="evenodd" d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59c.4.07.55-.17.55-.38c0-.19-.01-.82-.01-1.49c-2.01.37-2.53-.49-2.69-.94c-.09-.23-.48-.94-.82-1.13c-.28-.15-.68-.52-.01-.53c.63-.01 1.08.58 1.23.82c.72 1.21 1.87.87 2.33.66c.07-.52.28-.87.51-1.07c-1.78-.2-3.64-.89-3.64-3.95c0-.87.31-1.59.82-2.15c-.08-.2-.36-1.02.08-2.12c0 0 .67-.21 2.2.82c.64-.18 1.32-.27 2-.27c.68 0 1.36.09 2 .27c1.53-1.04 2.2-.82 2.2-.82c.44 1.1.16 1.92.08 2.12c.51.56.82 1.27.82 2.15c0 3.07-1.87 3.75-3.65 3.95c.29.25.54.73.54 1.48c0 1.07-.01 1.93-.01 2.2c0 .21.15.46.55.38A8.013 8.013 0 0 0 16 8c0-4.42-3.58-8-8-8z" fill="#000"></path></svg></a></span>
+  <span><a href="https://github.com/pietroppeter/nblog"><svg aria-hidden="true" width="1.2em" height="1.2em" style="vertical-align: middle;" preserveAspectRatio="xMidYMid meet" viewBox="0 0 16 16"><path fill-rule="evenodd" d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59c.4.07.55-.17.55-.38c0-.19-.01-.82-.01-1.49c-2.01.37-2.53-.49-2.69-.94c-.09-.23-.48-.94-.82-1.13c-.28-.15-.68-.52-.01-.53c.63-.01 1.08.58 1.23.82c.72 1.21 1.87.87 2.33.66c.07-.52.28-.87.51-1.07c-1.78-.2-3.64-.89-3.64-3.95c0-.87.31-1.59.82-2.15c-.08-.2-.36-1.02.08-2.12c0 0 .67-.21 2.2.82c.64-.18 1.32-.27 2-.27c.68 0 1.36.09 2 .27c1.53-1.04 2.2-.82 2.2-.82c.44 1.1.16 1.92.08 2.12c.51.56.82 1.27.82 2.15c0 3.07-1.87 3.75-3.65 3.95c.29.25.54.73.54 1.48c0 1.07-.01 1.93-.01 2.2c0 .21.15.46.55.38A8.013 8.013 0 0 0 16 8c0-4.42-3.58-8-8-8z" fill="#000"></path></svg></a></span>
 </div>
 <hr>
 </header><main>
@@ -55,30 +62,31 @@ this will just be a loose collection of stuff in the drafts folder.
 Some of those will be finished (waiting to be published) and some will really be drafts.</p>
 <p>For ease of navigation, here is the list of stuff there:</p>
 <ul>
-<li><a href="drafts/show_plotly.html">drafts/show_plotly.html</a></li>
-<li><a href="drafts/bigints_examples.html">drafts/bigints_examples.html</a></li>
-<li><a href="drafts/mustache_specs.html">drafts/mustache_specs.html</a></li>
-<li><a href="drafts/bernoulli_and_beyond.html">drafts/bernoulli_and_beyond.html</a></li>
 <li><a href="drafts/vegalite_example.html">drafts/vegalite_example.html</a></li>
-<li><a href="drafts/bouncing_ball_p5js.html">drafts/bouncing_ball_p5js.html</a></li>
-<li><a href="drafts/toc_mustache.html">drafts/toc_mustache.html</a></li>
-<li><a href="drafts/pixie_chess_random_walk_knight.html">drafts/pixie_chess_random_walk_knight.html</a></li>
-<li><a href="drafts/arraymancer_tutorial.html">drafts/arraymancer_tutorial.html</a></li>
-<li><a href="drafts/mermaid_diagram.html">drafts/mermaid_diagram.html</a></li>
+<li><a href="drafts/random_palette.html">drafts/random_palette.html</a></li>
+<li><a href="drafts/bigints_examples.html">drafts/bigints_examples.html</a></li>
+<li><a href="drafts/three_js.html">drafts/three_js.html</a></li>
+<li><a href="drafts/easyess_js_ball.html">drafts/easyess_js_ball.html</a></li>
+<li><a href="drafts/city_in_a_bottle.html">drafts/city_in_a_bottle.html</a></li>
+<li><a href="drafts/display_multidim_arrays.html">drafts/display_multidim_arrays.html</a></li>
+<li><a href="drafts/out_of_order.html">drafts/out_of_order.html</a></li>
+<li><a href="drafts/z3_examples.html">drafts/z3_examples.html</a></li>
 <li><a href="drafts/serialize_oop.html">drafts/serialize_oop.html</a></li>
 <li><a href="drafts/before_after_image_slider.html">drafts/before_after_image_slider.html</a></li>
-<li><a href="drafts/polymorph_js_backend.html">drafts/polymorph_js_backend.html</a></li>
-<li><a href="drafts/display_multidim_arrays.html">drafts/display_multidim_arrays.html</a></li>
-<li><a href="drafts/city_in_a_bottle.html">drafts/city_in_a_bottle.html</a></li>
+<li><a href="drafts/mermaid_diagram.html">drafts/mermaid_diagram.html</a></li>
 <li><a href="drafts/karax_widgets_demo.html">drafts/karax_widgets_demo.html</a></li>
-<li><a href="drafts/easyess_js_ball.html">drafts/easyess_js_ball.html</a></li>
-<li><a href="drafts/z3_examples.html">drafts/z3_examples.html</a></li>
-<li><a href="drafts/plant_js.html">drafts/plant_js.html</a></li>
-<li><a href="drafts/trigonometric_plant.html">drafts/trigonometric_plant.html</a></li>
-<li><a href="drafts/hello_name.html">drafts/hello_name.html</a></li>
-<li><a href="drafts/random_palette.html">drafts/random_palette.html</a></li>
+<li><a href="drafts/mustache_specs.html">drafts/mustache_specs.html</a></li>
 <li><a href="drafts/plant_app.html">drafts/plant_app.html</a></li>
-<li><a href="drafts/three_js.html">drafts/three_js.html</a></li>
+<li><a href="drafts/trigonometric_plant.html">drafts/trigonometric_plant.html</a></li>
+<li><a href="drafts/arraymancer_tutorial.html">drafts/arraymancer_tutorial.html</a></li>
+<li><a href="drafts/toc_mustache.html">drafts/toc_mustache.html</a></li>
+<li><a href="drafts/polymorph_js_backend.html">drafts/polymorph_js_backend.html</a></li>
+<li><a href="drafts/plant_js.html">drafts/plant_js.html</a></li>
+<li><a href="drafts/bernoulli_and_beyond.html">drafts/bernoulli_and_beyond.html</a></li>
+<li><a href="drafts/pixie_chess_random_walk_knight.html">drafts/pixie_chess_random_walk_knight.html</a></li>
+<li><a href="drafts/hello_name.html">drafts/hello_name.html</a></li>
+<li><a href="drafts/show_plotly.html">drafts/show_plotly.html</a></li>
+<li><a href="drafts/bouncing_ball_p5js.html">drafts/bouncing_ball_p5js.html</a></li>
 </ul>
 </main>
 <footer>
