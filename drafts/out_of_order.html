@@ -1,0 +1,184 @@
+<!DOCTYPE html>
+<html lang="en-us">
+<head>
+  <title>drafts/out_of_order.nim</title>
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2280%22>🐳</text></svg>">
+  <meta content="text/html; charset=utf-8" http-equiv="content-type">
+  <meta content="width=device-width, initial-scale=1" name="viewport">
+  <meta content="nimib 0.3.12" name="generator">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/water.css@2/out/light.min.css">
+  <link rel='stylesheet' href='https://cdn.jsdelivr.net/gh/pietroppeter/nimib/assets/atom-one-light.css'>
+    <script src="https://cdn.jsdelivr.net/gh/pietroppeter/nimib@main/assets/highlight.min.js"></script>
+<script>hljs.highlightAll();</script>
+
+  <style>
+.nb-box {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+.nb-small {
+  font-size: 0.8rem;
+}
+button.nb-small {
+  float: right;
+  padding: 2px;
+  padding-right: 5px;
+  padding-left: 5px;
+}
+section#source {
+  display:none
+}
+pre > code {
+  font-size: 1.2em;
+}
+.nb-output {
+  line-height: 1.15;
+}
+figure {
+  margin: 2rem 0;
+}
+figcaption {
+  text-align: center;
+}
+  
+</style>
+  
+  <script async defer data-domain="pietroppeter.github.io/nblog" src="https://plausible.io/js/plausible.js"></script>
+</head>
+<body>
+<header>
+<div class="nb-box">
+  <span><a href="..">🏡</a></span>
+  <span><code>drafts/out_of_order.nim</code></span>
+  <span><a href="https://github.com/pietroppeter/nblog"><svg aria-hidden="true" width="1.2em" height="1.2em" style="vertical-align: middle;" preserveAspectRatio="xMidYMid meet" viewBox="0 0 16 16"><path fill-rule="evenodd" d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59c.4.07.55-.17.55-.38c0-.19-.01-.82-.01-1.49c-2.01.37-2.53-.49-2.69-.94c-.09-.23-.48-.94-.82-1.13c-.28-.15-.68-.52-.01-.53c.63-.01 1.08.58 1.23.82c.72 1.21 1.87.87 2.33.66c.07-.52.28-.87.51-1.07c-1.78-.2-3.64-.89-3.64-3.95c0-.87.31-1.59.82-2.15c-.08-.2-.36-1.02.08-2.12c0 0 .67-.21 2.2.82c.64-.18 1.32-.27 2-.27c.68 0 1.36.09 2 .27c1.53-1.04 2.2-.82 2.2-.82c.44 1.1.16 1.92.08 2.12c.51.56.82 1.27.82 2.15c0 3.07-1.87 3.75-3.65 3.95c.29.25.54.73.54 1.48c0 1.07-.01 1.93-.01 2.2c0 .21.15.46.55.38A8.013 8.013 0 0 0 16 8c0-4.42-3.58-8-8-8z" fill="#000"></path></svg></a></span>
+</div>
+<hr>
+</header><main>
+<h2>A possible out of order API</h2>
+<p>One of the defining characteristics of
+<a href="https://en.wikipedia.org/wiki/Literate_programming#Order_of_human_logic,_not_that_of_the_compiler">Literate Programming</a>
+is the possibility of running code in the order needed for exposition
+and not the order required by the compiler.</p>
+<p>Nimib does not provide this functionality natively but it can
+be implemented in a rather straightforward way
+(knowing a bit of the nimib internals).</p>
+<p>Here I offer an example api and implementation
+for <code>out of order</code> execution of code.</p>
+<p>This is inspired by a new nice tool for literate programming in Nim
+(<a href="https://github.com/ZoomTen/nailit">NailIt</a>)
+and the relative <a href="https://forum.nim-lang.org/t/11327">forum discussion</a>.</p>
+<h3>Example of usage</h3>
+<p>Here I call a function that I have not yet defined</p>
+<pre><code class="nohighlight hljs nim"><span class="hljs-keyword">echo</span> add(<span class="hljs-number">1</span>, <span class="hljs-number">2</span>)</code></pre><pre class="nb-output">3
+</pre>
+<p>Let's call it again</p>
+<pre><code class="nohighlight hljs nim"><span class="hljs-keyword">echo</span> add(<span class="hljs-number">2</span>, <span class="hljs-number">3</span>)</code></pre><pre class="nb-output">5
+</pre>
+<p>Here I implement the function</p>
+<pre><code class="nohighlight hljs nim"><span class="hljs-keyword">func</span> add(a, b: <span class="hljs-built_in">int</span>): <span class="hljs-built_in">int</span> = a + b</code></pre>
+<p>I could decide to show the first call to add later</p>
+<pre><code class="nohighlight hljs nim"><span class="hljs-keyword">echo</span> add(<span class="hljs-number">1</span>, <span class="hljs-number">2</span>)</code></pre><pre class="nb-output">3</pre>
+<p>but I could decide to not show it (you are not seeing the second call)</p>
+<h3>Implementation</h3>
+<p>Click <code>Show Source</code> to see how this is implemented.</p>
+<p>The internals are currently undergoing a major <a href="https://github.com/pietroppeter/nimib/pull/235">reworking</a>
+so this implementation might not work in the future.</p>
+</main>
+<footer>
+<div class="nb-box">
+  <span><span class="nb-small">made with <a href="https://pietroppeter.github.io/nimib/">nimib 🐳</a></span></span>
+  <span></span>
+  <span><button class="nb-small" id="show" onclick="toggleSourceDisplay()">Show Source</button></span>
+</div>
+</footer>
+<section id="source">
+<pre><code class="nohighlight nim hljs"><span class="hljs-keyword">import</span> nimib
+<span class="hljs-keyword">import</span> nimib / capture
+
+nbInit
+
+nbText <span class="hljs-string">&quot;&quot;&quot;## A possible out of order API
+
+One of the defining characteristics of
+[Literate Programming](https://en.wikipedia.org/wiki/Literate_programming#Order_of_human_logic,_not_that_of_the_compiler)
+is the possibility of running code in the order needed for exposition
+and not the order required by the compiler.
+
+Nimib does not provide this functionality natively but it can
+be implemented in a rather straightforward way
+(knowing a bit of the nimib internals).
+
+Here I offer an example api and implementation
+for `out of order` execution of code.
+
+This is inspired by a new nice tool for literate programming in Nim
+([NailIt](https://github.com/ZoomTen/nailit))
+and the relative [forum discussion](https://forum.nim-lang.org/t/11327).
+
+### Example of usage
+&quot;&quot;&quot;</span>
+
+<span class="hljs-keyword">template</span> nbCodeOutOfOrder(ident: <span class="hljs-built_in">untyped</span>, body: <span class="hljs-built_in">untyped</span>) =
+  nbCodeSkip:
+    body
+  <span class="hljs-keyword">var</span> `ident <span class="hljs-type">Blk</span>` {. inject .} = nb.blk
+  nb.blk.command = <span class="hljs-string">&quot;nbCode&quot;</span>
+
+  <span class="hljs-keyword">template</span> `ident` =
+    nbCode:
+      body
+    `ident <span class="hljs-type">Blk</span>`.output = nb.blk.output
+    `ident <span class="hljs-type">Blk</span>`.context[<span class="hljs-string">&quot;output&quot;</span>] = nb.blk.output
+
+  <span class="hljs-keyword">template</span> `ident <span class="hljs-type">Hidden</span>` =
+    captureStdOut(`ident <span class="hljs-type">Blk</span>`.output):
+      body
+    `ident <span class="hljs-type">Blk</span>`.context[<span class="hljs-string">&quot;output&quot;</span>] = `ident <span class="hljs-type">Blk</span>`.output
+
+nbText <span class="hljs-string">&quot;Here I call a function that I have not yet defined&quot;</span>
+
+nbCodeOutOfOrder(callAdd):
+  <span class="hljs-keyword">echo</span> add(<span class="hljs-number">1</span>, <span class="hljs-number">2</span>)
+
+nbText <span class="hljs-string">&quot;Let's call it again&quot;</span>
+
+nbCodeOutOfOrder(callAddAgain):
+  <span class="hljs-keyword">echo</span> add(<span class="hljs-number">2</span>, <span class="hljs-number">3</span>)
+
+nbText <span class="hljs-string">&quot;Here I implement the function&quot;</span>
+
+nbCode:
+  <span class="hljs-keyword">func</span> add(a, b: <span class="hljs-built_in">int</span>): <span class="hljs-built_in">int</span> = a + b
+
+nbText <span class="hljs-string">&quot;I could decide to show the first call to add later&quot;</span>
+
+callAdd()
+
+nbText <span class="hljs-string">&quot;but I could decide to not show it (you are not seeing the second call)&quot;</span>
+
+callAddAgainHidden()
+
+nbText <span class="hljs-string">&quot;&quot;&quot;### Implementation
+
+Click `Show Source` to see how this is implemented.
+
+The internals are currently undergoing a major [reworking](https://github.com/pietroppeter/nimib/pull/235)
+so this implementation might not work in the future.
+&quot;&quot;&quot;</span>
+
+nbSave</code></pre>
+</section><script>
+function toggleSourceDisplay() {
+  var btn = document.getElementById("show")
+  var source = document.getElementById("source");
+  if (btn.innerHTML=="Show Source") {
+    btn.innerHTML = "Hide Source";
+    source.style.display = "block";
+  } else {
+    btn.innerHTML = "Show Source";
+    source.style.display = "none";
+  }
+}
+</script></body>
+</html>
